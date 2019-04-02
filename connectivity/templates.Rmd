@@ -1,0 +1,40 @@
+---
+title: "Untitled"
+author: "Mikkel Werling"
+date: "2019 M04 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(pacman)
+p_load(igraph)
+
+try <- make_lattice(length = 5, dim = 2, circular = T, directed = F)
+
+V(try)$name <- sample(c("Bo", "Mave", "Tess"))
+
+plot(try)
+
+try[]
+
+sw <- sample_smallworld(dim=2, size=10, nei=1, p=0.1)
+
+plot(sw, vertex.size=6, layout=layout_in_circle)
+
+V(sw)$name <- sample(c("Bo", "Mave", "Tess"))
+
+sw[]
+
+ ba <-  sample_pa(n=100, power=1, m=1,  directed=F)
+ 
+ V(ba)$name <- sample(c("Bo", "Mave", "Tess"))
+
+ plot(ba, vertex.size=6, vertex.size = 0.5)
+```
+
