@@ -25,16 +25,92 @@ try[]
 
 sw <- sample_smallworld(dim=2, size=10, nei=1, p=0.1)
 
+plot(sw)
+
+V(sw)
+
 plot(sw, vertex.size=6, layout=layout_in_circle)
 
 V(sw)$name <- sample(c("Bo", "Mave", "Tess"))
 
 sw[]
 
- ba <-  sample_pa(n=100, power=1, m=1,  directed=F)
+ ba <-sample_pa(n=100, power=0.2, m=1,  directed=F) #power seems to indicate how central the connections are. 
  
  V(ba)$name <- sample(c("Bo", "Mave", "Tess"))
+ V(ba)$name <- make.unique(V(ba)$name)
 
- plot(ba, vertex.size=6, vertex.size = 0.5)
+ plot(ba, vertex.size=6)
+ 
+ ba[]
+ 
+ vertices <- as_data_frame(ba, what="vertices")
+ edges <- as_data_frame(ba, what="edges")
+ 
+ g <- sample_smallworld(1, 100, 5, 0.05)
+ 
+ plot(g)
+ 
+ V(g)$name <- sample(c("Bo", "Mave", "Tess"))
+ V(g)$name <- make.unique(V(g)$name)
+ 
+ library(stringr)
+
+V(g)$type <- V(g)$name
+
+V(g)$type <- gsub("\\..*","",V(g)$type)
+
+V(g)$type
+
+V(g)$color <- V(g)$type
+
+V(g)$color <- str_replace(V(g)$color, "Tess", "blue") ; V(g)$color <- str_replace(V(g)$color, "Mave", "yellow") ; V(g)$color <- str_replace(V(g)$color, "Bo", "red")
+
+V(g)$color
+ 
+table(str_detect(V(g)$name, "Tess"))
+table(str_detect(V(g)$name, "Bo"))
+table(str_detect(V(g)$name, "Mave"))
+
+degree(g)
+
+library(ggraph)
+
+V(g)$type
+
+ggraph(g, layout = "kk") +
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(g))) +
+  geom_node_text(label = degree(g))#plotting the network using ggraph. Layout can be altered. 
+
+matrix_g <- as_adjacency_matrix(g, sparse = F) #getting only the matrix from the igraph object
+
+matrix_g <- as.matrix(matrix_g) #setting the type to matrix
+
+average.path.length(g)
+
+transitivity(g)
+closeness(g)
+
+deg.dist <- degree_distribution(g, cumulative=T, mode="all")
+plot( x=0:max(degree(g)), y=1-deg.dist, pch=19, cex=1.2, col="orange", 
+      xlab="Degree", ylab="Cumulative Frequency")
+
+#It seems that now the network is somewhat working, and the structure/scattering of the different types of agents looks good. Another idea could be to do this clustering in a much less random manner, so that some communities are largely comprised of the same type. But that is a topic of discussion for another time. 
+
+#The important thing now is to:
+#1. Synergize the already existing code in a network fashion.
+#2. Figure out the exact specifications for sampling models, so that we can begin coding the calculations
+#3. Figure out how to calculate our parameters
+#4. Find baselines in other structures - not really an issue, takes like two seconds. 
+
+```
+
+Two ways to go about this - matrix and lists.
+
+```{r}
+
+v <- matrix()
+
 ```
 
