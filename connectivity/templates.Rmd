@@ -74,16 +74,43 @@ table(str_detect(V(g)$name, "Mave"))
 
 degree(g)
 
-library(ggraph)
+p_load(ggraph)
 
 V(g)$type
 
-ggraph(g, layout = "kk") +
+V(g)
+
+p_load(wesanderson)
+
+names(wes_palettes)
+
+p <- ggraph(g, layout = "kk", circular= F) +
   geom_edge_link() + 
   geom_node_point(aes(colour = type, size = degree(g))) +
-  geom_node_text(label = degree(g))#plotting the network using ggraph. Layout can be altered. 
+  geom_node_text(label = degree(g))+
+  labs(x = NULL, y = NULL, title = "The Current Structure of the Scientific World")+
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous"))#plotting the network using ggraph. Layout can be altered. 
 
-matrix_g <- as_adjacency_matrix(g, sparse = F) #getting only the matrix from the igraph object
+p + 
+  guides(size = F)
+
+str(E(g))
+
+
+
+E(g)
+
+E(g)[23] == paste("Mave.7","|","Tess.7", sep = "")
+
+E(g)[23] == paste("Mave.7","--","Tess.7", sep = "")
+
+paste("Mave.7","--","Tess.7", sep = "")
+
+matrix_g <- as_adjacency_matrix(g, sparse = F) #getting only the matrix from the igraph object$Mave.7["Tess.7] == 1 
+
+matrix_g["Tess.7", "Mave.7"] == 1 
+
+matrix_g["Mave.7", "Tess.7"] == 1 
 
 matrix_g <- as.matrix(matrix_g) #setting the type to matrix
 
@@ -104,13 +131,154 @@ plot( x=0:max(degree(g)), y=1-deg.dist, pch=19, cex=1.2, col="orange",
 #3. Figure out how to calculate our parameters
 #4. Find baselines in other structures - not really an issue, takes like two seconds. 
 
+#_____ FOR THE SIMULATION LOOP_____:
+#1) give every scientist a model
+#2) choose a scientist randomly
+#3) from the probability matrix, pick a model
+#4) check whether the model performs better than the current model
+  #4.1) if it does, replace it 
+    #4.1.1) if it is replaced, let all the edge-vertices of the agent test the model that performs better against their      own model
+  #4.2) if it doesn't, end the turn
+
+assortativity_degree(g, directed = F)
+
 ```
 
 Two ways to go about this - matrix and lists.
 
 ```{r}
 
-v <- matrix()
+testing <- sample(V(g)$name, size = 11000, replace = T)
+
+table(testing)
+
+testing[12]
+
+number <- which((V(g)$name == testing[12]))
+
+current_type <- V(g)$type[number]
+
+edgy <- names(which(matrix_g[, "Tess.27"] == 1))
+
+str(V(g)$model)
+
+V(g)$model <- as.factor(V(g)$model)
+
+V(g)$model[number] <- 13
+
+V(g)$model
+
+
+
+if((V(g)$name == testing[12])){
+  return(row)
+        realguy <- (V(g)$type)
+}
+
+realguy
+
+######### From Simulator.R:
+## SEEMS RELEVANT FOR HAVING THE MODEL COMPARISONS 
+## Generate Xset and deterministic value of the linear regression
+    Xset <- generateXSet(sampleSize, k, correlation)
+    tModelBetas <- getBetas(tModel, weights, sigma)
+    deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
+
+    ## Select randomly Global Model and previous Global Model
+    gModel <- models[[as.integer(runif(1, min=1, max=length(models) + 1))]]
+
+    model1 <- models[[as.integer(runif(1, min=1, max=length(models) + 1))]]
+    model2 <- gModel
+    
+#MAKING A SHELF FOR THE OUTPUTS
+    output <- matrix(data=NA, nrow=timesteps, ncol=O_NUM_FIELDS)
+
+#THE LOOP
+for(step in 1:timesteps){
+      if(verbose){
+        print(paste0(replica, " ", step))
+      } #PROBABLY STATING THAT IF THERE IS AN ERROR, IT SHOULD PRINT SAID ERROR AND WHEN IT WAS.
+
+      ## Select the type of agent
+      agentType <- agentTypes[step] #INSTEAD, THIS STEP SHOULD JUST CHECK WHAT THE TYPE OF THE CURRENT SCIENTIST IS
+
+      ## Rey - UNSURE IF WE ARE GOING TO HAVE THIS GUY ONBOARD
+      if(agentType == REY){
+        if(!compareModels(model2, gModel)){
+          model <- model2
+        } else {
+          model <- model1
+        }
+
+      ## Tess 
+      } else if(agentType == TESS){
+        model <- modelSimilarByTerm(gModel, models, mode="random",
+                                    modelSelection=modelSelection)
+
+      ## Bo
+      } else if(agentType == BO){
+        model <- modelSimilarByInteraction(gModel, models, mode="random",
+                                           modelSelection=modelSelection)
+
+      ## Maverick
+      } else if(agentType == MAVE){
+        model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+      }
+
+  #THE NEXT STEPS I HAVE NO IDEA ABOUT, SO THEY SHOULD BE REVISED IN SOME WAY OR ANOTHER.
+      
+      model1 <- model 
+      model2 <- gModel
+
+      ## Analyze the Selected Model and Global Model
+      Yset <- generateY(deterministic, sigma)
+      stat <- analysis(model, gModel, Yset, Xset, weights)
+
+      switchModel <- FALSE
+      if((modelCompare == TSTATISTICS) &
+          (!is.null(stat$model$tstatistics)) &
+          (!is.null(stat$gModel$tstatistics)) &
+          (!is.na(stat$model$tstatistics)) &
+          (!is.na(stat$gModel$tstatistics))){
+        if(stat$model$tstatistics > stat$gModel$tstatistics){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == RSQ) &
+          (!is.null(stat$model$rsq)) &
+          (!is.null(stat$gModel$rsq)) &
+          (!is.na(stat$model$rsq)) &
+          (!is.na(stat$gModel$rsq))){
+        if(stat$model$rsq > stat$gModel$rsq){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == AIC) &
+          (!is.null(stat$model$aic)) &
+          (!is.null(stat$gModel$aic)) &
+          (!is.na(stat$model$aic)) &
+          (!is.na(stat$gModel$aic))){
+        if(stat$model$aic < stat$gModel$aic){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == BIC) &
+          (!is.null(stat$model$bic)) &
+          (!is.null(stat$gModel$bic)) &
+          (!is.na(stat$model$bic)) &
+          (!is.na(stat$gModel$bic))){
+        if(stat$model$bic < stat$gModel$bic){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == ARSQ) &
+          (!is.null(stat$model$arsq)) &
+          (!is.null(stat$gModel$arsq)) &
+          (!is.na(stat$model$arsq)) &
+          (!is.na(stat$gModel$arsq))){
+        if(stat$model$arsq > stat$gModel$arsq){
+          switchModel <- TRUE
+        }
+      }
+
+      initGModel <- gModel
+      initGModelStat <- stat$gModel
 
 ```
 
