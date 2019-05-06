@@ -1,0 +1,153 @@
+---
+title: "prediction_plots"
+author: "Victor Møller"
+date: "6 maj 2019"
+output: html_document
+---
+
+loading data & models
+
+```{r}
+#data
+meantime <- read.csv("bayes/meantime.csv")
+timeto <- read.csv("bayes/timeto.csv")
+stickiness <- read.csv("bayes/stickiness.csv")
+
+#models
+ttt_mod <- readRDS("bayes/ttt_mod.RDS", refhook = NULL)
+tat_mod <- readRDS("bayes/tat_mod.rds", refhook = NULL)
+stick_mod <- readRDS("bayes/stick_mod.rds", refhook = NULL )
+mod_mod <- readRDS("bayes/mod_mod.rds", refhook = NULL)
+
+```
+
+basic plots of posteriors: 
+
+```{r}
+
+#posterior samples for difference in posteriors. 
+stick_pos <- posterior_samples(stick_mod)
+head(stick_pos)
+stick_mod
+
+p3 <- ggplot() +
+  geom_density(data = stick_pos, aes(x = b_agentBo), 
+               fill = "red", alpha = 0.3)+
+  geom_density(data = stick_pos, aes(x = b_agentMave), 
+               fill = "blue", alpha = 0.3) +
+  geom_density(data = stick_pos, aes(x = b_agentTess),
+               fill = "green", alpha = 0.3) + 
+  xlab("Difference from epistemic diversity") + 
+  labs(title = "difference relative to 'All'",
+       subtitle = "Bo & Mave", 
+       caption = "red = Bo\n blue = Mave\n green = Tess") +
+  geom_vline(data = stick_pos, aes(xintercept = mean(b_agentBo)), color = "black", linetype = "dashed") +
+  geom_vline(data = stick_pos, aes(xintercept = mean(b_agentMave)), color = "black", linetype = "dashed") +
+  geom_vline(data = stick_pos, aes(xintercept = mean(b_agentTess)), color = "black", linetype = "dashed") +
+  theme_janco_point() 
+
+#call the plot
+p3 #not sure about the vline()
+
+```
+
+for later (sleep on it)
+
+```{r}
+
+baseDir <- "."
+source(paste0(baseDir, "/bayes/A4_functions.R")) #flat violin
+
+```
+
+
+```{r}
+# prediction
+mod_f
+d.pred <- distinct(stickiness, agent, network)
+stick_pred <- predict(stick_mod, d.pred, summary = FALSE) 
+
+#reshape
+stick_pred2 <- as.data.frame(stick_pred) %>%
+  reshape2::melt() %>%
+  mutate(id = str_extract(variable, "\\d+")) %>%
+  select(-variable)
+
+#re-merging --> doesn't work. 
+#I have an idea, but quite fucked. 
+stickiness <- stickiness %>%
+  mutate(id = ifelse())
+
+stick_pred3 <- stickiness %>%
+  rownames_to_column("id") %>%
+  select(id, stickiness, agent, network) %>%
+  full_join(stick_pred2, by = "id")
+
+#subsetting
+stick_pred_lat <- stick_pred3 %>%
+  filter(network == "lattice")
+
+stick_pred_small <- stick_pred3 %>%
+  filter(network == "small")
+
+#preparing raincloud (can be customized)
+raincloud_theme = theme(
+text = element_text(size = 10),
+axis.title.x = element_text(size = 16),
+axis.title.y = element_text(size = 16),
+axis.text = element_text(size = 14),
+axis.text.x = element_text(vjust = 0.5),
+legend.title=element_text(size=16),
+legend.text=element_text(size=16),
+legend.position = "right",
+plot.title = element_text(lineheight=.8, face="bold", size = 16),
+panel.border = element_blank(),
+panel.grid.minor = element_blank(),
+panel.grid.major = element_blank(),
+axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
+```
+
+crazy plot 
+
+```{r}
+g <- ggplot() +
+  geom_flat_violin(data = stick_pred_lat, 
+                    aes(x = network, y = value,
+                        color = factor(network),
+                        fill = factor(network)),
+                        position = position_nudge(x = .2, y = 0), alpha = .8) +
+  geom_flat_violin(data = stick_pred_small, 
+                    aes(x = network, y = value,
+                        color = factor(network),
+                        fill = factor(network)),
+                        position = position_nudge(x = .2, y = 0), alpha = .8) +
+  geom_point(data = stickiness,
+              aes(x = network, y = stickiness,
+                  color = factor(network)), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(data = stickiness,
+              aes(x = network, y = stickiness,
+                  color = factor(network)),
+              width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 3) +
+  guides(fill = FALSE) + 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  coord_flip() +
+  theme_bw() +
+  #ylim(-2,5) +
+  labs(title = "standard deviaton of pitch for HC & SZ",
+       subtitle = "groupings from data, pred post = violin, raw = points", 
+       x = "diagnosis", 
+       y = "z scaled effect size") + #sets the legend title.
+  raincloud_theme
+
+g
+
+```
+
+
