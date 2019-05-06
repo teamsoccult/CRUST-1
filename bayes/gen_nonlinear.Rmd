@@ -1,0 +1,105 @@
+---
+title: "gen_nonlinear"
+author: "Victor Møller"
+date: "6 maj 2019"
+output: html_document
+---
+
+time to true (non-gaussian).
+It looks as if time to true (p. 15) could be non-gaussian.
+I FUCKED THIS UP. 
+
+```{r}
+#pre-sets
+length_out <- 1000
+x = seq(from = 0, to = 10, length.out = length_out)
+
+#lattice
+tess <- dgamma(x, 2, 2)
+plot(tess)
+mave <- dgamma(x, 1.8, 2)
+bo <- dgamma(x, 2, 1.8)
+all <- dgamma(x, 1.9, 1.9)
+
+#small
+tess_sw <- dgamma(x, 2, 1.9)
+mave_sw <- dgamma(x, 2.1, 1.8)
+bo_sw <- dgamma(x, 1.9, 1.9)
+all_sw <- dgamma(x, 2.2, 1.8)
+
+```
+
+putting into data-frames 
+
+```{r}
+#tess ttt
+tess <- data.frame(tess)
+tess <- tess %>%
+  mutate(agent = "Tess",
+         network = "lattice") %>%
+  rename(time_to_true = "tess")
+
+tess_sw <- data.frame(tess_sw)
+tess_sw <- tess_sw %>%
+  mutate(agent = "Tess",
+         network = "small") %>%
+  rename(time_to_true = "tess_sw")
+
+#mave 
+mave <- data.frame(mave)
+mave <- mave %>%
+  mutate(agent = "Mave",
+         network = "lattice") %>%
+  rename(time_to_true = "mave")
+
+mave_sw <- data.frame(mave_sw)
+mave_sw <- mave_sw %>%
+  mutate(agent = "Mave",
+         network = "small") %>%
+  rename(time_to_true = "mave_sw")
+
+#bo 
+bo <- data.frame(bo)
+bo <- bo %>%
+  mutate(agent = "Bo",
+         network = "lattice") %>%
+  rename(time_to_true = "bo")
+
+bo_sw <- data.frame(bo_sw)
+bo_sw <- bo_sw %>%
+  mutate(agent = "Bo",
+         network = "small") %>%
+  rename(time_to_true = "bo_sw")
+
+#all 
+all <- data.frame(all)
+all <- all %>%
+  mutate(agent = "All",
+         network = "lattice") %>%
+  rename(time_to_true = "all")
+
+all_sw <- data.frame(all_sw)
+all_sw <- all_sw %>%
+  mutate(agent = "All",
+         network = "small") %>%
+  rename(time_to_true = "all_sw")
+
+```
+
+binding further 
+
+```{r}
+
+#time to true lattice
+time_lat <- rbind(all, bo, mave, tess)
+rm(all, bo, mave, tess)
+
+#time to true small
+time_small <- rbind(all_sw, bo_sw, mave_sw, tess_sw)
+rm(all_sw, bo_sw, mave_sw, tess_sw)
+
+#binding
+nltimeto <- rbind(time_lat, time_small)
+write.csv(nltimeto, "bayes/nltimeto.csv", row.names = FALSE)
+
+```
