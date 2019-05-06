@@ -148,6 +148,8 @@ Two ways to go about this - matrix and lists.
 
 ```{r}
 
+rgamma(1000, )
+
 testing <- sample(V(g)$name, size = 11000, replace = T)
 
 table(testing)
@@ -158,11 +160,9 @@ number <- which((V(g)$name == testing[12]))
 
 current_type <- V(g)$type[number]
 
-edgy <- names(which(matrix_g[, "Tess.27"] == 1))
+edgy <- names(which(matrix_g[, testing[12]] == 1))
 
-str(V(g)$model)
-
-V(g)$model <- as.factor(V(g)$model)
+V(g)$model <- as.factor(sample(1:14))
 
 V(g)$model[number] <- 13
 
