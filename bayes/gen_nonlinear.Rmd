@@ -7,25 +7,22 @@ output: html_document
 
 time to true (non-gaussian).
 It looks as if time to true (p. 15) could be non-gaussian.
-I FUCKED THIS UP. 
 
 ```{r}
-#pre-sets
-length_out <- 1000
-x = seq(from = 0, to = 10, length.out = length_out)
+library(pacman)
+p_load(tidyverse, brms)
 
 #lattice
-tess <- dgamma(x, 2, 2)
-plot(tess)
-mave <- dgamma(x, 1.8, 2)
-bo <- dgamma(x, 2, 1.8)
-all <- dgamma(x, 1.9, 1.9)
+tess <- rgamma(1000,1.5)
+mave <- rgamma(1000,1.5)
+bo <- rgamma(1000,1.5)
+all <- rgamma(1000,1.5)
 
 #small
-tess_sw <- dgamma(x, 2, 1.9)
-mave_sw <- dgamma(x, 2.1, 1.8)
-bo_sw <- dgamma(x, 1.9, 1.9)
-all_sw <- dgamma(x, 2.2, 1.8)
+tess_sw <- rgamma(1000,2)
+mave_sw <- rgamma(1000,2)
+bo_sw <- rgamma(1000,2)
+all_sw <- rgamma(1000,2)
 
 ```
 

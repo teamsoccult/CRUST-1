@@ -94,7 +94,8 @@ plot(stick_mod)
 
 non-linear outcome variable for time to true (gamma distribution).
 check gen_nonlinear & p. 15.
-try with normal (gaussian)
+try with normal (gaussian).
+the posterior is not looking good. 
 
 ```{r}
 
@@ -104,53 +105,101 @@ nltimeto <- read.csv("bayes/nltimeto.csv")
 mod_f <- bf("time_to_true ~ agent * network")
 get_prior(mod_f, nltimeto, family = gaussian())
 
-mean(nltimeto$time_to_true)
-
 #running the model with regularizing priors 
 tttn_mod <- brm(
   mod_f, 
-  family = Gamma(), #or what would be appropriate? 
+  family = gaussian(), #or what would be appropriate? 
   prior = c( #& what about priors?
-    prior(normal(2, 2), class = "Intercept"),
-    prior(normal(0, 2), class = "b"),
-    prior(gamma(0, 2), class = "sigma")), #using get_priors. 
-  data = timeto, 
-  cores = 4, iter = 4000, warmup = 2000,
-  sample_prior = TRUE, #added for later use. 
-  file = "bayes/tttn_mod" #saving for later use - these models take ages to run. 
+    prior(normal(1, 1), class = "Intercept"),
+    prior(normal(0, 1), class = "b"),
+    prior(normal(0, 1), class = "sigma")), #using get_priors. 
+  data = nltimeto, 
+  cores = 4, iter = 4000, warmup = 2000, chains = 1,
+  sample_prior = TRUE #added for later use. 
+  #file = "bayes/tttn_mod" #saving for later use - these models take ages to run. 
 )
 
-#I have NO idea what this means. 
-tttg_mod
+#okay
+tttn_mod
+
+#the issue
+pp_check(tttn_mod)
 
 ```
 
 This seems crazy.
 Can it be specified in model call or with a link that makes sense?
 Is it close to a log?
+still not super good. 
 
 ```{r}
 
+nltimeto <- nltimeto %>%
+  mutate(log_time = log(time_to_true))
+
+mean(nltimeto$log_time)
+
+#model call
+mod_f <- bf("log_time ~ agent * network")
+get_prior(mod_f, nltimeto, family = gaussian())
+
+#running the model with regularizing priors 
+tttg_mod <- brm(
+  mod_f, 
+  family = gaussian(), #or what would be appropriate? 
+  prior = c( #& what about priors?
+    prior(normal(0, 1), class = "Intercept"),
+    prior(normal(0, 1), class = "b"),
+    prior(normal(0, 1), class = "sigma")), #using get_priors. 
+  data = nltimeto, 
+  cores = 4, iter = 4000, warmup = 2000, chains = 1,
+  sample_prior = TRUE #added for later use. 
+  #file = "bayes/tttg_mod" #saving for later use - these models take ages to run. 
+)
+
+#This is slightly better. 
+tttg_mod
+pp_check(tttg_mod)
+
+```
+
+Trying with Gamma
+
+```{r}
 #model call
 mod_f <- bf("time_to_true ~ agent * network")
 get_prior(mod_f, nltimeto, family = Gamma())
 
 #running the model with regularizing priors 
-tttg_mod <- brm(
+tttgam_mod <- brm(
   mod_f, 
   family = Gamma(), #or what would be appropriate? 
   prior = c( #& what about priors?
-    prior(normal(0, 1), class = "Intercept"),
-    prior(normal(0, 1), class = "b"),
-    prior(gamma(0.01, 0.02), class = "shape")), #using get_priors. 
-  data = timeto, 
-  cores = 4, iter = 4000, warmup = 2000,
-  sample_prior = TRUE, #added for later use. 
-  file = "bayes/tttg_mod" #saving for later use - these models take ages to run. 
+    prior(normal(2, 2), class = "Intercept"),
+    prior(normal(0, 2), class = "b"),
+    prior(gamma(0.01, 0.01), class = "shape")), #using get_priors. 
+  data = nltimeto, 
+  cores = 4, iter = 4000, warmup = 2000, chains = 1,
+  sample_prior = TRUE #added for later use. 
+  #file = "bayes/tttg_mod" #saving for later use - these models take ages to run. 
 )
 
-#I have NO idea what this means. 
-tttg_mod
+#This is slightly better. 
+pp_check(tttgam_mod)
+```
+
+three models comparison 
+
+```{r}
+
+#normal 
+pp_check(tttn_mod)
+
+#log-normal
+pp_check(tttg_mod)
+
+#gamma model
+pp_check(tttgam_mod)
 
 ```
 
