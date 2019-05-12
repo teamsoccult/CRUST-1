@@ -70,7 +70,7 @@ stick_pred <- predict(stick_mod, d.pred, summary = FALSE)
 #reshape
 stick_pred2 <- as.data.frame(stick_pred) %>%
   reshape2::melt() %>%
-  mutate(id = str_extract(variable, "\\d+")) %>%
+  mutate(id = str_extract(variable, "\\d+")) %>% #ask Jan. 
   select(-variable)
 
 #re-merging --> doesn't work. 

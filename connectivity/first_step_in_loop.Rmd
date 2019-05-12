@@ -1,0 +1,45 @@
+---
+title: "checkingFirstStep"
+author: "Victor Møller"
+date: "10 maj 2019"
+output: html_document
+---
+
+
+```{r}
+
+verbose = TRUE
+#does it work?
+for(step in 1:timesteps){ #11000 time-steps
+
+      ## Select the token of agent
+      agentToken <- agentTurn[step] 
+      
+      ## Agents 
+      agentIndex <- which((V(g)$name) == agentToken)
+      
+      ## model & in format
+      gModel <- strToModel(V(g)$model[agentIndex], k) #local model
+
+      ## Tess
+      if(V(g)$type[agentIndex] == "Tess"){ #detect
+        model <- modelSimilarByTerm(gModel, models, mode="random",
+                                    modelSelection=modelSelection)
+
+      ## Mave
+      } else if(V(g)$type[agentIndex] == "Mave"){
+        model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+        
+      ## Bo is fucked. 
+      } else if(V(g)$type[agentIndex] == "Bo"){
+        model <- modelSimilarByInteraction(gModel, models, mode="random",
+                                           modelSelection=modelSelection)
+
+      #setting up. 
+      model1 <- model
+      model2 <- lModel
+      }
+}
+      
+```
+
