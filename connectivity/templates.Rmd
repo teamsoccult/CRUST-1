@@ -47,6 +47,8 @@ p1 <- ggraph(lattice, layout = "circle", circular= F) + #circular so it fits wit
   guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
 
 p1
+
+save(lattice, file = "lattice")
 ```
 
 Making different populations of agents is just a question of sampling the names in the beginning with different proportions. 
@@ -78,6 +80,8 @@ p1_bo <- ggraph(lattice_bo, layout = "circle", circular= F) + #circular so it fi
   guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
 
 p1_bo
+
+save(lattice_bo, file = "lattice_bo")
 ```
 
 TESS - Lattice
@@ -106,6 +110,8 @@ p1_tess <- ggraph(lattice_tess, layout = "circle", circular= F) + #circular so i
   guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
 
 p1_tess
+
+save(lattice_tess, file = "lattice_tess")
 ```
 
 MAVE - Lattice
@@ -136,6 +142,8 @@ p1_mave <- ggraph(lattice_mave, layout = "circle", circular= F) + #circular so i
   guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
 
 p1_mave
+
+save(lattice_mave, file = "lattice_mave")
 ```
 
 Fully connected model
@@ -165,6 +173,8 @@ p2 <- ggraph(full_connect_graph, layout = "circle", circular= F) +
   guides(size = F)#plotting the network using ggraph. Layout can be altered. 
 
 p2
+
+save(full_connect_graph, file = "full_connected_graph")
 ```
 
 Small world
@@ -190,7 +200,102 @@ p3 <- ggraph(g, layout = "circle", circular= F) +
   guides(size = F)#plotting the network using ggraph. Layout can be altered. 
 
 p3
+
+save(g, file = "small_world")
 ```
+BO - small world:
+
+```{r}
+
+small_world_bo <- g
+
+V(small_world_bo)$name <- rep(c("Bo", "Mave", "Tess"), c(98,1,1)) #note that this will probably make Mave and Tess be neighbours in the network. Is this a problem?
+
+V(small_world_bo)$name <- sample(V(small_world_bo)$name)
+
+V(small_world_bo)$type <- V(small_world_bo)$name
+
+V(small_world_bo)$name <- make.unique(V(small_world_bo)$name)
+ 
+table(str_detect(V(small_world_bo)$name, "Tess"))
+table(str_detect(V(small_world_bo)$name, "Bo"))
+table(str_detect(V(small_world_bo)$name, "Mave"))
+
+p1_bo <- ggraph(small_world_bo, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(small_world_bo))) + #size according to degree
+  geom_node_text(label = degree(small_world_bo))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice- Bo")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
+
+p1_bo
+
+save(small_world_bo, file = "small_world_bo")
+```
+
+TESS - small world
+
+```{r}
+small_world_tess <- g
+
+V(small_world_tess)$name <- rep(c("Tess", "Bo", "Mave"), c(98,1,1)) #note that this will probably make Mave and Tess be neighbours in the network. Is this a problem?
+
+V(small_world_tess)$name <- sample(V(small_world_tess)$name)
+
+V(small_world_tess)$type <- V(small_world_tess)$name
+
+V(small_world_tess)$name <- make.unique(V(small_world_tess)$name)
+ 
+table(str_detect(V(small_world_tess)$name, "Tess"))
+table(str_detect(V(small_world_tess)$name, "Bo"))
+table(str_detect(V(small_world_tess)$name, "Mave"))
+
+p1_tess <- ggraph(small_world_tess, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(small_world_tess))) + #size according to degree
+  geom_node_text(label = degree(small_world_tess))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice - Tess")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
+
+p1_tess
+
+save(small_world_tess, file = "small_world_tess")
+```
+
+MAVE - Lattice
+
+```{r}
+small_world_mave <- g
+
+V(small_world_mave)$name <- rep(c("Mave", "Tess", "Bo"), c(98,1,1)) #note that this will probably make Mave and Tess be neighbours in the network. Is this a problem?
+
+V(small_world_mave)$name <- sample(V(small_world_mave)$name)
+
+V(small_world_mave)$type <- sample(V(small_world_mave)$type)
+
+V(small_world_mave)$type <- V(small_world_mave)$name
+
+V(small_world_mave)$name <- make.unique(V(small_world_mave)$name)
+ 
+table(str_detect(V(small_world_mave)$name, "Tess"))
+table(str_detect(V(small_world_mave)$name, "Bo"))
+table(str_detect(V(small_world_mave)$name, "Mave"))
+
+p1_mave <- ggraph(small_world_mave, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(small_world_mave))) + #size according to degree
+  geom_node_text(label = degree(small_world_mave))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice - Mave")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
+
+p1_mave
+
+save(small_world_mave, file = "small_world_mave")
+```
+
 Plotting the different networks with epistemically diverse populations
 
 ```{r}
@@ -281,6 +386,8 @@ V(g)$model[number] <- 13 #seeing if you can change the models of an agent
 V(g)$model #you can
 
 k = 3
+
+models <- generateModels(k)
 
 some_models <- NULL
 
