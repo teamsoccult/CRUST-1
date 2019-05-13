@@ -437,8 +437,6 @@ V(g)$model <- sample(some_models)
 
 V(g)$model <- sample(V(g)$model)
 
-model_in_format <- strToModel(V(g)$model[12], k)
-
 #For mave
 
 model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
@@ -473,8 +471,7 @@ bo_models <- strToModel(V(g)$model[number], k)
 model_bo <- modelSimilarByInteraction(bo_models, models, mode="random",
                                     modelSelection=modelSelection)
 
-modelSimilarByInteraction(model_in_format[3], models, mode="random",
-                                    modelSelection=modelSelection)
+
 ```
 
 (Maybe) relevant stuff from Simulator.R
