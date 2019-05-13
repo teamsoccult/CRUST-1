@@ -1,0 +1,66 @@
+---
+title: "some_models"
+author: "Mikkel Werling"
+date: "5/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+some_models <- NULL
+
+N = 1
+
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+
+some_models[N] <- modelToStr(models[[N]])
+N  <- N + 1  
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+
+N  <- N + 1 
+some_models[N] <- modelToStr(models[[N]])
+
+some_models <- str_replace(some_models, "Y ~", "")
+
+some_models <- str_replace_all(some_models, ":", "")
+
+save(some_models, file = "connectivity/loads/some_models")
+
+```
+
