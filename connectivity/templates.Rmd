@@ -212,6 +212,8 @@ p3 <- ggraph(g, layout = "circle", circular= F) +
 p3
 
 save(g, file = "networks/small_world")
+
+load("networks/small_world") #loading g
 ```
 BO - small world:
 
@@ -343,6 +345,30 @@ matrix_g["Mave.7", "Tess.7"] == 1 #does it work the other way around?
 
 matrix_g <- as.matrix(matrix_g) #setting the type to matrix, just because matrix
 
+tommy <- graph_from_adjacency_matrix(matrix_g, diag = F, mode = "undirected")
+
+V(tommy)$type <- gsub("\\..*","",V(tommy)$name) #takes everything before the "."
+
+V(tommy)$type
+
+degree(tommy)
+
+degree(g)
+
+p1_tommy <- ggraph(tommy, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(tommy))) + #size according to degree
+  geom_node_text(label = degree(tommy))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Small World from Adjacency Matrix")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
+
+plot(tommy)
+
+p1_tommy
+
+plot_grid(p1_tommy, p3)
+
 ```
 Getting descriptive values from the network
 
@@ -395,11 +421,7 @@ current_type <- V(g)$type[number] #having a parameter that changes according to 
 
 edgy <- names(which(matrix_g[, testing[12]] == 1)) #calling upon the previous egde-matrix, to see what agents are on turn for "bonus round"
 
-V(g)$model <- as.factor(sample(1:14)) #giving each agent a model
 
-V(g)$model[number] <- 13 #seeing if you can change the models of an agent
-
-V(g)$model #you can
 
 k = 3
 
