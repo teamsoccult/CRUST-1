@@ -52,7 +52,7 @@ O_RSQ <- 17
 O_ARSQ <- 18
 O_AIC <- 19
 O_BIC <- 20
-O_REPLICATED <- 21
+O_AGENT_INDEX <- 21 #changed from the original (O_REPLICATED)
 O_PREDICTORS <- 22
 
 ## File output headers
@@ -78,7 +78,7 @@ OUTPUT_HEADER <- c("replica",
                    "ARSQ",
                    "AIC",
                    "BIC",
-                   "replicated",
+                   "agent_index", #changed from "replicated"
                    "predictors")
 
 ## Parameter output
