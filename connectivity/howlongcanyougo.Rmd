@@ -11,14 +11,113 @@ output: html_document
 p_load(caTools, data.table, permute, matrixStats, MCMCpack)
 ```
 
+input parameters
 
 ```{r}
 
+## Number of replications
+replications <- 2 #100 originally, now 2. 
+
+## Length of the simulation
+timesteps <- 11000
+
+## Number of factors
+k <- 3
+
+## Sigma (Error variance)
+sigma <- 0.2
+
+## Sample size
+sampleSize <- 100
+
+## generating 
+models <- generateModels(k)
+
+## Identify the number of predictors of each model
+predictors <- getPredictors(models)
+
+## Generate Betas
+weights <- generateBetas(models)
+
+## True model
+trueModel <- "x1 + x2"
+tModel <- strToModel(trueModel, k)
+
+## Correlation
+correlation <- 0.2
+
+## modelCompare & selection
+modelCompare <- AIC
+modelSelection <- "soft"
+
+## ndec
+ndec = 4
+
+## outputs
+outputFile <- "output.csv"
+paramFile <- "parameters.rds"
+
+## seeds
+seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
+
+## verbose
+verbose <- TRUE
+```
+
+models & some models & agentTurn
+
+```{r}
+
+#models
+models <- generateModels(k) #need something here. 
+
+#some models 
+some_models <- load()
+
+#g
+g <- load() 
+
+#agent turn
+agentTurn <- sample(V(g)$name, size = 11000, replace = T) 
+
+
+
+```
+
+checking whether we have parameters
+
+```{r}
+#checking wh
+replications
+timesteps
+models
+k
+tModel
+weights
+sampleSize
+correlation
+sigma
+modelCompare
+modelSelection
+inputDir
+outputDir
+paramFile
+verbose
+ndec
+seeds
+models
+some_models
+agentTurn
+```
+
+destructor
+
+```{r}
 
 destructor <- function(replications, timesteps, models, k, tModel,
     weights, sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-    verbose, ndec, seeds){
+    verbose, ndec, seeds, some_models){
 
 ## REPLICA SIMULATION
   ###################
@@ -137,7 +236,7 @@ for(step in 1:timesteps){ #11000 time-steps
       }
 
       ## Record output data (commenting fucked stuff)
-      output[step, O_STRATEGY] <- V(g)$type[agentIndex] #new. 
+      output[step, O_STRATEGY] <- V(g)$type[agentIndex] #new.
       output[step, O_SELECTED_MODEL] <- searchModel(model, models)
       output[step, O_SELECTED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
       output[step, O_SELECTED_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, stat$model$betasEst), ndec)
@@ -157,7 +256,7 @@ for(step in 1:timesteps){ #11000 time-steps
       output[step, O_ARSQ] <- round(finalGModelStat$arsq, ndec)
       output[step, O_AIC] <- round(finalGModelStat$aic, ndec)
       output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
-      #output[step, O_REPLICATED] <- replicated
+      output[step, O_AGENT_INDEX] <- V(g)$name[agentIndex] #new
       output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
   }
 
@@ -198,7 +297,7 @@ running the destructor
 destructor(replications, timesteps, models, k, tModel,
     weights, sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-    verbose, ndec, seeds)
+    verbose, ndec, seeds, some_models)
 
 ```
 
@@ -211,6 +310,19 @@ mean(IamGood$final_global_true_model) #more than 1/14th but not good.
 mean(IamGood$selected_true_model) #1/14th chance. 
 
 library(tidyverse)
+
+#subset
+rep1 <- IamGood %>%
+  subset(replica == "1")
+
+#mave 13
+mave13 <- rep1 %>%
+  subset(replicated == "Mave.13")
+
+#gg
+ggplot(mave13, aes(timestep, final_global_true_model)) +
+  geom_point()+
+  geom_smooth()
 
 #testing agent split (reasonable)
 agents <- IamGood %>%
