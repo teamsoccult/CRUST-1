@@ -48,7 +48,9 @@ p1 <- ggraph(lattice, layout = "circle", circular= F) + #circular so it fits wit
 
 p1
 
-save(lattice, file = "lattice")
+g <- lattice
+
+save(g, file = "networks/lattice")
 ```
 
 Making different populations of agents is just a question of sampling the names in the beginning with different proportions. 
@@ -81,7 +83,9 @@ p1_bo <- ggraph(lattice_bo, layout = "circle", circular= F) + #circular so it fi
 
 p1_bo
 
-save(lattice_bo, file = "lattice_bo")
+g <- lattice_bo
+
+save(g, file = "networks/lattice_bo")
 ```
 
 TESS - Lattice
@@ -111,7 +115,9 @@ p1_tess <- ggraph(lattice_tess, layout = "circle", circular= F) + #circular so i
 
 p1_tess
 
-save(lattice_tess, file = "lattice_tess")
+g <- lattice_tess
+
+save(g, file = "networks/lattice_tess")
 ```
 
 MAVE - Lattice
@@ -143,7 +149,9 @@ p1_mave <- ggraph(lattice_mave, layout = "circle", circular= F) + #circular so i
 
 p1_mave
 
-save(lattice_mave, file = "lattice_mave")
+g <- lattice_mave
+
+save(g, file = "networks/lattice_mave")
 ```
 
 Fully connected model
@@ -174,7 +182,9 @@ p2 <- ggraph(full_connect_graph, layout = "circle", circular= F) +
 
 p2
 
-save(full_connect_graph, file = "full_connected_graph")
+g <- full_connect_graph
+
+save(g, file = "networks/full_connected_graph")
 ```
 
 Small world
@@ -201,7 +211,7 @@ p3 <- ggraph(g, layout = "circle", circular= F) +
 
 p3
 
-save(g, file = "small_world")
+save(g, file = "networks/small_world")
 ```
 BO - small world:
 
@@ -231,7 +241,9 @@ p1_bo <- ggraph(small_world_bo, layout = "circle", circular= F) + #circular so i
 
 p1_bo
 
-save(small_world_bo, file = "small_world_bo")
+g <- small_world_bo
+
+save(small_world_bo, file = "networks/small_world_bo")
 ```
 
 TESS - small world
@@ -261,7 +273,9 @@ p1_tess <- ggraph(small_world_tess, layout = "circle", circular= F) + #circular 
 
 p1_tess
 
-save(small_world_tess, file = "small_world_tess")
+g <- small_world_tess
+
+save(g, file = "networks/small_world_tess")
 ```
 
 MAVE - Lattice
@@ -293,7 +307,9 @@ p1_mave <- ggraph(small_world_mave, layout = "circle", circular= F) + #circular 
 
 p1_mave
 
-save(small_world_mave, file = "small_world_mave")
+g <- small_world_mave
+
+save(g, file = "networks/small_world_mave")
 ```
 
 Plotting the different networks with epistemically diverse populations
