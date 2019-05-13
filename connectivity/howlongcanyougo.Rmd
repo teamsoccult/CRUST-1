@@ -81,7 +81,7 @@ predictors <- getPredictors(models)
 weights <- generateBetas(models)
 
 ## True model
-trueModel <- "x1 + x2"
+trueModel <- " X1 + X2"
 tModel <- strToModel(trueModel, k)
 
 ## Correlation
@@ -112,8 +112,6 @@ load("connectivity/loads/some_models")
 #loads as "g"
 load("connectivity/networks/small_world") 
 
-#agent turn
-agentTurn <- sample(V(g)$name, size = 11000, replace = T) 
 
 
 ```
@@ -146,9 +144,14 @@ destructor <- function(replications, timesteps, models, k, tModel,
     deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
 
     ## Select randomly Global Model and previous Global Model
-    #sampling 
+    # Sampling / randomizing stuff. 
+    V(g)$type <- sample(c("Bo", "Mave", "Tess"))
+    V(g)$type <- sample(V(g)$type)
+    V(g)$name <- make.unique(V(g)$type) 
     V(g)$model <- sample(some_models)
     V(g)$model <- sample(V(g)$model)
+    matrix_g <- as_adjacency_matrix(g, sparse = F) 
+    agentTurn <- sample(V(g)$name, size = 11000, replace = T) 
     #######################
     ## OUTPUT PARAMETERS
     #######################
@@ -184,11 +187,11 @@ for(step in 1:timesteps){ #11000 time-steps
       } else if(V(g)$type[agentIndex] == "Bo"){
         model <- modelSimilarByInteraction(gModel, models, mode="random",
                                            modelSelection=modelSelection)
-
+      }
       #setting up. 
       model1 <- model
       model2 <- gModel
-      }
+      
 
       #adding variance & statistics for different engines (AIC, BIC)
   Yset <- generateY(deterministic, sigma) #putting variance on the deterministic.
@@ -246,6 +249,13 @@ for(step in 1:timesteps){ #11000 time-steps
       if(switchModel){
         gModel <- model
         finalGModelStat <- stat$model
+        modelStr <- modelToStr(gModel)
+        modelStr <- str_replace(modelStr, "Y ~", "")
+        modelStr <- str_replace_all(modelStr, ":", "")
+        V(g)$model[agentIndex] <- modelStr
+        
+        #here goes for loop. 
+        
       }  else {
         finalGModelStat <- stat$gModel
       }
@@ -273,6 +283,7 @@ for(step in 1:timesteps){ #11000 time-steps
       output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
       output[step, O_AGENT_INDEX] <- V(g)$name[agentIndex] #new
       output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
+      output[step, O_PROPORTION] <- mean(as.numeric(V(g)$model == trueModel))
   }
 
 ## Parameter output
@@ -287,7 +298,9 @@ for(step in 1:timesteps){ #11000 time-steps
         #(nRey + nTess + nBo + nMave)
     param[[P_TRUE_BETAS]] <- tModelBetas
     param[[P_XSET]] <- Xset
+    param[[P_NETWORK]] <- matrix_g
     parameters[[replica]] <- param
+    
 
     ## Convert output matrix into data table
     output <- data.table(cbind(rep(replica, timesteps), 1:timesteps, output))
@@ -321,7 +334,10 @@ loading stuff
 
 ```{r}
 
+#output & paramz
 IamGood <- read.csv("data/output.csv", sep = ";")
+paramz <- readRDS("data/parameters.rds")
+  
 mean(IamGood$final_global_true_model) #more than 1/14th but not good. 
 mean(IamGood$selected_true_model) #1/14th chance. 
 
@@ -336,17 +352,23 @@ agents <- IamGood %>%
   group_by(strategy) %>%
   summarize(n())
 
-#development of true model over time? 
-ggplot(IamGood, aes(timestep, final_global_true_model)) +
+#proportion over time? 
+ggplot(IamGood, aes(timestep, proportion)) +
   geom_point() +
   geom_smooth() +
-  facet_wrap(~strategy)
+  facet_wrap(~ replica)
 
+#selected true 
 ggplot(IamGood, aes(timestep, selected_true_model)) +
   geom_point() +
   geom_smooth() +
   facet_wrap(~strategy)
 
+#final global true. 
+ggplot(IamGood, aes(timestep, final_global_true_model)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~strategy)
 
 ```
 

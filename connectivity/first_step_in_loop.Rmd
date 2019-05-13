@@ -7,7 +7,8 @@ output: html_document
 
 
 ```{r}
-p_load(caTools, data.table, permute, matrixStats, MCMCpack)
+library(pacman)
+p_load(caTools, data.table, permute, matrixStats, MCMCpack, igraph)
 ```
 
 
@@ -117,7 +118,7 @@ for(step in 1:timesteps){ #11000 time-steps
       
       #changing global if TRUE (for recording)
       if(switchModel){
-        gModel <- model
+        gModel <- model 
         finalGModelStat <- stat$model
       }  else {
         finalGModelStat <- stat$gModel
@@ -125,6 +126,7 @@ for(step in 1:timesteps){ #11000 time-steps
 
       ## Record output data (commenting fucked stuff)
       output[step, O_STRATEGY] <- V(g)$type[agentIndex] #new. 
+      output[step, O_AGENT_INDEX] <- V(g)$name[agentIndex] #new
       output[step, O_SELECTED_MODEL] <- searchModel(model, models)
       output[step, O_SELECTED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
       output[step, O_SELECTED_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, stat$model$betasEst), ndec)
@@ -144,10 +146,42 @@ for(step in 1:timesteps){ #11000 time-steps
       output[step, O_ARSQ] <- round(finalGModelStat$arsq, ndec)
       output[step, O_AIC] <- round(finalGModelStat$aic, ndec)
       output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
-      #output[step, O_REPLICATED] <- replicated
       output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
   
 }
-      
+
+
+```
+
+Backtracking the network.
+The question is how we save this. 
+
+```{r}
+getwd()
+network <- load("connectivity/networks/small_world_tess")
+network_variable <- network 
+
+#where are they in the adjacency
+doeshework <- names(V(small_world_tess))
+doeshework
+
+#the adjacency
+areyoualsobad <- as_adjacency_matrix(small_world_tess, sparse = F)
+areyoualsobad
+
+```
+
+Checking whether agents actually capture stuff. 
+
+```{r}
+#reading file 
+getwd()
+output <- read.csv("data/output.csv", sep = ";")
+
+#subset
+rep1 <- output %>%
+  subset(replica == "1")
+
+#tracking 
 ```
 

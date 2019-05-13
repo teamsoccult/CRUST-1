@@ -31,7 +31,7 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 22
+O_NUM_FIELDS <- 23
 O_STRATEGY <- 1
 O_SELECTED_MODEL <- 2
 O_SELECTED_TRUE_MODEL <- 3
@@ -54,6 +54,7 @@ O_AIC <- 19
 O_BIC <- 20
 O_AGENT_INDEX <- 21 #changed from the original (O_REPLICATED)
 O_PREDICTORS <- 22
+O_PROPORTION <- 23
 
 ## File output headers
 OUTPUT_HEADER <- c("replica",
@@ -79,7 +80,8 @@ OUTPUT_HEADER <- c("replica",
                    "AIC",
                    "BIC",
                    "agent_index", #changed from "replicated"
-                   "predictors")
+                   "predictors",
+                   "proportion") #changed from nothing. 
 
 ## Parameter output
 P_TMODEL <- 1
@@ -90,3 +92,4 @@ P_CORRELATION <- 5
 P_AGENT_WEIGHTS <- 6
 P_TRUE_BETAS <- 7
 P_XSET <- 8
+P_NETWORK <- 9 #new
