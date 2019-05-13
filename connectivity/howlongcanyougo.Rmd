@@ -1,9 +1,10 @@
 ---
-title: "checkingFirstStep"
+title: "howmanytimescanyouloop"
 author: "Victor Møller"
-date: "10 maj 2019"
+date: "12 maj 2019"
 output: html_document
 ---
+
 
 
 ```{r}
@@ -12,6 +13,18 @@ p_load(caTools, data.table, permute, matrixStats, MCMCpack)
 
 
 ```{r}
+
+
+destructor <- function(replications, timesteps, models, k, tModel,
+    weights, sampleSize, correlation, sigma,
+    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+    verbose, ndec, seeds){
+
+## REPLICA SIMULATION
+  ###################
+  parameters <- list()
+  for(replica in 1:replications){
+    set.seed(seeds[replica])
 
     ## Generate Xset and deterministic value of the linear regression
     Xset <- generateXSet(sampleSize, k, correlation)
@@ -146,8 +159,75 @@ for(step in 1:timesteps){ #11000 time-steps
       output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
       #output[step, O_REPLICATED] <- replicated
       output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
-  
+  }
+
+## Parameter output
+    param <- list()
+    param[[P_TMODEL]] <- gsub(" ", "", substr(modelToStr(tModel), 5,
+            nchar(modelToStr(tModel))), fixed=TRUE)
+    param[[P_K]] <- k
+    param[[P_SAMPLE_SIZE]] <- sampleSize
+    param[[P_SIGMA]] <- sigma
+    param[[P_CORRELATION]] <- correlation
+    #param[[P_AGENT_WEIGHTS]] <- c(nRey, nTess, nBo, nMave) /
+        #(nRey + nTess + nBo + nMave)
+    param[[P_TRUE_BETAS]] <- tModelBetas
+    param[[P_XSET]] <- Xset
+    parameters[[replica]] <- param
+
+    ## Convert output matrix into data table
+    output <- data.table(cbind(rep(replica, timesteps), 1:timesteps, output))
+    names(output) <- OUTPUT_HEADER
+
+    ## Write output data table into a file
+    write.table(output, file=paste0(outputDir, "/", outputFile),
+        append=ifelse(replica == 1, FALSE, TRUE),
+        quote=FALSE, sep=";", row.names=FALSE,
+        col.names=ifelse(replica == 1, TRUE, FALSE))
+  }
+
+  saveRDS(parameters, file=paste0(outputDir, "/", paramFile))
 }
+
       
+```
+
+running the destructor
+
+```{r}
+destructor(replications, timesteps, models, k, tModel,
+    weights, sampleSize, correlation, sigma,
+    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+    verbose, ndec, seeds)
+
+```
+
+loading stuff
+
+```{r}
+
+IamGood <- read.csv("data/output.csv", sep = ";")
+mean(IamGood$final_global_true_model) #more than 1/14th but not good. 
+mean(IamGood$selected_true_model) #1/14th chance. 
+
+library(tidyverse)
+
+#testing agent split (reasonable)
+agents <- IamGood %>%
+  group_by(strategy) %>%
+  summarize(n())
+
+#development of true model over time? 
+ggplot(IamGood, aes(timestep, final_global_true_model)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~strategy)
+
+ggplot(IamGood, aes(timestep, selected_true_model)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~strategy)
+
+
 ```
 
