@@ -48,7 +48,7 @@ p1 <- ggraph(lattice, layout = "circle", circular= F) + #circular so it fits wit
 
 p1
 
-g <- lattice
+g <- lattice #saving everything as g, so that when we use load in the final function, the network is always called g.
 
 save(g, file = "networks/lattice")
 ```
@@ -63,11 +63,11 @@ lattice_bo <- lattice
 
 V(lattice_bo)$name <- rep(c("Bo", "Mave", "Tess"), c(98,1,1)) #note that this will probably make Mave and Tess be neighbours in the network. Is this a problem?
 
-V(lattice_bo)$name <- sample(V(lattice_bo)$name)
+V(lattice_bo)$name <- sample(V(lattice_bo)$name) #sampling to avoid the problem talked about before
 
-V(lattice_bo)$type <- V(lattice_bo)$name
+V(lattice_bo)$type <- V(lattice_bo)$name #have each agent be the type of agent that their name suggests
 
-V(lattice_bo)$name <- make.unique(V(lattice_bo)$name)
+V(lattice_bo)$name <- make.unique(V(lattice_bo)$name) #make the agents name unique to that agent
  
 table(str_detect(V(lattice_bo)$name, "Tess"))
 table(str_detect(V(lattice_bo)$name, "Bo"))
@@ -191,7 +191,7 @@ Small world
 
 ```{r}
 g <- sample_smallworld(1, 100, 5, 0.05) #same as our lattice, but with a rewiring probability of 0.05
- 
+
  V(g)$name <- sample(c("Bo", "Mave", "Tess"))
  V(g)$name <- sample(V(g)$name)
  V(g)$type <- V(g)$name
@@ -214,6 +214,7 @@ p3
 save(g, file = "networks/small_world")
 
 load("networks/small_world") #loading g
+
 ```
 BO - small world:
 
@@ -233,7 +234,7 @@ table(str_detect(V(small_world_bo)$name, "Tess"))
 table(str_detect(V(small_world_bo)$name, "Bo"))
 table(str_detect(V(small_world_bo)$name, "Mave"))
 
-p1_bo <- ggraph(small_world_bo, layout = "circle", circular= F) + #circular so it fits with the other plots
+p3_bo <- ggraph(small_world_bo, layout = "circle", circular= F) + #circular so it fits with the other plots
   geom_edge_link() + 
   geom_node_point(aes(colour = type, size = degree(small_world_bo))) + #size according to degree
   geom_node_text(label = degree(small_world_bo))+ #having each node also have text with their degree
@@ -241,11 +242,11 @@ p1_bo <- ggraph(small_world_bo, layout = "circle", circular= F) + #circular so i
   scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
   guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
 
-p1_bo
+p3_bo
 
 g <- small_world_bo
 
-save(small_world_bo, file = "networks/small_world_bo")
+save(g, file = "networks/small_world_bo")
 ```
 
 TESS - small world
@@ -265,7 +266,7 @@ table(str_detect(V(small_world_tess)$name, "Tess"))
 table(str_detect(V(small_world_tess)$name, "Bo"))
 table(str_detect(V(small_world_tess)$name, "Mave"))
 
-p1_tess <- ggraph(small_world_tess, layout = "circle", circular= F) + #circular so it fits with the other plots
+p3_tess <- ggraph(small_world_tess, layout = "circle", circular= F) + #circular so it fits with the other plots
   geom_edge_link() + 
   geom_node_point(aes(colour = type, size = degree(small_world_tess))) + #size according to degree
   geom_node_text(label = degree(small_world_tess))+ #having each node also have text with their degree
@@ -273,7 +274,7 @@ p1_tess <- ggraph(small_world_tess, layout = "circle", circular= F) + #circular 
   scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
   guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
 
-p1_tess
+p3_tess
 
 g <- small_world_tess
 
@@ -299,7 +300,7 @@ table(str_detect(V(small_world_mave)$name, "Tess"))
 table(str_detect(V(small_world_mave)$name, "Bo"))
 table(str_detect(V(small_world_mave)$name, "Mave"))
 
-p1_mave <- ggraph(small_world_mave, layout = "circle", circular= F) + #circular so it fits with the other plots
+p3_mave <- ggraph(small_world_mave, layout = "circle", circular= F) + #circular so it fits with the other plots
   geom_edge_link() + 
   geom_node_point(aes(colour = type, size = degree(small_world_mave))) + #size according to degree
   geom_node_text(label = degree(small_world_mave))+ #having each node also have text with their degree
@@ -307,25 +308,159 @@ p1_mave <- ggraph(small_world_mave, layout = "circle", circular= F) + #circular 
   scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
   guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
 
-p1_mave
+p3_mave
 
 g <- small_world_mave
 
 save(g, file = "networks/small_world_mave")
+```
+Scale free
+
+```{r}
+scale_free <- sample_fitness_pl(100, 500, exponent.out = 3)
+
+plot(scale_free)
+
+sum(degree(scale_free))
+
+V(scale_free)$name <- sample(c("Bo", "Mave", "Tess"))
+V(scale_free)$name <- sample(V(scale_free)$name)
+V(scale_free)$type <- V(scale_free)$name
+ V(scale_free)$name <- make.unique(V(scale_free)$name)
+
+table(str_detect(V(scale_free)$name, "Tess"))
+table(str_detect(V(scale_free)$name, "Bo"))
+table(str_detect(V(scale_free)$name, "Mave"))
+
+degree(scale_free) #getting the degree of each agent
+
+p4 <- ggraph(scale_free, layout = "circle", circular= F) +
+  geom_edge_link(alpha = 0.2) + 
+  geom_node_point(aes(colour = type, size = degree(scale_free))) +
+  geom_node_text(label = degree(scale_free))+
+  labs(x = NULL, y = NULL, title = "Fully Connected")+
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous"))+
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. 
+
+p4
+
+g <- scale_free
+
+save(g, file = "networks/scale_free")
+```
+
+Scale free - MAVE
+
+```{r}
+scale_free_mave <- scale_free
+
+V(scale_free_mave)$name <- rep(c("Mave", "Tess", "Bo"), c(98,1,1)) #note that this will probably make Mave and Tess be neighbours in the network. Is this a problem?sample(c("Bo", "Mave", "Tess"))
+V(scale_free_mave)$name <- sample(V(scale_free_mave)$name)
+V(scale_free_mave)$type <- V(scale_free_mave)$name
+ V(scale_free_mave)$name <- make.unique(V(scale_free_mave)$name)
+
+table(str_detect(V(scale_free_mave)$name, "Tess"))
+table(str_detect(V(scale_free_mave)$name, "Bo"))
+table(str_detect(V(scale_free_mave)$name, "Mave"))
+
+degree(scale_free_mave) #getting the degree of each agent
+
+p4_mave <- ggraph(scale_free_mave, layout = "circle", circular= F) +
+  geom_edge_link(alpha = 0.2) + 
+  geom_node_point(aes(colour = type, size = degree(scale_free_mave))) +
+  geom_node_text(label = degree(scale_free_mave))+
+  labs(x = NULL, y = NULL, title = "Fully Connected")+
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous"))+
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. 
+
+p4_mave
+
+g <- scale_free_mave
+
+save(g, file = "networks/scale_free_mave")
+```
+
+Scale free - Tess
+
+```{r}
+scale_free_tess <- scale_free
+
+V(scale_free_tess)$name <- rep(c("Mave", "Tess", "Bo"), c(98,1,1)) #note that this will probably make Mave and Tess be neighbours in the network. Is this a problem?sample(c("Bo", "Mave", "Tess"))
+V(scale_free_tess)$name <- sample(V(scale_free_tess)$name)
+V(scale_free_tess)$type <- V(scale_free_tess)$name
+ V(scale_free_tess)$name <- make.unique(V(scale_free_tess)$name)
+
+table(str_detect(V(scale_free_tess)$name, "Tess"))
+table(str_detect(V(scale_free_tess)$name, "Bo"))
+table(str_detect(V(scale_free_tess)$name, "Mave"))
+
+degree(scale_free_tess) #getting the degree of each agent
+
+p4_tess <- ggraph(scale_free_tess, layout = "circle", circular= F) +
+  geom_edge_link(alpha = 0.2) + 
+  geom_node_point(aes(colour = type, size = degree(scale_free_tess))) +
+  geom_node_text(label = degree(scale_free_tess))+
+  labs(x = NULL, y = NULL, title = "Fully Connected")+
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous"))+
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. 
+
+p4_tess
+
+g <- scale_free_tess
+
+save(g, file = "networks/scale_free_tess")
+```
+
+Scale free - Bo
+
+```{r}
+scale_free_bo <- scale_free
+
+V(scale_free_bo)$name <- rep(c("Bo", "Mave", "Tess"), c(98,1,1)) #note that this will probably make Mave and Tess be neighbours in the network. Is this a problem?sample(c("Bo", "Mave", "Tess"))
+V(scale_free_bo)$name <- sample(V(scale_free_bo)$name)
+V(scale_free_bo)$type <- V(scale_free_bo)$name
+ V(scale_free_bo)$name <- make.unique(V(scale_free_bo)$name)
+
+table(str_detect(V(scale_free_bo)$name, "Tess"))
+table(str_detect(V(scale_free_bo)$name, "Bo"))
+table(str_detect(V(scale_free_bo)$name, "Mave"))
+
+degree(scale_free_bo) #getting the degree of each agent
+
+p4_bo <- ggraph(scale_free_bo, layout = "circle", circular= F) +
+  geom_edge_link(alpha = 0.2) + 
+  geom_node_point(aes(colour = type, size = degree(scale_free_bo))) +
+  geom_node_text(label = degree(scale_free_bo))+
+  labs(x = NULL, y = NULL, title = "Fully Connected")+
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous"))+
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. 
+
+p4_bo
+
+g <- scale_free_bo
+
+save(g, file = "networks/scale_free_bo")
 ```
 
 Plotting the different networks with epistemically diverse populations
 
 ```{r}
 
-pp <- cowplot::plot_grid(p1, p2, p3)
+pp <- cowplot::plot_grid(p1, p2, p3, p4)
 
 pp
 
-pp_pop <- cowplot::plot_grid(p1, p1_bo, p1_tess, p1_mave)
+pp_lattice <- cowplot::plot_grid(p1, p1_bo, p1_tess, p1_mave)
 
-pp_pop
+pp_lattice
 
+pp_small_world <- cowplot::plot_grid(p3, p3_bo, p3_tess, p3_mave)
+
+pp_small_world
+
+pp_scale_free <- cowplot::plot_grid(p4, p4_bo, p4_tess, p4_mave)
+
+pp_scale_free
 
 #Having a title on the plot as well
 title <- ggdraw() + draw_label("Different network models", fontface='bold')
@@ -336,24 +471,13 @@ plot_grid(title, pp, ncol=1, rel_heights=c(0.1, 1)) # rel_heights values control
 Checking whether or not the adjacency matrix can be used for checking whether or not egdes of the agents can be called here
 
 ```{r}
+wupdilup <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/parameters.rds")
 
-matrix_g <- as_adjacency_matrix(g, sparse = F) #getting only the matrix from the igraph object
+the_matrix <- wupdilup[[1]][[9]]
 
-matrix_g["Tess.7", "Mave.7"] == 1 #are these two agents connected?
-
-matrix_g["Mave.7", "Tess.7"] == 1 #does it work the other way around?
-
-matrix_g <- as.matrix(matrix_g) #setting the type to matrix, just because matrix
-
-tommy <- graph_from_adjacency_matrix(matrix_g, diag = F, mode = "undirected")
+tommy <- graph_from_adjacency_matrix(the_matrix, diag = F, mode = "undirected")
 
 V(tommy)$type <- gsub("\\..*","",V(tommy)$name) #takes everything before the "."
-
-V(tommy)$type
-
-degree(tommy)
-
-degree(g)
 
 p1_tommy <- ggraph(tommy, layout = "circle", circular= F) + #circular so it fits with the other plots
   geom_edge_link() + 
@@ -363,13 +487,13 @@ p1_tommy <- ggraph(tommy, layout = "circle", circular= F) + #circular so it fits
   scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
   guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree.
 
-plot(tommy)
-
 p1_tommy
 
 plot_grid(p1_tommy, p3)
 
 ```
+
+
 Getting descriptive values from the network
 
 ```{r}
