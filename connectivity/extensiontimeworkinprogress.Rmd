@@ -147,12 +147,15 @@ for(step in 1:timesteps){ #11000 time-steps
       if(switchModel){
         #making ready for the loop. 
         edges <- names(which(matrix_g[, agentIndex] == 1)) #maybe. 
+        changed <- 0 #for them to add in 
+        tried <- 0 #for all elements in edges
         
         #here goes for loop. 
         #here goes for loop. 
         for(i in edges){
           
           ## which one 
+          tried <- tried + 1 #adding each element from edges
           agentToken1 <- i
           agentToken1 <- "Mave.13"
           ## Agents 
@@ -217,6 +220,7 @@ for(step in 1:timesteps){ #11000 time-steps
         modelStr1 <- str_replace(modelStr1, "Y ~", "")
         modelStr1 <- str_replace_all(modelStr1, ":", "")
         V(g)$model[agentIndex1] <- modelStr1
+        changed <- changed + 1
         } #this ends the for loop ()
       
         #this ends the new

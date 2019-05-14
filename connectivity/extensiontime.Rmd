@@ -48,6 +48,12 @@ step <- 1
 #does it work?
 for(step in 1:timesteps){ #11000 time-steps
 
+      ## initialize parameters 
+      changed <- 0 #for them to add in 
+      tried <- 0 #for all elements in edges
+      already <- 0 #for all the agents who already had the global
+      rejector <- 0 #those that did not change bc. they shouldn't. 
+  
       ## Select the token of agent
       agentToken <- agentTurn[step] 
       
@@ -148,8 +154,10 @@ for(step in 1:timesteps){ #11000 time-steps
         edges <- names(which(matrix_g[, agentIndex] == 1)) #maybe. 
         
         #here goes for loop. 
-        #here goes for loop. 
         for(i in edges){
+          
+          ## tried 
+          tried <- tried + 1
           
           ## which one 
           agentToken <- i
@@ -163,6 +171,10 @@ for(step in 1:timesteps){ #11000 time-steps
           #adding variance & statistics for different engines (AIC, BIC)
           Yset <- generateY(deterministic, sigma) #putting variance on the                  deterministic.
           stat <- analysis(model, gModel, Yset, Xset, weights) #computing all the           shit.
+          
+          ## already at true model (atm). 
+          atm <- as.numeric(compareModels(tModel, gModel))
+          already <- already + atm
       
       #smooth -> should we switch
       switchModel1 <- FALSE
@@ -217,10 +229,14 @@ for(step in 1:timesteps){ #11000 time-steps
         modelStr <- str_replace(modelStr, "Y ~", "")
         modelStr <- str_replace_all(modelStr, ":", "")
         V(g)$model[agentIndex] <- modelStr
+        changed <- changed + 1
         } #this ends the for loop ()
       
-        #this ends the new
-      else {
+        #did they already have the global model?
+      else if(compareModels(gModel, tModel)){
+        rejector <- rejector + 1
+        #did they just not change. 
+      } else {
         finalGModelStat <- stat$gModel
       }
         }
@@ -249,7 +265,14 @@ for(step in 1:timesteps){ #11000 time-steps
       output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
       output[step, O_AGENT_INDEX] <- V(g)$name[agentIndex] #new
       output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
-      output[step, O_PROPORTION] <- mean(as.numeric(V(g)$model == trueModel))
+      output[step, O_PROPORTION] <- mean(as.numeric(V(g)$model == trueModel)) #new
+      output[step, O_TRIED] <- tried #new
+      output[step, O_CHANGED] <- changed #new
+      output[step, O_ALREADY] <- already #new
+      output[step, O_REJECTOR] <- rejector #new
+      output[step, O_SIGMA] <- sigma #new - and maybe dubious
+      output[step, O_TRUEMOD] <- gsub(" ", "", substr(modelToStr(tModel), 5,
+            nchar(modelToStr(tModel))), fixed=TRUE)
   }
 
 ## Parameter output
@@ -297,7 +320,6 @@ instructor(replications, timesteps, models, k, tModel,
 ```
 
 checking
-
 loading stuff
 
 ```{r}
@@ -324,19 +346,70 @@ agents <- IamGood %>%
 ggplot(IamGood, aes(timestep, proportion)) +
   geom_point() +
   geom_smooth() +
-  facet_wrap(~ replica)
+  geom_hline(data = IamGood, aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) 
 
-#selected true 
+#selected true (should be constant)
 ggplot(IamGood, aes(timestep, selected_true_model)) +
   geom_point() +
   geom_smooth() +
   facet_wrap(~strategy)
 
-#final global true. 
+#final global true (end yp with true?)
 ggplot(IamGood, aes(timestep, final_global_true_model)) +
   geom_point() +
   geom_smooth() +
   facet_wrap(~strategy)
+
+#change when true - tried subset
+tried <- IamGood %>%
+  subset(tried > 1)
+
+tried1 <- tried %>%
+  subset(selected_true_model == 1) %>%
+  mutate(okay = (changed+already)/tried)
+
+tried2 <- tried %>%
+  subset(selected_true_model == 0) %>%
+  mutate(okay = (changed+already)/tried)
+
+summary(tried1$okay) #91 percent changed if they did not already have true.
+summary(tried2$okay) #78 percent changed if they did not already have true.
+
+summary(IamGood$beta1_error)
+
+#plot 
+ggplot(tried, aes(x = selected_true_model, y = changed/tried)) +
+  geom_bar(stat = "summary") 
+
+
+```
+
+plot compare
+
+```{r}
+
+m2 <- read.csv("data/small_epistemic_test/output_m2.csv", sep = ";")
+m10 <- read.csv("data/small_epistemic_test/output_m10.csv", sep = ";")
+m7 <- read.csv("data/small_epistemic_test/output_m7.csv", sep = ";")
+
+
+#proportion over time? 
+ggplot(m10, aes(timestep, proportion)) +
+  geom_point() +
+  geom_smooth() +
+  geom_hline(data = IamGood, aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) 
+
+#proportion over time?
+ggplot(m7, aes(timestep, proportion)) +
+  geom_point() +
+  geom_smooth() +
+  geom_hline(data = IamGood, aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) 
+
+#proportion over time?
+ggplot(m2, aes(timestep, proportion)) +
+  geom_point() +
+  geom_smooth() +
+  geom_hline(data = IamGood, aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) 
 
 ```
 
