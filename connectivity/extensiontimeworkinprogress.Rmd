@@ -1,0 +1,346 @@
+---
+title: "with_manipulation"
+author: "Victor Møller"
+date: "13 maj 2019"
+output: html_document
+---
+
+Run the first part of howlongcanyougo (I.e., the setup.)
+Then you can initialize the instructor. 
+
+```{r}
+
+instructor <- function(replications, timesteps, models, k, tModel,
+    weights, sampleSize, correlation, sigma,
+    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+    verbose, ndec, seeds, some_models){
+
+## REPLICA SIMULATION
+  ###################
+  parameters <- list()
+  for(replica in 1:replications){
+    set.seed(seeds[replica])
+
+    ## Generate Xset and deterministic value of the linear regression
+    Xset <- generateXSet(sampleSize, k, correlation)
+    tModelBetas <- getBetas(tModel, weights, sigma)
+    deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
+
+    ## Select randomly Global Model and previous Global Model
+    # Sampling / randomizing stuff. 
+    V(g)$type <- sample(c("Bo", "Mave", "Tess"))
+    V(g)$type <- sample(V(g)$type)
+    V(g)$name <- make.unique(V(g)$type) 
+    V(g)$model <- sample(some_models)
+    V(g)$model <- sample(V(g)$model)
+    matrix_g <- as_adjacency_matrix(g, sparse = F) 
+    agentTurn <- sample(V(g)$name, size = 11000, replace = T) 
+    #######################
+    ## OUTPUT PARAMETERS
+    #######################
+    output <- matrix(data=NA, nrow=timesteps, ncol=O_NUM_FIELDS)
+
+
+    #######################
+    ## SIMULATION EXECUTION
+    #######################
+step <- 1
+#does it work?
+for(step in 1:timesteps){ #11000 time-steps
+
+      ## Select the token of agent
+      agentToken <- agentTurn[step] 
+      
+      ## Agents 
+      agentIndex <- which((V(g)$name) == agentToken)
+      
+      ## model & in format
+      gModel <- strToModel(V(g)$model[agentIndex], k) #local model
+
+      ## Tess
+      if(V(g)$type[agentIndex] == "Tess"){ #detect
+        model <- modelSimilarByTerm(gModel, models, mode="random",
+                                    modelSelection=modelSelection)
+
+      ## Mave
+      } else if(V(g)$type[agentIndex] == "Mave"){
+        model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+        
+      ## Bo is fucked. 
+      } else if(V(g)$type[agentIndex] == "Bo"){
+        model <- modelSimilarByInteraction(gModel, models, mode="random",
+                                           modelSelection=modelSelection)
+      }
+      
+      #setting up. 
+      model1 <- model
+      model2 <- gModel
+
+      #adding variance & statistics for different engines (AIC, BIC)
+  Yset <- generateY(deterministic, sigma) #putting variance on the deterministic.
+  stat <- analysis(model, gModel, Yset, Xset, weights) #computing all the shit.
+      
+      #smooth -> should we switch
+      switchModel <- FALSE
+      if((modelCompare == TSTATISTICS) &
+          (!is.null(stat$model$tstatistics)) &
+          (!is.null(stat$gModel$tstatistics)) &
+          (!is.na(stat$model$tstatistics)) &
+          (!is.na(stat$gModel$tstatistics))){
+        if(stat$model$tstatistics > stat$gModel$tstatistics){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == RSQ) &
+          (!is.null(stat$model$rsq)) &
+          (!is.null(stat$gModel$rsq)) &
+          (!is.na(stat$model$rsq)) &
+          (!is.na(stat$gModel$rsq))){
+        if(stat$model$rsq > stat$gModel$rsq){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == AIC) &
+          (!is.null(stat$model$aic)) &
+          (!is.null(stat$gModel$aic)) &
+          (!is.na(stat$model$aic)) &
+          (!is.na(stat$gModel$aic))){
+        if(stat$model$aic < stat$gModel$aic){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == BIC) &
+          (!is.null(stat$model$bic)) &
+          (!is.null(stat$gModel$bic)) &
+          (!is.na(stat$model$bic)) &
+          (!is.na(stat$gModel$bic))){
+        if(stat$model$bic < stat$gModel$bic){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == ARSQ) &
+          (!is.null(stat$model$arsq)) &
+          (!is.null(stat$gModel$arsq)) &
+          (!is.na(stat$model$arsq)) &
+          (!is.na(stat$gModel$arsq))){
+        if(stat$model$arsq > stat$gModel$arsq){
+          switchModel <- TRUE
+        }
+      }
+      
+      #what do you do?
+      initGModel <- gModel
+      initGModelStat <- stat$gModel
+      
+      #changing global if TRUE (for recording)
+      if(switchModel){
+        #from the old. 
+        gModel <- model
+        finalGModelStat <- stat$model
+        #local change of model
+        modelStr <- modelToStr(gModel)
+        modelStr <- str_replace(modelStr, "Y ~", "")
+        modelStr <- str_replace_all(modelStr, ":", "")
+        V(g)$model[agentIndex] <- modelStr
+        
+        #this ends the original agents turn
+        } else {
+        finalGModelStat <- stat$gModel
+        }
+        
+      if(switchModel){
+        #making ready for the loop. 
+        edges <- names(which(matrix_g[, agentIndex] == 1)) #maybe. 
+        changed <- 0 #for them to add in 
+        tried <- 0 #for all elements in edges
+        
+        #here goes for loop. 
+        #here goes for loop. 
+        for(i in edges){
+          
+          ## which one 
+          tried <- tried + 1 #adding each element from edges
+          agentToken1 <- i
+          agentToken1 <- "Mave.13"
+          ## Agents 
+          agentIndex1 <- which((V(g)$name) == agentToken1)
+      
+          ## model & in format
+          gModel1 <- strToModel(V(g)$model[agentIndex1], k) #just to call it else. 
+          #adding variance & statistics for different engines (AIC, BIC)
+          Yset1 <- generateY(deterministic, sigma) #putting variance on the                  deterministic.
+          stat1 <- analysis(model, gModel1, Yset, Xset, weights) #NB: gModel 1
+      
+      #smooth -> should we switch
+      switchModel1 <- FALSE
+      if((modelCompare == TSTATISTICS) &
+          (!is.null(stat1$model$tstatistics)) &
+          (!is.null(stat1$gModel1$tstatistics)) &
+          (!is.na(stat1$model$tstatistics)) &
+          (!is.na(stat1$gModel1$tstatistics))){
+        if(stat1$model$tstatistics > stat1$gModel1$tstatistics){
+          switchModel1 <- TRUE
+        }
+      } else if((modelCompare == RSQ) &
+          (!is.null(stat1$model$rsq)) &
+          (!is.null(stat1$gModel1$rsq)) &
+          (!is.na(stat1$model$rsq)) &
+          (!is.na(stat1$gModel1$rsq))){
+        if(stat1$model$rsq > stat1$gModel1$rsq){
+          switchModel1 <- TRUE
+        }
+      } else if((modelCompare == AIC) &
+          (!is.null(stat1$model$aic)) &
+          (!is.null(stat1$gModel1$aic)) &
+          (!is.na(stat1$model$aic)) &
+          (!is.na(stat1$gModel1$aic))){
+        if(stat1$model$aic < stat1$gModel1$aic){
+          switchModel1 <- TRUE
+        }
+      } else if((modelCompare == BIC) &
+          (!is.null(stat1$model$bic)) &
+          (!is.null(stat1$gModel1$bic)) &
+          (!is.na(stat1$model$bic)) &
+          (!is.na(stat1$gModel1$bic))){
+        if(stat1$model$bic < stat1$gModel1$bic){
+          switchModel1 <- TRUE
+        }
+      } else if((modelCompare == ARSQ) &
+          (!is.null(stat1$model$arsq)) &
+          (!is.null(stat1$gModel1$arsq)) &
+          (!is.na(stat1$model$arsq)) &
+          (!is.na(stat1$gModel1$arsq))){
+        if(stat1$model$arsq > stat1$gModel1$arsq){
+          switchModel1 <- TRUE
+        }
+      } else { 
+        finalgModelStat <- stat$gModel #not quite sure. 
+      }
+      
+      if(switchModel1){
+        gModel1 <- model 
+        #finalGModelStat <- stat$model
+        modelStr1 <- modelToStr(gModel1)
+        modelStr1 <- str_replace(modelStr1, "Y ~", "")
+        modelStr1 <- str_replace_all(modelStr1, ":", "")
+        V(g)$model[agentIndex1] <- modelStr1
+        changed <- changed + 1
+        } #this ends the for loop ()
+      
+        #this ends the new
+      else {
+        finalGModelStat <- stat$gModel
+      }
+        }
+      }
+
+      ## Record output data (commenting fucked stuff)
+      output[step, O_STRATEGY] <- V(g)$type[agentIndex] #new.
+      output[step, O_SELECTED_MODEL] <- searchModel(model, models)
+      output[step, O_SELECTED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
+      output[step, O_SELECTED_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, stat$model$betasEst), ndec)
+      output[step, O_INITIAL_GLOBAL_MODEL] <- searchModel(initGModel, models)
+      output[step, O_INITIAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(initGModel, tModel))
+      output[step, O_INITIAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, initGModelStat$betasEst), ndec)
+      output[step, O_FINAL_GLOBAL_MODEL] <- searchModel(gModel, models)
+      output[step, O_FINAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(gModel, tModel))
+      output[step, O_FINAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, finalGModelStat$betasEst), ndec)
+      output[step, O_NUM_PREDICTORS] <- predictors[[1]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))]
+      output[step, O_SAMPLE_SIZE] <- sampleSize
+      output[step, O_BETA1_TRUE] <- round(tModelBetas[,2], ndec)
+      output[step, O_BETA1_ESTIMATE] <- round(finalGModelStat$betasEst[2], ndec)
+      output[step, O_BETA1_ERROR] <- round(finalGModelStat$betasErr[2], ndec)
+      output[step, O_TSTATISTICS] <- round(finalGModelStat$tstatistics, ndec)
+      output[step, O_RSQ] <- round(finalGModelStat$rsq, ndec)
+      output[step, O_ARSQ] <- round(finalGModelStat$arsq, ndec)
+      output[step, O_AIC] <- round(finalGModelStat$aic, ndec)
+      output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
+      output[step, O_AGENT_INDEX] <- V(g)$name[agentIndex] #new
+      output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
+      output[step, O_PROPORTION] <- mean(as.numeric(V(g)$model == trueModel))
+  }
+
+## Parameter output
+    param <- list()
+    param[[P_TMODEL]] <- gsub(" ", "", substr(modelToStr(tModel), 5,
+            nchar(modelToStr(tModel))), fixed=TRUE)
+    param[[P_K]] <- k
+    param[[P_SAMPLE_SIZE]] <- sampleSize
+    param[[P_SIGMA]] <- sigma
+    param[[P_CORRELATION]] <- correlation
+    #param[[P_AGENT_WEIGHTS]] <- c(nRey, nTess, nBo, nMave) /
+        #(nRey + nTess + nBo + nMave)
+    param[[P_TRUE_BETAS]] <- tModelBetas
+    param[[P_XSET]] <- Xset
+    param[[P_NETWORK]] <- matrix_g
+    parameters[[replica]] <- param
+    
+
+    ## Convert output matrix into data table
+    output <- data.table(cbind(rep(replica, timesteps), 1:timesteps, output))
+    names(output) <- OUTPUT_HEADER
+
+    ## Write output data table into a file
+    write.table(output, file=paste0(outputDir, "/", outputFile),
+        append=ifelse(replica == 1, FALSE, TRUE),
+        quote=FALSE, sep=";", row.names=FALSE,
+        col.names=ifelse(replica == 1, TRUE, FALSE))
+  }
+
+  saveRDS(parameters, file=paste0(outputDir, "/", paramFile))
+}
+
+      
+```
+
+running the instructor
+
+```{r}
+
+instructor(replications, timesteps, models, k, tModel,
+    weights, sampleSize, correlation, sigma,
+    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+    verbose, ndec, seeds, some_models)
+
+```
+
+checking
+
+loading stuff
+
+```{r}
+
+#output & paramz
+IamGood <- read.csv("data/output.csv", sep = ";")
+paramz <- readRDS("data/parameters.rds")
+  
+mean(IamGood$final_global_true_model) #more than 1/14th but not good. 
+mean(IamGood$selected_true_model) #1/14th chance. 
+
+library(tidyverse)
+
+#subset
+rep1 <- IamGood %>%
+  subset(replica == "1")
+
+#testing agent split (reasonable)
+agents <- IamGood %>%
+  group_by(strategy) %>%
+  summarize(n())
+
+#proportion over time? 
+ggplot(IamGood, aes(timestep, proportion)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~ replica)
+
+#selected true 
+ggplot(IamGood, aes(timestep, selected_true_model)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~strategy)
+
+#final global true. 
+ggplot(IamGood, aes(timestep, final_global_true_model)) +
+  geom_point() +
+  geom_smooth() +
+  facet_wrap(~strategy)
+
+```
+

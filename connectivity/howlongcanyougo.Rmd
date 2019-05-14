@@ -112,8 +112,6 @@ load("connectivity/loads/some_models")
 #loads as "g"
 load("connectivity/networks/small_world") 
 
-
-
 ```
 
 seed
