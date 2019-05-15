@@ -57,7 +57,7 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 2 #100 originally, now 2. 
+replications <- 14 #100 originally, now 2. 
 
 ## Length of the simulation
 timesteps <- 11000
@@ -66,7 +66,7 @@ timesteps <- 11000
 k <- 3
 
 ## Sigma (Error variance)
-sigma <- 0.2
+sigma <- 0.5
 
 ## Sample size
 sampleSize <- 100
@@ -84,18 +84,19 @@ weights <- generateBetas(models)
 trueModel <- " X1 + X2"
 tModel <- strToModel(trueModel, k)
 
-## Correlation
+## Correlation - consider this. 
 correlation <- 0.2
 
 ## modelCompare & selection
-modelCompare <- AIC
+criterion <- "AIC" #AIC
+modelCompare <- AIC #or BIC
 modelSelection <- "soft"
 
 ## ndec
 ndec = 4
 
 ## outputs
-outputFile <- "output.csv"
+outputFile <- ".csv"
 paramFile <- "parameters.rds"
 
 ## verbose
@@ -110,7 +111,10 @@ some_models, g & agentTurn
 load("connectivity/loads/some_models")
 
 #loads as "g"
-load("connectivity/networks/small_world") 
+load("connectivity/networks/small_world") #networks100 if 100 networks. 
+net_type <- "small" #lattice, scalefree
+pop_type <- "epi" #bo, tess, mave
+howmany <- 100 #100
 
 ```
 

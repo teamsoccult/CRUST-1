@@ -9,7 +9,7 @@ Run the first part of howlongcanyougo (I.e., the setup.)
 Then you can initialize the instructor. 
 
 ```{r}
-
+# should "g" be in the function?
 decapitator <- function(replications, timesteps, models, k, 
     weights, sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
@@ -23,7 +23,6 @@ decapitator <- function(replications, timesteps, models, k,
 
     ## Select randomly Global Model and previous Global Model
     # Sampling / randomizing stuff. 
-    V(g)$type <- sample(c("Bo", "Mave", "Tess"))
     V(g)$type <- sample(V(g)$type)
     V(g)$name <- make.unique(V(g)$type) 
     V(g)$model <- sample(some_models)
@@ -289,7 +288,8 @@ for(step in 1:timesteps){ #11000 time-steps
         #(nRey + nTess + nBo + nMave)
     param[[P_TRUE_BETAS]] <- tModelBetas
     param[[P_XSET]] <- Xset
-    param[[P_NETWORK]] <- matrix_g
+    param[[P_NETWORK]] <- matrix_g #network 
+    param[[P_MODELCOMP]] <- criterion #AIC or BIC
     parameters[[replica]] <- param
     
 
@@ -298,7 +298,7 @@ for(step in 1:timesteps){ #11000 time-steps
     names(output) <- OUTPUT_HEADER
 
     ## Write output data table into a file
-    write.table(output, file=paste0(outputDir, "/", outputFile),
+    write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", sigma, "_", criterion, "_", howmany, outputFile),
         append=ifelse(replica == 1, FALSE, TRUE),
         quote=FALSE, sep=";", row.names=FALSE,
         col.names=ifelse(replica == 1, TRUE, FALSE))
@@ -321,16 +321,22 @@ decapitator(replications, timesteps, models, k,
 
 ```
 
+
 ```{r}
+#epistemic varying network
+sm <- read.csv("data/outputs/output_all.csv", sep = ";")
+lat <- read.csv("data/outputs/output_lattice.csv", sep = ";")
+sf <- read.csv("data/outputs/output_scale_free.csv", sep = ";")
 
-m_all <- read.csv("data/small_epistemic_test/output_all.csv", sep = ";")
+#small world varying population
+sm_tess <- read.csv("data/outputs/small_tess.csv", sep = ";")
+sm_bo <- read.csv("data/outputs/small_bo.csv", sep = ";")
+sm_mave <- read.csv("data/outputs/small_mave.csv", sep = ";")
 
-#proportion over time? 
-ggplot(m_all, aes(timestep, proportion)) +
-  geom_point() +
-  geom_smooth() +
-  geom_hline(data = IamGood, aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) +
-  facet_wrap(~true_model)
+#high sigma
+sm_ep_s08_AIC <- read.csv("data/outputs/output_sigma_08.csv", sep = ";")
+sm_ep_s08_BIC <- read.csv("data/outputs/output_sigma08_BIC.csv", sep = ";")
+
 
 ```
 
