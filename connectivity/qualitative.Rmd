@@ -1,0 +1,544 @@
+---
+title: "qualitative"
+author: "Mikkel Werling"
+date: "5/16/2019"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+packages
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse)
+
+```
+
+paths
+
+```{r}
+baseDir <- "."
+scriptDir <- paste0(baseDir, "/src/functions")
+inputDir <- paste0(baseDir, "/data")
+outputDir <- paste0(baseDir, "/data")
+```
+
+functions
+
+```{r}
+source(paste0(scriptDir, "/analysis.R"))
+source(paste0(scriptDir, "/calculateDet.R"))
+source(paste0(scriptDir, "/calculateDistance.R"))
+source(paste0(scriptDir, "/compareModels.R"))
+source(paste0(scriptDir, "/constants_2.R"))
+source(paste0(scriptDir, "/convertBinary.R"))
+source(paste0(scriptDir, "/generateBetas.R"))
+source(paste0(scriptDir, "/generateModels.R"))
+source(paste0(scriptDir, "/generateXSet.R"))
+source(paste0(scriptDir, "/generateY.R"))
+source(paste0(scriptDir, "/getBetas.R"))
+source(paste0(scriptDir, "/getPredictors.R"))
+source(paste0(scriptDir, "/modelSimilarByInteraction.R"))
+source(paste0(scriptDir, "/modelSimilarByTerm.R"))
+source(paste0(scriptDir, "/modelToStr.R"))
+source(paste0(scriptDir, "/searchModel.R"))
+source(paste0(scriptDir, "/seedGenerator.R"))
+source(paste0(scriptDir, "/simulator.R"))
+source(paste0(scriptDir, "/strToModel.R"))
+```
+
+input parameters
+
+```{r}
+
+## Number of replications
+replications <- 1 #100 originally, now 2. 
+
+## Length of the simulation
+timesteps <- 11000
+
+## Number of factors
+k <- 3
+
+## Sigma (Error variance)
+sigma <- 0.2
+
+## Sample size
+sampleSize <- 20
+
+## generating 
+models <- generateModels(k)
+
+## Identify the number of predictors of each model
+predictors <- getPredictors(models)
+
+## Generate Betas
+weights <- generateBetas(models)
+
+## True model
+trueModel <- some_models[2] 
+tModel <- strToModel(trueModel, k)
+
+## Correlation
+correlation <- 0.2
+
+## modelCompare & selection
+modelCompare <- AIC
+modelSelection <- "soft"
+
+## ndec
+ndec = 4
+
+## outputs
+outputFile <- "output_qualitative_2_sample_hell.csv"
+paramFile <- "parameters.rds"
+
+## verbose
+verbose <- TRUE
+```
+
+some_models, g & agentTurn
+
+```{r}
+
+getwd()
+
+#some models -  
+load("connectivity/loads/some_models")
+
+#loads as "g"
+load("connectivity/networks/small_world") #this is the one I have loaded
+
+```
+
+seed
+
+```{r}
+## seeds
+seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
+```
+
+```{r}
+qualitative <- function(replications, timesteps, models, k, 
+    weights, sampleSize, correlation, sigma,
+    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+    verbose, ndec, seeds, some_models){
+
+## REPLICA SIMULATION
+  ###################
+  parameters <- list()
+  for(replica in 1:replications){
+    set.seed(seeds[replica])
+    
+    ## Select randomly Global Model and previous Global Model
+    # Sampling / randomizing stuff. 
+    V(g)$type <- sample(V(g)$type)
+    V(g)$name <- make.unique(V(g)$type) 
+    V(g)$model <- sample(some_models)
+    V(g)$model <- sample(V(g)$model)
+    matrix_g <- as_adjacency_matrix(g, sparse = F) 
+    agentTurn <- sample(V(g)$name, size = 11000, replace = T) 
+    
+    ## Generate Xset and deterministic value of the linear regression
+    #trueModel <- some_models[replica]
+    tModel <- strToModel(trueModel, k)
+    Xset <- generateXSet(sampleSize, k, correlation)
+    tModelBetas <- getBetas(tModel, weights, sigma)
+    deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
+    #######################
+    ## OUTPUT PARAMETERS
+    #######################
+    output <- matrix(data=NA, nrow=timesteps, ncol=O_NUM_FIELDS)
+
+
+    #######################
+    ## SIMULATION EXECUTION
+    #######################
+step <- 1
+#does it work?
+for(step in 1:timesteps){ #11000 time-steps
+
+      ## initialize parameters 
+      changed <- 0 #for them to add in 
+      tried <- 0 #for all elements in edges
+      already <- 0 #for all the agents who already had the global
+      rejector <- 0 #those that did not change bc. they shouldn't. 
+  
+      ## Select the token of agent
+      agentToken <- agentTurn[step] 
+      
+      ## Agents 
+      agentIndex <- which((V(g)$name) == agentToken)
+      
+      ## model & in format
+      gModel <- strToModel(V(g)$model[agentIndex], k) #local model
+
+      ## Tess
+      if(V(g)$type[agentIndex] == "Tess"){ #detect
+        model <- modelSimilarByTerm(gModel, models, mode="random",
+                                    modelSelection=modelSelection)
+
+      ## Mave
+      } else if(V(g)$type[agentIndex] == "Mave"){
+        model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+        
+      ## Bo is fucked. 
+      } else if(V(g)$type[agentIndex] == "Bo"){
+        model <- modelSimilarByInteraction(gModel, models, mode="random",
+                                           modelSelection=modelSelection)
+      }
+      #setting up. 
+      model1 <- model
+      model2 <- gModel
+
+      #adding variance & statistics for different engines (AIC, BIC)
+  Yset <- generateY(deterministic, sigma) #putting variance on the deterministic.
+  stat <- analysis(model, gModel, Yset, Xset, weights) #computing all the shit.
+      
+      #smooth -> should we switch
+      switchModel <- FALSE
+      if((modelCompare == TSTATISTICS) &
+          (!is.null(stat$model$tstatistics)) &
+          (!is.null(stat$gModel$tstatistics)) &
+          (!is.na(stat$model$tstatistics)) &
+          (!is.na(stat$gModel$tstatistics))){
+        if(stat$model$tstatistics > stat$gModel$tstatistics){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == RSQ) &
+          (!is.null(stat$model$rsq)) &
+          (!is.null(stat$gModel$rsq)) &
+          (!is.na(stat$model$rsq)) &
+          (!is.na(stat$gModel$rsq))){
+        if(stat$model$rsq > stat$gModel$rsq){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == AIC) &
+          (!is.null(stat$model$aic)) &
+          (!is.null(stat$gModel$aic)) &
+          (!is.na(stat$model$aic)) &
+          (!is.na(stat$gModel$aic))){
+        if(stat$model$aic < stat$gModel$aic){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == BIC) &
+          (!is.null(stat$model$bic)) &
+          (!is.null(stat$gModel$bic)) &
+          (!is.na(stat$model$bic)) &
+          (!is.na(stat$gModel$bic))){
+        if(stat$model$bic < stat$gModel$bic){
+          switchModel <- TRUE
+        }
+      } else if((modelCompare == ARSQ) &
+          (!is.null(stat$model$arsq)) &
+          (!is.null(stat$gModel$arsq)) &
+          (!is.na(stat$model$arsq)) &
+          (!is.na(stat$gModel$arsq))){
+        if(stat$model$arsq > stat$gModel$arsq){
+          switchModel <- TRUE
+        }
+      }
+      
+      #what do you do?
+      initGModel <- gModel
+      initGModelStat <- stat$gModel
+      
+      #changing global if TRUE (for recording)
+      if(switchModel){
+        #from the old. 
+        gModel <- model
+        finalGModelStat <- stat$model
+        #local change of model
+        modelStr <- modelToStr(gModel)
+        modelStr <- str_replace(modelStr, "Y ~", "")
+        modelStr <- str_replace_all(modelStr, ":", "")
+        V(g)$model[agentIndex] <- modelStr
+        
+        #this ends the original agents turn
+        } else {
+        finalGModelStat <- stat$gModel
+        }
+        
+      if(switchModel){
+        #making ready for the loop. 
+        edges <- names(which(matrix_g[, agentIndex] == 1)) #maybe. 
+        
+        #here goes for loop. 
+        for(i in edges){
+          
+          ## tried 
+          tried <- tried + 1
+          
+          ## which one 
+          agentToken <- i
+          
+          ## Agents 
+          agentIndex <- which((V(g)$name) == agentToken)
+      
+          ## model & in format
+          gModel <- strToModel(V(g)$model[agentIndex], k) #just to call it else. 
+          
+          #adding variance & statistics for different engines (AIC, BIC)
+          Yset <- generateY(deterministic, sigma) #putting variance on the                  deterministic.
+          stat <- analysis(model, gModel, Yset, Xset, weights) #computing all the           shit.
+          
+          ## already at true model (atm). 
+          atm <- as.numeric(compareModels(tModel, gModel))
+          already <- already + atm
+      
+      #smooth -> should we switch
+      switchModel1 <- FALSE
+      if((modelCompare == TSTATISTICS) &
+          (!is.null(stat$model$tstatistics)) &
+          (!is.null(stat$gModel$tstatistics)) &
+          (!is.na(stat$model$tstatistics)) &
+          (!is.na(stat$gModel$tstatistics))){
+        if(stat$model$tstatistics > stat$gModel$tstatistics){
+          switchModel1 <- TRUE
+        }
+      } else if((modelCompare == RSQ) &
+          (!is.null(stat$model$rsq)) &
+          (!is.null(stat$gModel$rsq)) &
+          (!is.na(stat$model$rsq)) &
+          (!is.na(stat$gModel$rsq))){
+        if(stat$model$rsq > stat$gModel$rsq){
+          switchModel1 <- TRUE
+        }
+      } else if((modelCompare == AIC) &
+          (!is.null(stat$model$aic)) &
+          (!is.null(stat$gModel$aic)) &
+          (!is.na(stat$model$aic)) &
+          (!is.na(stat$gModel$aic))){
+        if(stat$model$aic < stat$gModel$aic){
+          switchModel1 <- TRUE
+        }
+      } else if((modelCompare == BIC) &
+          (!is.null(stat$model$bic)) &
+          (!is.null(stat$gModel$bic)) &
+          (!is.na(stat$model$bic)) &
+          (!is.na(stat$gModel$bic))){
+        if(stat$model$bic < stat$gModel$bic){
+          switchModel1 <- TRUE
+        }
+      } else if((modelCompare == ARSQ) &
+          (!is.null(stat$model$arsq)) &
+          (!is.null(stat$gModel$arsq)) &
+          (!is.na(stat$model$arsq)) &
+          (!is.na(stat$gModel$arsq))){
+        if(stat$model$arsq > stat$gModel$arsq){
+          switchModel1 <- TRUE
+        }
+      } else { 
+        finalGModelStat <- stat$gModel
+      }
+      
+      if(switchModel1){
+        gModel <- model 
+        #finalGModelStat <- stat$model
+        modelStr <- modelToStr(gModel)
+        modelStr <- str_replace(modelStr, "Y ~", "")
+        modelStr <- str_replace_all(modelStr, ":", "")
+        V(g)$model[agentIndex] <- modelStr
+        changed <- changed + 1
+        } #this ends the for loop ()
+      
+        #did they already have the global model?
+      else if(compareModels(gModel, tModel)){
+        rejector <- rejector + 1
+        #did they just not change. 
+      } else {
+        finalGModelStat <- stat$gModel
+      }
+        }
+      }
+
+      ## Record output data (commenting fucked stuff)
+      output[step, O_STRATEGY] <- V(g)$type[agentIndex] #new.
+      output[step, O_SELECTED_MODEL] <- searchModel(model, models)
+      output[step, O_SELECTED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
+      output[step, O_SELECTED_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, stat$model$betasEst), ndec)
+      output[step, O_INITIAL_GLOBAL_MODEL] <- searchModel(initGModel, models)
+      output[step, O_INITIAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(initGModel, tModel))
+      output[step, O_INITIAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, initGModelStat$betasEst), ndec)
+      output[step, O_FINAL_GLOBAL_MODEL] <- searchModel(gModel, models)
+      output[step, O_FINAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(gModel, tModel))
+      output[step, O_FINAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, finalGModelStat$betasEst), ndec)
+      output[step, O_NUM_PREDICTORS] <- predictors[[1]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))]
+      output[step, O_SAMPLE_SIZE] <- sampleSize
+      output[step, O_BETA1_TRUE] <- round(tModelBetas[,2], ndec)
+      output[step, O_BETA1_ESTIMATE] <- round(finalGModelStat$betasEst[2], ndec)
+      output[step, O_BETA1_ERROR] <- round(finalGModelStat$betasErr[2], ndec)
+      output[step, O_TSTATISTICS] <- round(finalGModelStat$tstatistics, ndec)
+      output[step, O_RSQ] <- round(finalGModelStat$rsq, ndec)
+      output[step, O_ARSQ] <- round(finalGModelStat$arsq, ndec)
+      output[step, O_AIC] <- round(finalGModelStat$aic, ndec)
+      output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
+      output[step, O_AGENT_INDEX] <- V(g)$name[agentIndex] #new
+      output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
+      output[step, O_PROPORTION_1] <- mean(as.numeric(V(g)$model == some_models[1])) #new
+      output[step, O_PROPORTION_2] <- mean(as.numeric(V(g)$model == some_models[2]))
+      output[step, O_PROPORTION_3] <- mean(as.numeric(V(g)$model == some_models[3]))
+      output[step, O_PROPORTION_4] <- mean(as.numeric(V(g)$model == some_models[4]))
+      output[step, O_PROPORTION_5] <- mean(as.numeric(V(g)$model == some_models[5]))
+      output[step, O_PROPORTION_6] <- mean(as.numeric(V(g)$model == some_models[6]))
+      output[step, O_PROPORTION_7] <- mean(as.numeric(V(g)$model == some_models[7]))
+      output[step, O_PROPORTION_8] <- mean(as.numeric(V(g)$model == some_models[8]))
+      output[step, O_PROPORTION_9] <- mean(as.numeric(V(g)$model == some_models[9]))
+      output[step, O_PROPORTION_10] <- mean(as.numeric(V(g)$model == some_models[10]))
+      output[step, O_PROPORTION_11] <- mean(as.numeric(V(g)$model == some_models[11]))
+      output[step, O_PROPORTION_12] <- mean(as.numeric(V(g)$model == some_models[12]))
+      output[step, O_PROPORTION_13] <- mean(as.numeric(V(g)$model == some_models[13]))
+      output[step, O_PROPORTION_14] <- mean(as.numeric(V(g)$model == some_models[14]))
+      output[step, O_TRIED] <- tried #new
+      output[step, O_CHANGED] <- changed #new
+      output[step, O_ALREADY] <- already #new
+      output[step, O_REJECTOR] <- rejector #new
+      output[step, O_SIGMA] <- sigma #new - and maybe dubious
+      output[step, O_TRUEMOD] <- gsub(" ", "", substr(modelToStr(tModel), 5,
+            nchar(modelToStr(tModel))), fixed=TRUE)
+  }
+
+## Parameter output
+    param <- list()
+    param[[P_TMODEL]] <- gsub(" ", "", substr(modelToStr(tModel), 5,
+            nchar(modelToStr(tModel))), fixed=TRUE)
+    param[[P_K]] <- k
+    param[[P_SAMPLE_SIZE]] <- sampleSize
+    param[[P_SIGMA]] <- sigma
+    param[[P_CORRELATION]] <- correlation
+    #param[[P_AGENT_WEIGHTS]] <- c(nRey, nTess, nBo, nMave) /
+        #(nRey + nTess + nBo + nMave)
+    param[[P_TRUE_BETAS]] <- tModelBetas
+    param[[P_XSET]] <- Xset
+    param[[P_NETWORK]] <- matrix_g
+    parameters[[replica]] <- param
+    
+
+    ## Convert output matrix into data table
+    output <- data.table(cbind(rep(replica, timesteps), 1:timesteps, output))
+    names(output) <- OUTPUT_HEADER
+
+    ## Write output data table into a file
+    write.table(output, file=paste0(outputDir, "/", outputFile),
+        append=ifelse(replica == 1, FALSE, TRUE),
+        quote=FALSE, sep=";", row.names=FALSE,
+        col.names=ifelse(replica == 1, TRUE, FALSE))
+  }
+
+  saveRDS(parameters, file=paste0(outputDir, "/", paramFile))
+}
+```
+
+```{r}
+
+qualitative(replications, timesteps, models, k, 
+    weights, sampleSize, correlation, sigma,
+    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+    verbose, ndec, seeds, some_models)
+
+```
+
+Plotting
+
+```{r}
+qual_data <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative.csv", sep = ";")
+
+naming <- colnames(qual_data)
+
+
+melt_qual_data <- melt(qual_data, id = c(naming[1:24], naming[39:44]))
+
+colored_plot_qual <- ggplot(melt_qual_data, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+colored_plot_qual
+```
+```{r}
+qual_data_8 <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_8.csv", sep = ";")
+
+naming_8 <- colnames(qual_data_8)
+
+
+melt_qual_data_8 <- melt(qual_data_8, id = c(naming_8[1:24], naming_8[39:44]))
+
+colored_plot_qual <- ggplot(melt_qual_data_8, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+colored_plot_qual
+```
+```{r}
+qual_data_8_hell <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_8_hell.csv", sep = ";")
+
+naming_8_hell <- colnames(qual_data_8_hell)
+
+
+melt_qual_data_8_hell <- melt(qual_data_8_hell, id = c(naming_8_hell[1:24], naming_8_hell[39:44]))
+
+colored_plot_qual <- ggplot(melt_qual_data_8_hell, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+colored_plot_qual
+```
+
+```{r}
+qual_data_2_hell <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_2_hell.csv", sep = ";")
+
+naming_2_hell <- colnames(qual_data_2_hell)
+
+
+melt_qual_data_2_hell <- melt(qual_data_2_hell, id = c(naming_2_hell[1:24], naming_2_hell[39:44]))
+
+colored_plot_qual_hell <- ggplot(melt_qual_data_2_hell, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+colored_plot_qual_hell
+```
+
+```{r}
+qual_data_2_less_hell <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_2_less_hell.csv", sep = ";")
+
+naming_2_less_hell <- colnames(qual_data_2_less_hell)
+
+
+melt_qual_data_2_less_hell <- melt(qual_data_2_less_hell, id = c(naming_2_less_hell[1:24], naming_2_less_hell[39:44]))
+
+colored_plot_qual_less_hell <- ggplot(melt_qual_data_2_less_hell, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+colored_plot_qual
+```
+
+```{r}
+qual_data_2_sample_hell <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_2_sample_hell.csv", sep = ";")
+
+naming_2_sample_hell <- colnames(qual_data_2_sample_hell)
+
+
+melt_qual_data_2_sample_hell <- melt(qual_data_2_sample_hell, id = c(naming_2_sample_hell[1:24], naming_2_sample_hell[39:44]))
+
+colored_plot_qual_sample_hell <- ggplot(melt_qual_data_2_sample_hell, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+colored_plot_qual_sample_hell
+
+library(cowplot)
+
+plot_grid(colored_plot_qual_hell, colored_plot_qual_sample_hell, colored_plot_qual_less_hell, labels = c("Sigma: 08, SS: 20", "Sigma: 08, SS: 100", "Sigma: 02, SS: 20"))
+```

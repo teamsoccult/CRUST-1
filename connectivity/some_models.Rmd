@@ -60,6 +60,13 @@ some_models <- str_replace(some_models, "Y ~", "")
 
 some_models <- str_replace_all(some_models, ":", "")
 
+some_models_2 <- some_models
+
+some_models_2[10:13] <- some_models[11:14]
+some_models_2[14] <- some_models[10]
+
+some_models <- some_models_2
+
 save(some_models, file = "connectivity/loads/some_models")
 
 ```
