@@ -66,10 +66,10 @@ timesteps <- 11000
 k <- 3
 
 ## Sigma (Error variance)
-sigma <- 0.5
+sigma <- 0.2
 
 ## Sample size
-sampleSize <- 100
+sampleSize <- 20 #100 normally
 
 ## generating 
 models <- generateModels(k)

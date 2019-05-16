@@ -298,7 +298,7 @@ for(step in 1:timesteps){ #11000 time-steps
     names(output) <- OUTPUT_HEADER
 
     ## Write output data table into a file
-    write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", sigma, "_", criterion, "_", howmany, outputFile),
+    write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", sigma, "_", criterion, "_", howmany, "_", modelSelection, "_", sampleSize, outputFile),
         append=ifelse(replica == 1, FALSE, TRUE),
         quote=FALSE, sep=";", row.names=FALSE,
         col.names=ifelse(replica == 1, TRUE, FALSE))
