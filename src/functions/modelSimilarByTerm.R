@@ -16,6 +16,9 @@
 ## @changes
 ##
 ################
+
+#trying
+
 modelSimilarByTerm <- function(model, models, mode=c("all", "random"),
                                modelSelection=c("hard", "soft")){
 

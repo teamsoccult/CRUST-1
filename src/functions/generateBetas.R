@@ -37,3 +37,4 @@ generateBetas <- function(models){
   
   return(betas)
 }
+

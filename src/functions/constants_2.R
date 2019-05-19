@@ -31,7 +31,7 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 42
+O_NUM_FIELDS <- 44
 O_STRATEGY <- 1
 O_SELECTED_MODEL <- 2
 O_SELECTED_TRUE_MODEL <- 3
@@ -72,8 +72,10 @@ O_TRIED <- 37 #new
 O_CHANGED <- 38 #new
 O_ALREADY <- 39 #new
 O_REJECTOR <- 40 #new
-O_SIGMA <- 41 #new
-O_TRUEMOD <- 42 #new
+O_REPLICATED <- 41 #new
+O_NOTREPLICATED <- 42
+O_SIGMA <- 43 #new
+O_TRUEMOD <- 44 #new
 
 ## File output headers
 OUTPUT_HEADER <- c("replica",
@@ -115,9 +117,11 @@ OUTPUT_HEADER <- c("replica",
                    "proportion_13",
                    "proportion_14",#changed from nothing. 
                    "tried", #changed from nothing. 
-                   "changed",
-                   "already",
-                   "rejector",
+                   "changed", #new
+                   "already", #new
+                   "rejector", #new
+                   "replicated", #new
+                   "not_replicated", #new
                    "sigma",
                    "true_model") #changed from nothing. 
 
@@ -131,3 +135,5 @@ P_AGENT_WEIGHTS <- 6
 P_TRUE_BETAS <- 7
 P_XSET <- 8
 P_NETWORK <- 9 #new
+P_AVG_PATH_LENGTH <- 10
+P_CLUSTER_COEF <- 11

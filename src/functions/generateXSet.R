@@ -13,6 +13,7 @@
 ## @changes
 ##
 ################
+
 generateXSet <- function(n, k, correlation){
   
   xperm <- matrix(data=0, nrow=n, ncol=k)

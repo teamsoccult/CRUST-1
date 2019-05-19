@@ -14,6 +14,7 @@
 ################
 compareModels <- function(model1, model2){
   
+  #making sure that it is a matrix. 
   if(!is.matrix(model1)){
     model1 <- t(as.matrix(model1))
   }
@@ -22,6 +23,7 @@ compareModels <- function(model1, model2){
     model2 <- t(as.matrix(model2))
   }
   
+  #
   k <- min(length(model1[1,]), length(model2[1,]))
   
   f <- 10^((k-1):0)
@@ -46,3 +48,4 @@ compareModels <- function(model1, model2){
   
   return(match)
 }
+

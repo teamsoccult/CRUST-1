@@ -17,6 +17,7 @@
 ##   Adjust model [2017-02-13]
 ##
 ################
+
 calculateDet <- function(model, xset, weights, betas){
   
   if(!is.matrix(model)){

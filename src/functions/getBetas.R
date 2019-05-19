@@ -13,6 +13,7 @@
 ## @changes
 ##
 ################
+
 getBetas <- function(model, weights, sigma){
   
   if(!is.matrix(model)){

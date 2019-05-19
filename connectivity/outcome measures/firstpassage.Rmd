@@ -1,0 +1,62 @@
+---
+title: "firstpassage"
+author: "Victor Møller"
+date: "18 maj 2019"
+output: html_document
+---
+
+first passage time to 50%
+
+```{r}
+#reading
+mave02 <- read.csv("data/rfs50/small_mave_0.2_BIC_100_hard_100.csv", sep = ";")
+
+#plots.  
+library(tidyverse)
+library(reshape2)
+
+#setting the true proportion col 
+mave02 <- mave02 %>%
+  mutate(PropTrue = proportion_7) #set the true model as PropTrue
+
+#replication overall 
+mave_overall <- mave02 %>%
+  group_by(replica) %>%
+  summarize(mean = min(which(PropTrue > 0.5))) %>%
+  mutate(index = "index")
+
+#getting median & IQR
+mave_medianIQR <- mave_overall %>%
+  group_by(index) %>%
+  summarize(median = median(mean),
+            IQR = IQR(mean))
+  
+
+```
+
+first passage to most adhered to. 
+
+```{r}
+
+
+#checking - only gives the first replica - does not loop over replica
+mave_sum <- mave02 %>%
+  group_by(replica) %>%
+  summarize(fpttt1 = min(which(15 == max.col(mave_sum[,c(25:38,47)], #or mave02
+                        ties.method = "last"))))
+
+#the code which runs shit. 
+min(which(15 == max.col(mave02[,c(25:38,47)],
+                        ties.method = "last"))) #so if equal to or greater than
+
+#trying a subset 
+mave5 <- mave02 %>%
+  subset(replica == 5) %>%
+  mutate(fpttt1 = min(which(15 == max.col(mave5[,c(25:38,47)],
+                        ties.method = "last"))))
+
+#with apply maybe or later
+min(which("proportion_7" == colnames(mave02[,25:38])[apply(mavesubset,1,which.max)]))
+
+```
+

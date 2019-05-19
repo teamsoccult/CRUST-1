@@ -12,6 +12,7 @@
 ## @changes
 ##
 ################
+
 generateY <- function(deterministic, sigma){
   
   EY <- deterministic + rnorm(length(deterministic), 0, sigma)

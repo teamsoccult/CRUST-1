@@ -1,0 +1,283 @@
+---
+title: "sanity check everyone"
+author: "Victor Møller"
+date: "18 maj 2019"
+output: html_document
+---
+
+
+loading all files 
+
+```{r}
+#set working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+
+#looping 
+temp <- list.files(pattern="*.csv")
+
+#packages
+library(tidyverse)
+```
+
+bo & lattice
+
+```{r}
+
+#bo lattice
+temp1 <- temp[1:6]
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ";"))
+
+#lattice bo sample size 100 
+summary(lattice_bo_0.2_BIC_100_hard_100.csv$timestep)
+summary(lattice_bo_0.2_BIC_100_hard_100.csv$replica) #very cool.   
+
+summary(lattice_bo_0.5_BIC_100_hard_100.csv$timestep)
+summary(lattice_bo_0.5_BIC_100_hard_100.csv$replica) #looks right. 
+
+summary(lattice_bo_0.8_BIC_100_hard_100.csv$timestep)
+summary(lattice_bo_0.8_BIC_100_hard_100.csv$replica) #looks right. 
+
+#lattice bo sample size 20 
+summary(lattice_bo_0.2_BIC_100_hard_20.csv$timestep)
+summary(lattice_bo_0.2_BIC_100_hard_20.csv$replica) #good.   
+
+summary(lattice_bo_0.5_BIC_100_hard_20.csv$timestep)
+summary(lattice_bo_0.5_BIC_100_hard_20.csv$replica) #good.   
+
+summary(lattice_bo_0.8_BIC_100_hard_20.csv$timestep)
+summary(lattice_bo_0.8_BIC_100_hard_20.csv$replica) #good. 
+
+```
+
+lattice epi
+
+```{r}
+
+#clearing & reading 
+rm(list=ls())
+temp <- list.files(pattern="*.csv")
+
+#epi lattice
+temp2 <- temp[7:12]
+for(i in 1:length(temp2)) assign(temp2[i], read.csv(temp2[i], sep = ";"))
+
+#lattice epi sample size 100 
+summary(lattice_epi_0.2_BIC_100_hard_100.csv$timestep)
+summary(lattice_epi_0.2_BIC_100_hard_100.csv$replica) #good.
+
+summary(lattice_epi_0.5_BIC_100_hard_100.csv$timestep)
+summary(lattice_epi_0.5_BIC_100_hard_100.csv$replica) #good. 
+
+summary(lattice_epi_0.8_BIC_100_hard_100.csv$timestep)
+summary(lattice_epi_0.8_BIC_100_hard_100.csv$replica) #good.
+
+#lattice epi sample size 20 
+summary(lattice_epi_0.2_BIC_100_hard_20.csv$timestep)
+summary(lattice_epi_0.2_BIC_100_hard_20.csv$replica) #good.  
+
+summary(lattice_epi_0.5_BIC_100_hard_20.csv$timestep)
+summary(lattice_epi_0.5_BIC_100_hard_20.csv$replica) #good.
+
+summary(lattice_epi_0.8_BIC_100_hard_20.csv$timestep)
+summary(lattice_epi_0.8_BIC_100_hard_20.csv$replica) #good. 
+
+```
+
+lattice mave
+
+```{r}
+#mave lattice
+temp3 <- temp[13:15]
+for(i in 1:length(temp3)) assign(temp3[i], read.csv(temp3[i], sep = ";"))
+
+#checking mave
+summary(lattice_mave_0.2_BIC_100_hard_100.csv$timestep)
+summary(lattice_mave_0.2_BIC_100_hard_100.csv$replica) #good
+
+summary(lattice_mave_0.5_BIC_100_hard_100.csv$timestep)
+summary(lattice_mave_0.5_BIC_100_hard_100.csv$replica) #hmm, duplicates? 
+
+summary(lattice_mave_0.8_BIC_100_hard_100.csv$timestep)
+summary(lattice_mave_0.8_BIC_100_hard_100.csv$replica) #good.
+
+#checking 05
+latmave05 <- lattice_mave_0.5_BIC_100_hard_100.csv %>%
+  group_by(replica) %>%
+  summarize(n = sum(timestep))
+
+```
+
+lattice tess
+
+```{r}
+
+#clearing & reading 
+rm(list=ls())
+temp <- list.files(pattern="*.csv")
+
+temp4 <- temp[16:18]
+for(i in 1:length(temp4)) assign(temp4[i], read.csv(temp4[i], sep = ";"))
+
+#checking tess
+summary(lattice_tess_0.2_BIC_100_hard_100.csv$timestep)
+summary(lattice_tess_0.2_BIC_100_hard_100.csv$replica) #looks good. 
+
+summary(lattice_tess_0.5_BIC_100_hard_100.csv$timestep)
+summary(lattice_tess_0.5_BIC_100_hard_100.csv$replica) #looks good. 
+
+summary(lattice_tess_0.8_BIC_100_hard_100.csv$timestep)
+summary(lattice_tess_0.8_BIC_100_hard_100.csv$replica) #looks good. 
+```
+
+small world bo 
+
+```{r}
+#reading 
+temp5 <- temp[20:25]
+for(i in 1:length(temp5)) assign(temp5[i], read.csv(temp5[i], sep = ";"))
+
+#bo small world 100
+summary(small_bo_0.2_BIC_100_hard_100.csv$timestep)
+summary(small_bo_0.2_BIC_100_hard_100.csv$replica) #looks good. 
+
+summary(small_bo_0.5_BIC_100_hard_100_7.csv$timestep)
+summary(small_bo_0.5_BIC_100_hard_100_7.csv$replica) #47 iterations  
+
+summary(small_bo_0.8_BIC_100_hard_100.csv$timestep)
+summary(small_bo_0.8_BIC_100_hard_100.csv$replica) #looks good. 
+
+#bo small world 20
+summary(small_bo_0.2_BIC_100_hard_20.csv$timestep)
+summary(small_bo_0.2_BIC_100_hard_20.csv$replica) #looks good. 
+
+summary(small_bo_0.5_BIC_100_hard_20.csv$timestep)
+summary(small_bo_0.5_BIC_100_hard_20.csv$replica) #looks good. 
+
+summary(small_bo_0.8_BIC_100_hard_20.csv$timestep)
+summary(small_bo_0.8_BIC_100_hard_20.csv$replica) #looks good. 
+
+```
+
+epi small world 
+
+```{r}
+#clearing & reading 
+rm(list=ls())
+temp <- list.files(pattern="*.csv")
+
+#reading 
+temp6 <- temp[25:30]
+for(i in 1:length(temp6)) assign(temp6[i], read.csv(temp6[i], sep = ";"))
+
+#epi small world 100
+summary(small_epi_0.2_BIC_100_hard_100.csv$timestep)
+summary(small_epi_0.2_BIC_100_hard_100.csv$replica) #looks good. 
+
+summary(small_epi_0.5_BIC_100_hard_100.csv$timestep)
+summary(small_epi_0.5_BIC_100_hard_100.csv$replica) #looks good.  
+
+summary(small_epi_0.8_BIC_100_hard_100.csv$timestep)
+summary(small_epi_0.8_BIC_100_hard_100.csv$replica) #looks good. 
+
+#epi small world 20
+summary(small_epi_0.2_BIC_100_hard_20.csv$timestep)
+summary(small_epi_0.2_BIC_100_hard_20.csv$replica) #looks good. 
+
+summary(small_epi_0.5_BIC_100_hard_20.csv$timestep)
+summary(small_epi_0.5_BIC_100_hard_20.csv$replica) #looks good. 
+
+summary(small_epi_0.8_BIC_100_hard_20.csv$timestep)
+summary(small_epi_0.8_BIC_100_hard_20.csv$replica) #looks good. 
+```
+
+small world mave
+
+```{r}
+#clearing & reading 
+rm(list=ls())
+temp <- list.files(pattern="*.csv")
+
+#reading 
+temp7 <- temp[31:33]
+for(i in 1:length(temp7)) assign(temp7[i], read.csv(temp7[i], sep = ";"))
+
+#mave small world 100
+summary(small_mave_0.2_BIC_100_hard_100.csv$timestep)
+summary(small_mave_0.2_BIC_100_hard_100.csv$replica) #looks good. 
+
+summary(small_mave_0.5_BIC_100_hard_100.csv$timestep)
+summary(small_mave_0.5_BIC_100_hard_100.csv$replica) #looks good.  
+
+summary(small_mave_0.8_BIC_100_hard_100.csv$timestep)
+summary(small_mave_0.8_BIC_100_hard_100.csv$replica) #looks good. 
+```
+
+small world tess 
+
+```{r}
+#clearing & reading 
+rm(list=ls())
+temp <- list.files(pattern="*.csv")
+
+#reading 
+temp8 <- temp[34:36]
+for(i in 1:length(temp8)) assign(temp8[i], read.csv(temp8[i], sep = ";"))
+
+#tess small world 100
+summary(small_tess_0.2_BIC_100_hard_100.csv$timestep)
+summary(small_tess_0.2_BIC_100_hard_100.csv$replica) #looks good. 
+
+summary(small_tess_0.5_BIC_100_hard_100.csv$timestep)
+summary(small_tess_0.5_BIC_100_hard_100.csv$replica) #looks good.  
+
+summary(small_tess_0.8_BIC_100_hard_100.csv$timestep)
+summary(small_tess_0.8_BIC_100_hard_100.csv$replica) #39 iterations.  
+```
+
+duplicate mave
+
+```{r}
+getwd()
+
+#reading the duplicate mave 
+lat_mave_05 <- read.csv("lattice_mave_0.5_BIC_100_hard_100.csv", sep = ";")
+
+#subsetting - problem from iter = 29. 
+lat_mave_sum <- lat_mave_05 %>%
+  group_by(replica) %>%
+  summarize(iter = sum(timestep))
+
+#the troubles 
+lat_mave_issues <- lat_mave_05 %>%
+  subset(replica > 28 & replica < 44)
+
+#checking 
+lat_mave_sum2 <- lat_mave_issues %>%
+  group_by(replica) %>%
+  summarize(iter = sum(timestep))
+
+#doing something. 
+lat_mave_issues_solution <- lat_mave_issues %>%
+  mutate(duplicate = rep(TRUE:FALSE, each = 11000, 15))
+
+#subsetting 
+lat_mave_sol_subset <- lat_mave_issues_solution %>%
+  subset(duplicate == 1)
+
+#putting together 
+lat_mave_clean <- lat_mave_05 %>%
+  subset(replica < 28 | replica > 44) %>%
+  mutate(duplicate = 1)
+
+lat_mave <- rbind(lat_mave_sol_subset, lat_mave_clean)
+  
+```
+
+checking the fucked ones. 
+
+```{r}
+getwd()
+
+
+```
+
