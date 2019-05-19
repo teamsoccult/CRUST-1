@@ -1,0 +1,36 @@
+---
+title: "stickiness"
+author: "Mikkel Werling"
+date: "5/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+getting the maximum distance between the maximum and the minimum proportion when the first of them is the positive one
+
+```{r}
+small_epi_0.2 <- read.csv("~/CRUST-1/data/rfs50/small_epi_0.2_BIC_100_hard_100.csv", sep=";")
+
+small_epi_0.2$timestep < small_epi_0.2$timestep #logical operater needed to check whether or not the first timestep is before the other
+
+
+
+test_stick <- min(small_epi_0.2[1000:11000,31]) #should there be a subset?
+
+optimum_before <- max(small_epi_0.2[1000:11000,31])
+
+
+stick <- small_epi_0.2 %>%
+  group_by(replica) %>%
+  summarise(peaks = (findpeaks(proportion_7)[,1]))
+
+check <- findpeaks(small_epi_0.2$proportion_7)
+
+check <- as.data.frame(check)
+
+str(check)
+```
+

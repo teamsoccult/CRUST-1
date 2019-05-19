@@ -1,0 +1,72 @@
+---
+title: "calculating"
+author: "Mikkel Werling"
+date: "5/18/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+calculating TAT:
+
+```{r}
+
+small_epi_0.2 <- read.csv("~/CRUST-1/data/rfs50/small_epi_0.2_BIC_100_hard_100.csv", sep=";")
+
+TAT <- small_epi_0.2 %>%
+  group_by(replica) %>%
+  summarise(mean(proportion_7))
+
+median(TAT$`mean(proportion_7)`)
+IQR(TAT$`mean(proportion_7)`)
+```
+
+calculating TAT_C:
+
+```{r}
+small_epi_0.2_check <- small_epi_0.2
+logic <- as.data.frame(small_epi_0.2_check$proportion_7 > small_epi_0.2_check[,c(25:30, 32:38)])
+
+logic <- as.data.frame(apply(logic, 2, FUN = as.integer))
+
+amount_of_proportions <- ifelse(rowSums(logic) == 13, 1, 0)
+
+small_epi_0.2_check <- small_epi_0.2_check %>%
+  mutate(TAT_C = ifelse(rowSums(logic) == 13, 1, 0))
+  
+TAT_C_table <- small_epi_0.2_check %>%
+  group_by(replica) %>%
+  summarise(mean = mean(TAT_C)) %>%
+  mutate(bogus = "ha")
+
+TAT_C_table_inc <- TAT_C_table %>%
+  group_by(bogus) %>%
+  summarize(median = median(mean),
+          IQR = IQR(mean))
+
+```
+
+TAT_50
+
+```{r}
+small_epi_0.2_tat_50 <- small_epi_0.2
+#small_epi_0.2_tat_50$TAT_50 <- ifelse(small_epi_0.2_tat_50$proportion_7 >= 0.5, 1, 0)
+
+small_epi_0.2_tat_50 <- small_epi_0.2_check %>%
+  mutate(TAT_50 = ifelse(proportion_7 >= 0.5, 1, 0))
+
+TAT_50 <- small_epi_0.2_tat_50 %>%
+  group_by(replica) %>%
+  summarise(mean = mean(TAT_50)) %>%
+  mutate(bogus = "ha")
+
+TAT_50_table_inc <- TAT_50 %>%
+  group_by(bogus) %>%
+  summarize(median = median(mean),
+          IQR = IQR(mean))
+
+
+```
+

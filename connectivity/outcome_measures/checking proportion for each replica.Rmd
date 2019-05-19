@@ -1,0 +1,88 @@
+---
+title: "calculating stickiness"
+author: "Mikkel Werling"
+date: "5/19/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+small_epi_0.2 <- read.csv("~/CRUST-1/data/rfs50/small_epi_0.2_BIC_100_hard_100.csv", sep=";")
+
+melt_qual_small_epi <- melt(small_epi_0.5, id = c(naming_small_epi[1:24], naming_small_epi[39:46]))
+
+melt_qual_small_epi <- melt_qual_small_epi[seq(1, nrow(melt_qual_small_epi), 100), ]
+
+colored_plot_qual_small_epi <- ggplot(melt_qual_small_epi, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+small_epi_0.2$replica <- as.factor(small_epi_0.2$replica)
+
+ggplot(small_epi_0.2, aes(timestep, proportion_7, color = replica)) + 
+         geom_point(alpha = 0.01) + 
+         geom_smooth(alpha = 0.01)
+
+checking <- small_epi_0.2 %>%
+  group_by(replica) %>%
+  summarise(mean = mean(proportion_7)) #it's replica 26
+
+
+```
+
+checking another run to see if it's systemic:
+
+```{r}
+
+lattice_epi_0.2 <- read.csv("~/CRUST-1/data/rfs50/lattice_epi_0.2_BIC_100_hard_100.csv", sep=";")
+
+#melt_qual_small_epi <- melt(small_epi_0.5, id = c(naming_small_epi[1:24], naming_small_epi[39:46]))
+
+#melt_qual_small_epi <- melt_qual_small_epi[seq(1, nrow(melt_qual_small_epi), 100), ]
+
+colored_plot_qual_small_epi <- ggplot(melt_qual_small_epi, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+lattice_epi_0.2$replica <- as.factor(lattice_epi_0.2$replica)
+
+ggplot(lattice_epi_0.2, aes(timestep, proportion_7, color = replica)) + 
+         geom_point(alpha = 0.01) + 
+         geom_smooth(alpha = 0.01)
+
+checking <- small_epi_0.2 %>%
+  group_by(replica) %>%
+  summarise(mean = mean(proportion_7)) #in this case it is stable 
+
+```
+
+checking if its small world:
+```{r}
+small_mave_0.2 <- read.csv("~/CRUST-1/data/rfs50/small_mave_0.2_BIC_100_hard_100.csv", sep=";")
+
+#melt_qual_small_epi <- melt(small_epi_0.5, id = c(naming_small_epi[1:24], naming_small_epi[39:46]))
+
+#melt_qual_small_epi <- melt_qual_small_epi[seq(1, nrow(melt_qual_small_epi), 100), ]
+
+colored_plot_qual_small_epi <- ggplot(melt_qual_small_epi, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+small_mave_0.2$replica <- as.factor(small_mave_0.2$replica)
+
+ggplot(small_mave_0.2, aes(timestep, proportion_7, color = replica)) + 
+         geom_point(alpha = 0.01) + 
+         geom_smooth(alpha = 0.01)
+
+#mave seems to reach higher proportions for most of the runs, but has some which are relatively low. It isn't systematic. 
+
+checking <- small_epi_0.2 %>%
+  group_by(replica) %>%
+  summarise(mean = mean(proportion_7)) #it's replica 26
+```
