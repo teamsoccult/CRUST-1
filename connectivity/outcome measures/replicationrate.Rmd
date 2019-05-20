@@ -8,8 +8,10 @@ output: html_document
 mave replicated 
 
 ```{r}
+
+getwd()
 #reading
-mave02 <- read.csv("data/rfs50/small_mave_0.2_BIC_100_hard_100.csv", sep = ";")
+mave02 <- read.csv("small_mave_0.2_BIC_100_hard_100.csv", sep = ";")
 
 #plots.  
 library(tidyverse)
@@ -19,6 +21,7 @@ library(reshape2)
 mave02 <- mave02 %>%
   subset(tried >= 1) 
 
+library(tidyverse)
 #replication overall 
 mave_overall <- mave02 %>%
   group_by(replica) %>%

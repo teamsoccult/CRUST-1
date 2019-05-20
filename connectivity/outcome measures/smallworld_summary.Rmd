@@ -1,0 +1,208 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+#working directory 
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/results")
+
+#clearing & reading 
+temp <- list.files(pattern="*.csv")
+
+#making rownames
+a <- data.frame(name=c("Proportion of time at true model", 
+                      "Proportion of time with true majority", 
+                      "Proportion of time at true model > 50%",
+                      "Replication rate",
+                      "Replication rate if true model"), 
+                b=1:5,
+                c=1:5,
+                d=1:5)
+
+```
+
+reading small world
+
+```{r}
+#only small world 
+names(temp) <- list.files(pattern=".csv")
+y <- c("RR_overall_small.csv",
+       "RR_true_small.csv", #this is fucked. 
+       "TAT_50_small.csv",
+       "TAT_C_small.csv",
+       "TAT_P_small.csv")
+
+temp1 <- temp[y]
+#reading 
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
+
+
+```
+
+organizing small world median
+
+```{r}
+RR_overall_small_med <- RR_overall_small.csv %>%
+  select(population, median) %>%
+  spread(population, median) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+RR_true_small_med <- RR_true_small.csv %>%
+  select(population, median) %>%
+  spread(population, median) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+TAT_50_small_med <- TAT_50_small.csv %>%
+  select(population, median) %>%
+  spread(population, median) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+TAT_C_small_med <- TAT_C_small.csv %>%
+  select(population, median) %>%
+  spread(population, median) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+TAT_P_small_med <- TAT_P_small.csv %>%
+  select(population, median) %>%
+  spread(population, median) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+#rbinding 
+small_med <- rbind(TAT_P_small_med,
+                   TAT_C_small_med,
+                   TAT_50_small_med,
+                   RR_overall_small_med,
+                   RR_true_small_med)
+
+#times 100
+small_med <- small_med %>%
+  mutate(Bo = round(Bo*100, 2),
+         All = round(All*100, 2),
+         Mave = round(Mave*100, 2),
+         Tess = round(Tess*100, 2)) 
+  
+
+rownames(small_med) <- a$name
+
+library(knitr)
+library(kableExtra)
+#kable - too much space 
+small_med %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", 
+                                      "hover", 
+                                      "condensed", 
+                                      "responsive"),
+                full_width = F) %>%
+  add_header_above(c("", "Small World & Median" = 4))
+
+
+
+```
+
+reading small world
+
+```{r}
+
+rm(list=setdiff(ls(), c("a", "temp")))
+
+#only small world 
+
+names(temp) <- list.files(pattern=".csv")
+
+y <- c("RR_overall_small.csv",
+       "RR_true_small.csv", #this is fucked. 
+       "TAT_50_small.csv",
+       "TAT_C_small.csv",
+       "TAT_P_small.csv")
+
+temp1 <- temp[y]
+
+#reading 
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
+
+
+```
+
+organizing small world IQR
+
+```{r}
+RR_overall_small_IQR <- RR_overall_small.csv %>%
+  select(population, IQR) %>%
+  spread(population, IQR) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+RR_true_small_IQR <- RR_true_small.csv %>%
+  select(population, IQR) %>%
+  spread(population, IQR) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+TAT_50_small_IQR <- TAT_50_small.csv %>%
+  select(population, IQR) %>%
+  spread(population, IQR) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+TAT_C_small_IQR <- TAT_C_small.csv %>%
+  select(population, IQR) %>%
+  spread(population, IQR) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+TAT_P_small_IQR <- TAT_P_small.csv %>%
+  select(population, IQR) %>%
+  spread(population, IQR) %>%
+  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+
+small_IQR <- rbind(TAT_P_small_IQR,
+                   TAT_C_small_IQR,
+                   TAT_50_small_IQR,
+                   RR_overall_small_IQR,
+                   RR_true_small_IQR)
+
+#times 100
+small_IQR <- small_IQR %>%
+  mutate(Bo = round(Bo*100, 2),
+         All = round(All*100, 2),
+         Mave = round(Mave*100, 2),
+         Tess = round(Tess*100, 2)) 
+  
+
+rownames(small_IQR) <- a$name
+
+#kable 
+library(knitr)
+library(kableExtra)
+
+#actual plot
+small_IQR %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped",
+                                      "hover", 
+                                      "condensed", 
+                                      "responsive"),
+                full_width = F) %>%
+  add_header_above(c("", "Small World & IQR" = 4))
+
+```
+
+https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+
+```{r}
+
+#plot for another time 
+small_IQR %>%
+  mutate(
+    measures = rownames(.),
+    bo = cell_spec(bo, "html", color = "red"),
+    mave = cell_spec(mave, "html", color = "blue"),
+    tess = cell_spec(tess, "html", color = "green"),
+    epi = cell_spec(epi, "html", color = "purple")) %>%
+  select(measures, bo, mave, tess, epi) %>%
+  kable(format = "html", escape = F) %>%
+  kable_styling("striped", full_width = F)
+
+```
+

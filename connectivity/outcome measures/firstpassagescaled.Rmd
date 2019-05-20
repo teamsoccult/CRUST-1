@@ -1,0 +1,87 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+```{r}
+#set working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+
+#looping 
+temp <- list.files(pattern="*.csv")
+```
+
+```{r}
+#bo lattice
+temp1 <- temp[c(1,3,5)]
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ";"))
+
+```
+
+trying BO. 
+
+```{r}
+
+#putting together 
+lattice_bo <- rbind(lattice_bo_0.2_BIC_100_hard_100.csv, 
+                    lattice_bo_0.5_BIC_100_hard_100.csv,
+                    lattice_bo_0.8_BIC_100_hard_100.csv)
+
+#setting the true proportion col 
+lattice_bo <- lattice_bo %>%
+  mutate(proportion_true = proportion_7)
+
+#bo overall 
+bo_overall <- lattice_bo %>%
+  group_by(replica, sigma) %>%
+  summarize(something = max(ifelse(proportion_true > 0.5, 1, 0)))
+
+```
+
+trying epistemic
+
+```{r}
+#clearing & reading 
+rm(list=ls())
+temp <- list.files(pattern="*.csv")
+
+#epi lattice
+temp2 <- temp[c(7, 9, 11)]
+for(i in 1:length(temp2)) assign(temp2[i], read.csv(temp2[i], sep = ";"))
+
+#putting together 
+lattice_epi <- rbind(lattice_epi_0.2_BIC_100_hard_100.csv, 
+                    lattice_epi_0.5_BIC_100_hard_100.csv,
+                    lattice_epi_0.8_BIC_100_hard_100.csv)
+
+#setting the true proportion col 
+lattice_epi <- lattice_epi %>%
+  mutate(proportion_true = proportion_7)
+
+#bo overall 
+epi_overall <- lattice_epi %>%
+  group_by(replica, sigma) %>%
+  mutate(hit50 = max(ifelse(proportion_true > 0.5, 1, 0))) 
+
+#subset 
+epi_subset <- epi_overall %>%
+  subset(hit50 == 1)
+
+#replication overall 
+epi_overall <- epi_subset %>%
+  group_by(replica, sigma) %>%
+  summarize(mean = min(which(proportion_true > 0.5))) %>%
+  mutate(index = "index")
+
+```
+
+troubleshooting 
+
+```{r}
+min(which(lattice_bo_0.8_BIC_100_hard_100.csv$proportion_true > 0.5)) #doesn't work
+min(which(mave02$proportion_true > 0.5)) #okay. 
+
+```
+

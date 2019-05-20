@@ -17,6 +17,34 @@ temp <- list.files(pattern="*.csv")
 
 #packages
 library(tidyverse)
+
+#lattice 
+temp1 <- temp[1:6]
+for(i in 1:length(temp1)) 
+  assign(temp1[i], read.csv(temp1[i], sep = ";"))
+  if(str_detect("lattice")){
+    temp[i]$network <- "lattice"
+  }
+  if else(str_detec("small")){
+    temp[i]$network <- "small"
+  }
+  if(str_detect("bo")){
+    temp[i]$population <- "bo"
+  }
+  if else(str_detect("mave")){
+    temp[i]$population <- "mave"
+  }
+  if else(str_detect("epi")){
+    temp[i]$population <- "epi"
+  }
+  if else(str_detect("tess")){
+    temp[i]$population <- "tess"
+  }
+
+#new columns 
+for(i in 1:length(temp1)){
+  
+}
 ```
 
 bo & lattice

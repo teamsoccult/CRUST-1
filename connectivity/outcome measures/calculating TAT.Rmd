@@ -9,64 +9,271 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+setup
+
+```{r}
+
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+
+library(tidyverse)
+
+```
+
+loading data 
+small world 
+
+```{r}
+
+#clearing & reading 
+temp <- list.files(pattern="*.csv")
+
+#small world 
+names(temp) <- list.files(pattern=".csv")
+y <- c("small_bo_0.2_BIC_100_hard_100.csv",
+       "small_bo_0.5_BIC_100_hard_100.csv", #this is fucked. 
+       "small_bo_0.8_BIC_100_hard_100.csv",
+       "small_epi_0.2_BIC_100_hard_100.csv",
+       "small_epi_0.5_BIC_100_hard_100.csv",
+       "small_epi_0.8_BIC_100_hard_100.csv",
+       "small_mave_0.2_BIC_100_hard_100.csv",
+       "small_mave_0.5_BIC_100_hard_100.csv",
+       "small_mave_0.8_BIC_100_hard_100.csv",
+       "small_tess_0.2_BIC_100_hard_100.csv",
+       "small_tess_0.5_BIC_100_hard_100.csv",
+       "small_tess_0.8_BIC_100_hard_100.csv")
+temp <- temp[y]
+temp
+
+#loading them 
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+
+```
+
+putting them together 
+
+```{r}
+
+#rbind them into lattice. 
+small <- rbind(small_bo_0.2_BIC_100_hard_100.csv,
+       small_bo_0.5_BIC_100_hard_100.csv,
+       small_bo_0.8_BIC_100_hard_100.csv,
+       small_epi_0.2_BIC_100_hard_100.csv,
+       small_epi_0.5_BIC_100_hard_100.csv,
+       small_epi_0.8_BIC_100_hard_100.csv,
+       small_mave_0.2_BIC_100_hard_100.csv,
+       small_mave_0.5_BIC_100_hard_100.csv,
+       small_mave_0.8_BIC_100_hard_100.csv,
+       small_tess_0.2_BIC_100_hard_100.csv,
+       small_tess_0.5_BIC_100_hard_100.csv,
+       small_tess_0.8_BIC_100_hard_100.csv)
+
+#remove all the old shit 
+rm(list=setdiff(ls(), "small"))
+```
+
 calculating TAT:
 
 ```{r}
+#TAT
+TAT <- small %>% 
+  mutate(proportion_true = proportion_7) %>% #set the true model
+  group_by(replica, network, population) %>% #could be sigma as well
+  summarise(mean = mean(proportion_7)) #summarise 
 
-small_epi_0.2 <- read.csv("~/CRUST-1/data/rfs50/small_epi_0.2_BIC_100_hard_100.csv", sep=";")
+#TAT summarized
+TAT_sum <- TAT %>%
+  group_by(network, population) %>%
+  summarize(median = median(mean),
+            IQR = IQR(mean))
 
-TAT <- small_epi_0.2 %>%
-  group_by(replica) %>%
-  summarise(mean(proportion_7))
-
-median(TAT$`mean(proportion_7)`)
-IQR(TAT$`mean(proportion_7)`)
 ```
 
 calculating TAT_C:
+I would like to base this on proportion_true for the future. 
 
 ```{r}
-small_epi_0.2_check <- small_epi_0.2
-logic <- as.data.frame(small_epi_0.2_check$proportion_7 > small_epi_0.2_check[,c(25:30, 32:38)])
 
+#checking when proportion is greatest. 
+logic <- as.data.frame(small$proportion_7 > small[,c(26:31, 33:39)])
 logic <- as.data.frame(apply(logic, 2, FUN = as.integer))
 
-amount_of_proportions <- ifelse(rowSums(logic) == 13, 1, 0)
-
-small_epi_0.2_check <- small_epi_0.2_check %>%
+#mutating 1 for TAT_c & 0 for not TAT_c
+TAT_c <- small %>%
   mutate(TAT_C = ifelse(rowSums(logic) == 13, 1, 0))
   
-TAT_C_table <- small_epi_0.2_check %>%
-  group_by(replica) %>%
-  summarise(mean = mean(TAT_C)) %>%
-  mutate(bogus = "ha")
+#per pop, network & replica
+TAT_C_table <- TAT_c %>%
+  group_by(replica, population, network) %>%
+  summarise(mean = mean(TAT_C)) 
 
+#summary stats
 TAT_C_table_inc <- TAT_C_table %>%
-  group_by(bogus) %>%
+  group_by(population, network) %>%
   summarize(median = median(mean),
           IQR = IQR(mean))
 
 ```
 
-TAT_50
+TAT_50:
+I would like to base this on proportion_true for the future. 
 
 ```{r}
-small_epi_0.2_tat_50 <- small_epi_0.2
-#small_epi_0.2_tat_50$TAT_50 <- ifelse(small_epi_0.2_tat_50$proportion_7 >= 0.5, 1, 0)
 
-small_epi_0.2_tat_50 <- small_epi_0.2_check %>%
+TAT_50 <- small %>%
   mutate(TAT_50 = ifelse(proportion_7 >= 0.5, 1, 0))
 
-TAT_50 <- small_epi_0.2_tat_50 %>%
-  group_by(replica) %>%
-  summarise(mean = mean(TAT_50)) %>%
-  mutate(bogus = "ha")
+TAT_50_table <- TAT_50 %>%
+  group_by(replica, population, network) %>%
+  summarise(mean = mean(TAT_50)) 
 
-TAT_50_table_inc <- TAT_50 %>%
-  group_by(bogus) %>%
+TAT_50_table_inc <- TAT_50_table %>%
+  group_by(population, network) %>%
   summarize(median = median(mean),
           IQR = IQR(mean))
 
+write.csv(TAT_50_table_inc, file = "TAT_c_small")
+```
+
+saving 
+
+```{r}
+#new working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/results")
+
+#save 
+write.csv(TAT_sum, file = "TAT_P_small.csv", row.names = FALSE)
+write.csv(TAT_50_table_inc, file = "TAT_50_small.csv", row.names = FALSE)
+write.csv(TAT_C_table_inc, file = "TAT_C_small.csv", row.names = FALSE)
+
+```
+
+lattice 
+loading data (keep if already in working)
+
+```{r}
+#working directory 
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+
+#clearing & reading 
+temp <- list.files(pattern="*.csv")
+
+#lattice
+
+names(temp) <- list.files(pattern=".csv")
+y <- c("lattice_bo_0.2_BIC_100_hard_100.csv",
+       "lattice_bo_0.5_BIC_100_hard_100.csv",
+       "lattice_bo_0.8_BIC_100_hard_100.csv",
+       "lattice_epi_0.2_BIC_100_hard_100.csv",
+       "lattice_epi_0.5_BIC_100_hard_100.csv",
+       "lattice_epi_0.8_BIC_100_hard_100.csv",
+       "lattice_mave_0.2_BIC_100_hard_100.csv",
+       "lattice_mave_0.5_BIC_100_hard_100.csv",
+       "lattice_mave_0.8_BIC_100_hard_100.csv",
+       "lattice_tess_0.2_BIC_100_hard_100.csv",
+       "lattice_tess_0.5_BIC_100_hard_100.csv",
+       "lattice_tess_0.8_BIC_100_hard_100.csv")
+temp <- temp[y]
+temp
+
+#loading them 
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+
+```
+
+putting them together 
+
+```{r}
+
+#rbind them into lattice. 
+lattice <- rbind(lattice_bo_0.2_BIC_100_hard_100.csv,
+       lattice_bo_0.5_BIC_100_hard_100.csv,
+       lattice_bo_0.8_BIC_100_hard_100.csv,
+       lattice_epi_0.2_BIC_100_hard_100.csv,
+       lattice_epi_0.5_BIC_100_hard_100.csv,
+       lattice_epi_0.8_BIC_100_hard_100.csv,
+       lattice_mave_0.2_BIC_100_hard_100.csv,
+       lattice_mave_0.5_BIC_100_hard_100.csv,
+       lattice_mave_0.8_BIC_100_hard_100.csv,
+       lattice_tess_0.2_BIC_100_hard_100.csv,
+       lattice_tess_0.5_BIC_100_hard_100.csv,
+       lattice_tess_0.8_BIC_100_hard_100.csv)
+
+#remove all the old shit 
+rm(list=setdiff(ls(), "lattice"))
+```
+
+calculating TAT:
+
+```{r}
+#TAT
+TAT <- lattice %>% 
+  mutate(proportion_true = proportion_7) %>% #set the true model
+  group_by(replica, network, population) %>% #could be sigma as well
+  summarise(mean = mean(proportion_7)) #summarise 
+
+#TAT summarized
+TAT_sum <- TAT %>%
+  group_by(network, population) %>%
+  summarize(median = median(mean),
+            IQR = IQR(mean))
+
+```
+
+calculating TAT_C:
+I would like to base this on proportion_true for the future. 
+
+```{r}
+
+#checking when proportion is greatest. 
+logic <- as.data.frame(lattice$proportion_7 > lattice[,c(26:31, 33:39)])
+logic <- as.data.frame(apply(logic, 2, FUN = as.integer))
+
+#mutating 1 for TAT_c & 0 for not TAT_c
+TAT_c <- lattice %>%
+  mutate(TAT_C = ifelse(rowSums(logic) == 13, 1, 0))
+  
+#per pop, network & replica
+TAT_C_table <- TAT_c %>%
+  group_by(replica, population, network) %>%
+  summarise(mean = mean(TAT_C)) 
+
+#summary stats
+TAT_C_table_inc <- TAT_C_table %>%
+  group_by(population, network) %>%
+  summarize(median = median(mean),
+          IQR = IQR(mean))
+
+```
+
+TAT_50:
+I would like to base this on proportion_true for the future. 
+
+```{r}
+
+TAT_50 <- lattice %>%
+  mutate(TAT_50 = ifelse(proportion_7 >= 0.5, 1, 0))
+
+TAT_50_table <- TAT_50 %>%
+  group_by(replica, population, network) %>%
+  summarise(mean = mean(TAT_50)) 
+
+TAT_50_table_inc <- TAT_50_table %>%
+  group_by(population, network) %>%
+  summarize(median = median(mean),
+          IQR = IQR(mean))
+
+```
+
+saving 
+
+```{r}
+#new working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/results")
+
+#save 
+write.csv(TAT_sum, file = "TAT_P_lattice.csv", row.names = FALSE)
+write.csv(TAT_50_table_inc, file = "TAT_50_lattice.csv", row.names = FALSE)
+write.csv(TAT_C_table_inc, file = "TAT_C_lattice.csv", row.names = FALSE)
 
 ```
 

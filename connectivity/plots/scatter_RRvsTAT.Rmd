@@ -1,0 +1,190 @@
+---
+title: "TAT_rep"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+loading lattice
+
+```{r}
+#set working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+
+#lattice
+temp <- list.files(pattern=".csv")
+
+#making work
+names(temp) <- list.files(pattern=".csv")
+y <- c("lattice_bo_0.2_BIC_100_hard_100.csv",
+       "lattice_bo_0.5_BIC_100_hard_100.csv",
+       "lattice_bo_0.8_BIC_100_hard_100.csv",
+       "lattice_epi_0.2_BIC_100_hard_100.csv",
+       "lattice_epi_0.5_BIC_100_hard_100.csv",
+       "lattice_epi_0.8_BIC_100_hard_100.csv",
+       "lattice_mave_0.2_BIC_100_hard_100.csv",
+       "lattice_mave_0.5_BIC_100_hard_100.csv",
+       "lattice_mave_0.8_BIC_100_hard_100.csv",
+       "lattice_tess_0.2_BIC_100_hard_100.csv",
+       "lattice_tess_0.5_BIC_100_hard_100.csv",
+       "lattice_tess_0.8_BIC_100_hard_100.csv")
+temp1 <- temp[y]
+temp1
+
+#loading them 
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
+
+```
+
+putting them together 
+
+```{r}
+
+#rbind them into lattice. 
+lattice <- rbind(lattice_bo_0.2_BIC_100_hard_100.csv,
+       lattice_bo_0.5_BIC_100_hard_100.csv,
+       lattice_bo_0.8_BIC_100_hard_100.csv,
+       lattice_epi_0.2_BIC_100_hard_100.csv,
+       lattice_epi_0.5_BIC_100_hard_100.csv,
+       lattice_epi_0.8_BIC_100_hard_100.csv,
+       lattice_mave_0.2_BIC_100_hard_100.csv,
+       lattice_mave_0.5_BIC_100_hard_100.csv,
+       lattice_mave_0.8_BIC_100_hard_100.csv,
+       lattice_tess_0.2_BIC_100_hard_100.csv,
+       lattice_tess_0.5_BIC_100_hard_100.csv,
+       lattice_tess_0.8_BIC_100_hard_100.csv)
+
+#remove all the old shit 
+rm(list=setdiff(ls(), "lattice"))
+
+```
+
+small world 
+
+```{r}
+
+#small world 
+temp <- list.files(pattern=".csv")
+names(temp) <- list.files(pattern=".csv")
+y <- c("small_bo_0.2_BIC_100_hard_100.csv",
+       "small_bo_0.5_BIC_100_hard_100.csv", #this is fucked. 
+       "small_bo_0.8_BIC_100_hard_100.csv",
+       "small_epi_0.2_BIC_100_hard_100.csv",
+       "small_epi_0.5_BIC_100_hard_100.csv",
+       "small_epi_0.8_BIC_100_hard_100.csv",
+       "small_mave_0.2_BIC_100_hard_100.csv",
+       "small_mave_0.5_BIC_100_hard_100.csv",
+       "small_mave_0.8_BIC_100_hard_100.csv",
+       "small_tess_0.2_BIC_100_hard_100.csv",
+       "small_tess_0.5_BIC_100_hard_100.csv",
+       "small_tess_0.8_BIC_100_hard_100.csv")
+temp1 <- temp[y]
+temp1
+
+#loading them 
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
+
+```
+
+putting them together 
+
+```{r}
+
+#rbind them into lattice. 
+small <- rbind(small_bo_0.2_BIC_100_hard_100.csv,
+       small_bo_0.5_BIC_100_hard_100.csv,
+       small_bo_0.8_BIC_100_hard_100.csv,
+       small_epi_0.2_BIC_100_hard_100.csv,
+       small_epi_0.5_BIC_100_hard_100.csv,
+       small_epi_0.8_BIC_100_hard_100.csv,
+       small_mave_0.2_BIC_100_hard_100.csv,
+       small_mave_0.5_BIC_100_hard_100.csv,
+       small_mave_0.8_BIC_100_hard_100.csv,
+       small_tess_0.2_BIC_100_hard_100.csv,
+       small_tess_0.5_BIC_100_hard_100.csv,
+       small_tess_0.8_BIC_100_hard_100.csv)
+
+#remove all the old shit 
+rm(list= ls()[!(ls() %in% c('lattice','small'))])
+```
+
+replication
+
+```{r}
+
+#replication rate lattice
+lattice_RR <- lattice %>%
+  group_by(replica, network, population) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) 
+
+#replication rate small world 
+small_RR <- small %>%
+  group_by(replica, network, population) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) 
+
+```
+
+TAT
+
+```{r}
+#TAT
+small_TAT <- small %>% 
+  mutate(proportion_true = proportion_7) %>% #set the true model
+  group_by(replica, network, population) %>% #could be sigma as well
+  summarise(mean = mean(proportion_7)) #summarise 
+
+lattice_TAT <- lattice %>%
+  mutate(proportion_true = proportion_7) %>% #set the true model
+  group_by(replica, network, population) %>% #could be sigma as well
+  summarise(mean = mean(proportion_7))
+
+```
+
+putting together 
+
+```{r}
+
+library(plyr)
+library(tidyverse)
+#lattice
+lattice_together <- full_join(lattice_RR, lattice_TAT, 
+                         by = c("replica", "network", "population")) 
+
+#small world 
+small_together <- full_join(small_RR, small_TAT,
+                            by = c("replica", "network", "population"))
+
+#rbinding 
+both_together <- rbind(lattice_together, small_together)
+both_together$network <- as.factor(both_together$network)
+```
+
+
+start plotting 
+
+```{r}
+
+#lattice
+ggplot(lattice_together, aes(mean, replicated, color = population)) +
+  geom_point() +
+  labs(title = "Lattice replication vs time at true model") +
+  geom_smooth(method = "lm")
+
+#small world
+ggplot(small_together, aes(mean, replicated, color = population)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+
+library(ggunchained)
+#together
+ggplot(both_together, aes(mean, replicated, color = population)) +
+  geom_point(aes(shape = network)) +
+  scale_color_discrete(name = "Population", 
+                      labels = c("Bo", "All", "Tess", "Mave")) +
+  labs(title = "Replication rate & time at true model", y = "Replication rate",
+       x = "Time at true model") +
+  geom_smooth(method = "lm") +
+  theme_janco_point()
+
+```
+

@@ -31,7 +31,7 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 44
+O_NUM_FIELDS <- 46
 O_STRATEGY <- 1
 O_SELECTED_MODEL <- 2
 O_SELECTED_TRUE_MODEL <- 3
@@ -76,6 +76,8 @@ O_REPLICATED <- 41 #new
 O_NOTREPLICATED <- 42
 O_SIGMA <- 43 #new
 O_TRUEMOD <- 44 #new
+O_NETWORK <- 45 #new
+O_POPULATION <- 46 #new
 
 ## File output headers
 OUTPUT_HEADER <- c("replica",
@@ -122,8 +124,10 @@ OUTPUT_HEADER <- c("replica",
                    "rejector", #new
                    "replicated", #new
                    "not_replicated", #new
-                   "sigma",
-                   "true_model") #changed from nothing. 
+                   "sigma", #new
+                   "true_model", #new
+                   "network", #new 
+                   "population") #new
 
 ## Parameter output
 P_TMODEL <- 1

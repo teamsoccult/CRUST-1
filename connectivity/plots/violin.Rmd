@@ -1,0 +1,310 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "20 maj 2019"
+output: html_document
+---
+
+packages
+
+```{r}
+library(pacman)
+p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes)
+
+```
+
+loading data
+
+
+```{r}
+#set working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+
+#lattice
+temp <- list.files(pattern=".csv")
+
+#making work
+names(temp) <- list.files(pattern=".csv")
+y <- c("lattice_bo_0.2_BIC_100_hard_100.csv",
+       "lattice_bo_0.5_BIC_100_hard_100.csv",
+       "lattice_bo_0.8_BIC_100_hard_100.csv",
+       "lattice_epi_0.2_BIC_100_hard_100.csv",
+       "lattice_epi_0.5_BIC_100_hard_100.csv",
+       "lattice_epi_0.8_BIC_100_hard_100.csv",
+       "lattice_mave_0.2_BIC_100_hard_100.csv",
+       "lattice_mave_0.5_BIC_100_hard_100.csv",
+       "lattice_mave_0.8_BIC_100_hard_100.csv",
+       "lattice_tess_0.2_BIC_100_hard_100.csv",
+       "lattice_tess_0.5_BIC_100_hard_100.csv",
+       "lattice_tess_0.8_BIC_100_hard_100.csv")
+temp1 <- temp[y]
+temp1
+
+#loading them 
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
+
+```
+
+putting them together 
+
+```{r}
+
+#rbind them into lattice. 
+lattice <- rbind(lattice_bo_0.2_BIC_100_hard_100.csv,
+       lattice_bo_0.5_BIC_100_hard_100.csv,
+       lattice_bo_0.8_BIC_100_hard_100.csv,
+       lattice_epi_0.2_BIC_100_hard_100.csv,
+       lattice_epi_0.5_BIC_100_hard_100.csv,
+       lattice_epi_0.8_BIC_100_hard_100.csv,
+       lattice_mave_0.2_BIC_100_hard_100.csv,
+       lattice_mave_0.5_BIC_100_hard_100.csv,
+       lattice_mave_0.8_BIC_100_hard_100.csv,
+       lattice_tess_0.2_BIC_100_hard_100.csv,
+       lattice_tess_0.5_BIC_100_hard_100.csv,
+       lattice_tess_0.8_BIC_100_hard_100.csv)
+
+#remove all the old shit 
+rm(list=setdiff(ls(), "lattice"))
+
+```
+
+small world 
+
+```{r}
+
+#small world 
+temp <- list.files(pattern=".csv")
+names(temp) <- list.files(pattern=".csv")
+y <- c("small_bo_0.2_BIC_100_hard_100.csv",
+       "small_bo_0.5_BIC_100_hard_100.csv", #this is fucked. 
+       "small_bo_0.8_BIC_100_hard_100.csv",
+       "small_epi_0.2_BIC_100_hard_100.csv",
+       "small_epi_0.5_BIC_100_hard_100.csv",
+       "small_epi_0.8_BIC_100_hard_100.csv",
+       "small_mave_0.2_BIC_100_hard_100.csv",
+       "small_mave_0.5_BIC_100_hard_100.csv",
+       "small_mave_0.8_BIC_100_hard_100.csv",
+       "small_tess_0.2_BIC_100_hard_100.csv",
+       "small_tess_0.5_BIC_100_hard_100.csv",
+       "small_tess_0.8_BIC_100_hard_100.csv")
+temp1 <- temp[y]
+temp1
+
+#loading them 
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
+
+```
+
+putting them together 
+
+```{r}
+
+#rbind them into lattice. 
+small <- rbind(small_bo_0.2_BIC_100_hard_100.csv,
+       small_bo_0.5_BIC_100_hard_100.csv,
+       small_bo_0.8_BIC_100_hard_100.csv,
+       small_epi_0.2_BIC_100_hard_100.csv,
+       small_epi_0.5_BIC_100_hard_100.csv,
+       small_epi_0.8_BIC_100_hard_100.csv,
+       small_mave_0.2_BIC_100_hard_100.csv,
+       small_mave_0.5_BIC_100_hard_100.csv,
+       small_mave_0.8_BIC_100_hard_100.csv,
+       small_tess_0.2_BIC_100_hard_100.csv,
+       small_tess_0.5_BIC_100_hard_100.csv,
+       small_tess_0.8_BIC_100_hard_100.csv)
+
+#remove all the old shit 
+rm(list= ls()[!(ls() %in% c('lattice','small'))])
+```
+
+grouping for plotting 
+
+```{r}
+
+#relevant subset 
+lattice_sub <- lattice %>%
+  subset(tried >= 1)
+
+small_sub <- small %>%
+  subset(tried >= 1)
+
+#replication rate lattice
+lattice_RR <- lattice_sub %>%
+  group_by(replica, network, population) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) 
+
+#replication rate small world 
+small_RR <- small_sub %>%
+  group_by(replica, network, population) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) 
+
+#combining them 
+total_RR <- rbind(lattice_RR, small_RR)
+total_RR$network <- as.factor(total_RR$network)
+
+```
+
+grouping or plotting (with sigma). 
+
+```{r}
+
+#replication rate lattice
+lattice_RR_sig <- lattice_sub %>%
+  group_by(replica, network, population, sigma) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) 
+
+#replication rate small world 
+small_RR_sig <- small_sub %>%
+  group_by(replica, network, population, sigma) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) 
+
+#combining them 
+total_RR_sig <- rbind(lattice_RR_sig, small_RR_sig)
+total_RR$network <- as.factor(total_RR$network)
+
+```
+
+raincloud prep
+
+```{r}
+
+#preparing raincloud (can be customized)
+raincloud_theme = theme(
+text = element_text(size = 10),
+axis.title.x = element_text(size = 16),
+axis.title.y = element_text(size = 16),
+axis.text = element_text(size = 14),
+axis.text.x = element_text(vjust = 0.5),
+legend.title=element_text(size=16),
+legend.text=element_text(size=16),
+legend.position = "right",
+plot.title = element_text(lineheight=.8, face="bold", size = 16),
+panel.border = element_blank(),
+panel.grid.minor = element_blank(),
+panel.grid.major = element_blank(),
+axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
+```
+
+making ready for plotting 
+
+```{r}
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1")
+baseDir <- "."
+scriptDir <- paste0(baseDir, "/src/functions")
+inputDir <- paste0(baseDir, "/data")
+outputDir <- paste0(baseDir, "/data")
+source(paste0(scriptDir, "/flatViolin.R"))
+```
+
+Raincloud plot.
+By inputting total_RR_sig instead we get a plot grouped by sigma & 
+thus with 3 times the number of observations. 
+
+```{r}
+
+#raincloud plot
+g <- ggplot(data = total_RR, aes(x = population, 
+                                 y = replicated, fill = population)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
+  geom_point(aes(y = replicated, color = population), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 3) +
+  guides(fill = FALSE) + 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  #coord_flip() +
+  theme_bw() +
+  labs(title = "Replication rate for populations",
+       subtitle = "Violin = summarized, iterations avg. over sigma = points", 
+       x = "Population", 
+       y = "Replication rate") + #sets the legend title.
+  raincloud_theme
+
+#call the plot
+g
+
+```
+
+Raincloud plot by network type & agent population.
+By inputting total_RR_sig instead we get a plot grouped by sigma & 
+thus with 3 times the number of observations. 
+
+```{r}
+#raincloud plot
+g <- ggplot(data = total_RR, aes(x = population, 
+                                 y = replicated, fill = network)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+  geom_point(aes(y = replicated, color = network), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 2) + #not clear that this changes much. 
+  #guides(fill = FALSE) + #legend can be deleted. 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  #coord_flip() +
+  theme_bw() +
+  labs(title = "Replication rate for populations",
+       subtitle = "Violin = summarized, iterations avg. over sigma = points", 
+       x = "Population", 
+       y = "Replication rate") + #sets the legend title.
+  raincloud_theme
+
+#call the plot
+g
+```
+
+specifying manually from different dataframes. 
+
+```{r}
+
+#raincloud plot
+g <- ggplot() +
+  geom_flat_violin(data = small_RR, 
+                   aes(x = population, y = replicated, fill = population),
+                   position = position_nudge(x = .2, y = 0), alpha = .8) +
+  geom_flat_violin(data = lattice_RR, 
+                   aes(x = population, y = replicated, fill = population),
+                   position = position_nudge(x = .2, y = 0), alpha = .8) +
+  geom_point(data = small_RR, 
+             aes(x = population, y = replicated, color = population),
+             position = position_jitter(width = .15), 
+             size = .5, alpha = 0.8) +
+  geom_point(data = lattice_RR, 
+             aes(x = population, y = replicated, color = population),
+             position = position_jitter(width = .15), 
+             size = .5, alpha = 0.8) +
+  geom_point(data = small_RR,
+             aes(x = population, y = replicated, color = population), 
+             position = position_jitter(width = .15), 
+             size = .5, alpha = 0.8) +
+  geom_boxplot(data = small_RR, 
+               aes(x = population, y = replicated, fill = population),
+               width = .1, outlier.shape = NA, alpha = 0.5) +
+    geom_boxplot(data = lattice_RR, 
+               aes(x = population, y = replicated, fill = population),
+               width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 3) +
+  guides(fill = FALSE) + 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  #coord_flip() +
+  theme_bw() +
+  labs(title = "Replication rate for populations & network types",
+       subtitle = "Violin = summarized, iterations avg. over sigma = points", 
+       x = "Population", 
+       y = "Replication rate") + #sets the legend title.
+  raincloud_theme
+
+#call the plot
+g
+
+```
+

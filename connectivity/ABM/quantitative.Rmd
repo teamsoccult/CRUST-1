@@ -58,7 +58,7 @@ some_models, g & agentTurn
 ```{r}
 
 #some models -  
-load("loads/some_models")
+load("connectivity/loads/some_models")
 
 
 ```
@@ -69,7 +69,7 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 50 #100 originally, now 2. 
+replications <- 1 #100 originally, now 2. 
 
 ## Length of the simulation
 timesteps <- 11000
@@ -117,11 +117,13 @@ verbose <- TRUE
 for output 
 
 ```{r}
+
 criterion <- "BIC" #BIC
 net_type <- "small" #lattice, small
 pop_type <- "epi" #bo, tess, mave, epi
 howmany <- 100 #100
 tm <- 13 #for output
+
 ```
 
 seed
@@ -439,10 +441,13 @@ for(step in 1:timesteps){ #11000 time-steps
       output[step, O_REJECTOR] <- rejector #new
       output[step, O_REPLICATED] <- replicated #new
       output[step, O_NOTREPLICATED] <- notreplicated #new
-      output[step, O_SIGMA] <- sigma #new - and maybe dubious
+      output[step, O_SIGMA] <- sigma #new 
       output[step, O_TRUEMOD] <- gsub(" ", "", substr(modelToStr(tModel), 5,
             nchar(modelToStr(tModel))), fixed=TRUE)
-  }
+      output[step, O_NETWORK] <- net_type #new
+      output[step, O_POPULATION] <- pop_type #new
+}
+
 
 ## Parameter output
     param <- list()
@@ -485,198 +490,3 @@ qualitative(replications, timesteps, models, k,
     verbose, ndec, seeds, some_models)
 
 ```
-
-checking 
-
-```{r}
-
-smallz <- read.csv("data/small_epi_0.2_BIC_100_hard_100.csv", sep = ";")
-latz <- read.csv("data/lattice_epi_0.2_BIC_100_hard_100.csv", sep = ";")
-
-#plotty plotty 
-smallz <- smallz %>%
-  subset(tried >= 1) %>% #the same every time?
-  mutate(id = "small")
-
-latz <- latz %>%
-  subset(tried >= 1) %>%
-  mutate(id = "lattice")
-
-
-
-#summarized 
-smallz_sum <- smallz %>%
-  group_by(final_global_true_model) %>%
-  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) %>%
-  mutate(not_rep = 1-replicated)
-
-#summarized 
-latz_sum <- latz %>%
-  group_by(final_global_true_model) %>%
-  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) %>%
-  mutate(not_rep = 1-replicated)
-
-#by final global true model 
-smallz_melt <- melt(smallz_sum, id = "final_global_true_model")
-latz_melt <- melt(latz_sum, id = "final_global_true_model")
-
-#plotting 
-p1 <- ggplot(smallz_melt, aes(final_global_true_model, value, group = variable, fill = variable)) +
-  labs(title = "small world") +
-  geom_col(position = "dodge")
-p1 
-
-p2 <- ggplot(latz_melt, aes(final_global_true_model, value, group = variable, fill = variable)) +
-  geom_col(position = "dodge") +
-  labs(title = "lattice") 
-p2
-
-plot_grid(p1, p2)
-
-#computing 
-sum(checking$not_replicated) / sum(checking$replicated) 
-sum(checking$replicated) / sum(checking$not_replicated + checking$replicated)
-
-```
-
-Plotting
-
-```{r}
-qual_data <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative.csv", sep = ";")
-
-naming <- colnames(qual_data)
-
-
-melt_qual_data <- melt(qual_data, id = c(naming[1:24], naming[39:44]))
-
-colored_plot_qual <- ggplot(melt_qual_data, aes(timestep, value, color = variable))+
-  geom_point(alpha = 0.01) +
-  geom_smooth(alpha = 0.01) +
-  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
-
-colored_plot_qual
-```
-```{r}
-qual_data_8 <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_8.csv", sep = ";")
-
-naming_8 <- colnames(qual_data_8)
-
-
-melt_qual_data_8 <- melt(qual_data_8, id = c(naming_8[1:24], naming_8[39:44]))
-
-colored_plot_qual <- ggplot(melt_qual_data_8, aes(timestep, value, color = variable))+
-  geom_point(alpha = 0.01) +
-  geom_smooth(alpha = 0.01) +
-  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
-
-colored_plot_qual
-```
-```{r}
-qual_data_8_hell <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_8_hell.csv", sep = ";")
-
-naming_8_hell <- colnames(qual_data_8_hell)
-
-
-melt_qual_data_8_hell <- melt(qual_data_8_hell, id = c(naming_8_hell[1:24], naming_8_hell[39:44]))
-
-colored_plot_qual <- ggplot(melt_qual_data_8_hell, aes(timestep, value, color = variable))+
-  geom_point(alpha = 0.01) +
-  geom_smooth(alpha = 0.01) +
-  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
-
-colored_plot_qual
-```
-
-```{r}
-qual_data_2_hell <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_2_hell.csv", sep = ";")
-
-naming_2_hell <- colnames(qual_data_2_hell)
-
-
-melt_qual_data_2_hell <- melt(qual_data_2_hell, id = c(naming_2_hell[1:24], naming_2_hell[39:44]))
-
-colored_plot_qual_hell <- ggplot(melt_qual_data_2_hell, aes(timestep, value, color = variable))+
-  geom_point(alpha = 0.01) +
-  geom_smooth(alpha = 0.01) +
-  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
-
-colored_plot_qual_hell
-```
-
-```{r}
-qual_data_2_less_hell <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_2_less_hell.csv", sep = ";")
-
-naming_2_less_hell <- colnames(qual_data_2_less_hell)
-
-
-melt_qual_data_2_less_hell <- melt(qual_data_2_less_hell, id = c(naming_2_less_hell[1:24], naming_2_less_hell[39:44]))
-
-colored_plot_qual_less_hell <- ggplot(melt_qual_data_2_less_hell, aes(timestep, value, color = variable))+
-  geom_point(alpha = 0.01) +
-  geom_smooth(alpha = 0.01) +
-  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
-
-colored_plot_qual
-```
-
-```{r}
-qual_data_2_sample_hell <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/output_qualitative_2_sample_hell.csv", sep = ";")
-
-naming_2_sample_hell <- colnames(qual_data_2_sample_hell)
-
-
-melt_qual_data_2_sample_hell <- melt(qual_data_2_sample_hell, id = c(naming_2_sample_hell[1:24], naming_2_sample_hell[39:44]))
-
-colored_plot_qual_sample_hell <- ggplot(melt_qual_data_2_sample_hell, aes(timestep, value, color = variable))+
-  geom_point(alpha = 0.01) +
-  geom_smooth(alpha = 0.01) +
-  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
-
-colored_plot_qual_sample_hell
-
-library(cowplot)
-
-plot_grid(colored_plot_qual_hell, colored_plot_qual_sample_hell, colored_plot_qual_less_hell, labels = c("Sigma: 08, SS: 20", "Sigma: 08, SS: 100", "Sigma: 02, SS: 20"))
-```
-
-checking if the new code works:
-```{r}
-paramz <- readRDS("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/lattice_epi_0.5_BIC_100_hard_100parameters.rds")
-
-check_time <- graph_from_adjacency_matrix(paramz[[1]][[9]], diag = F, mode = "undirected")
-
-V(check_time)$type <- gsub("\\..*","",V(check_time)$name)
-
-p3 <- ggraph(check_time, layout = "circle", circular= F) +
-  geom_edge_link() + 
-  geom_node_point(aes(colour = type, size = degree(check_time))) +
-  geom_node_text(label = degree(check_time))+
-  labs(x = NULL, y = NULL, title = "Lattice")+
-  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous"))+
-  guides(size = F)#plotting the network using ggraph. Layout can be altered.
-
-p3
-
-plot(check_time)
-```
-
-checking again:
-
-```{r}
-paramz_bo <- readRDS("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/small_bo_0.5_BIC_100_hard_100parameters.rds")
-
-check_time_bo <- graph_from_adjacency_matrix(paramz_bo[[1]][[9]], diag = F, mode = "undirected")
-
-V(check_time_bo)$type <- gsub("\\..*","",V(check_time_bo)$name)
-
-p4 <- ggraph(check_time_bo, layout = "circle", circular= F) +
-  geom_edge_link() + 
-  geom_node_point(aes(colour = type, size = degree(check_time_bo))) +
-  geom_node_text(label = degree(check_time_bo))+
-  labs(x = NULL, y = NULL, title = "Lattice")+
-  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous"))+
-  guides(size = F)#plotting the network using ggraph. Layout can be altered.
-
-p4
-```
-
