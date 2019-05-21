@@ -15,7 +15,6 @@ p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes)
 
 loading data
 
-
 ```{r}
 #set working directory
 setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
@@ -205,7 +204,7 @@ thus with 3 times the number of observations.
 ```{r}
 
 #raincloud plot
-g <- ggplot(data = total_RR, aes(x = population, 
+g <- ggplot(data = total_RR_sig, aes(x = population, 
                                  y = replicated, fill = population)) +
   geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
   geom_point(aes(y = replicated, color = population), 
@@ -236,7 +235,7 @@ thus with 3 times the number of observations.
 
 ```{r}
 #raincloud plot
-g <- ggplot(data = total_RR, aes(x = population, 
+g <- ggplot(data = total_RR_sig, aes(x = population, 
                                  y = replicated, fill = network)) +
   geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
   geom_point(aes(y = replicated, color = network), 

@@ -58,7 +58,7 @@ some_models, g & agentTurn
 ```{r}
 
 #some models -  
-load("connectivity/loads/some_models")
+load("loads/some_models")
 
 
 ```
@@ -69,7 +69,7 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 1 #100 originally, now 2. 
+replications <- 50 #100 originally, now 2. 
 
 ## Length of the simulation
 timesteps <- 11000
@@ -108,7 +108,7 @@ ndec = 4
 
 ## outputs
 outputFile <- ".csv" #
-paramFile <- "_parameters.rds"
+paramFile <- ".rds"
 
 ## verbose
 verbose <- TRUE
@@ -477,7 +477,7 @@ for(step in 1:timesteps){ #11000 time-steps
         col.names=ifelse(replica == 1, TRUE, FALSE))
   }
 
-  saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", sigma, "_", criterion, "_", howmany, "_", modelSelection, "_", sampleSize, paramFile))
+  saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", sigma, "_", criterion, "_", howmany, "_", modelSelection, "_", sampleSize, "_", tm, paramFile))
 }
 
 ```
