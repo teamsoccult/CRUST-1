@@ -1,145 +1,12 @@
----
-title: "qualitative"
-author: "Mikkel Werling"
-date: "5/16/2019"
-output: html_document
----
+# the function running our ABM 
+# changed 21-05-2019
 
-
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-packages
-
-```{r}
-library(pacman)
-
-p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse)
-
-```
-
-paths
-
-```{r}
-baseDir <- "."
-scriptDir <- paste0(baseDir, "/src/functions")
-inputDir <- paste0(baseDir, "/data")
-outputDir <- paste0(baseDir, "/data")
-```
-
-functions
-
-```{r}
-source(paste0(scriptDir, "/analysis.R"))
-source(paste0(scriptDir, "/calculateDet.R"))
-source(paste0(scriptDir, "/calculateDistance.R"))
-source(paste0(scriptDir, "/compareModels.R"))
-source(paste0(scriptDir, "/constants_2.R"))
-source(paste0(scriptDir, "/convertBinary.R"))
-source(paste0(scriptDir, "/generateBetas.R"))
-source(paste0(scriptDir, "/generateModels.R"))
-source(paste0(scriptDir, "/generateXSet.R"))
-source(paste0(scriptDir, "/generateY.R"))
-source(paste0(scriptDir, "/getBetas.R"))
-source(paste0(scriptDir, "/getPredictors.R"))
-source(paste0(scriptDir, "/modelSimilarByInteraction.R"))
-source(paste0(scriptDir, "/modelSimilarByTerm.R"))
-source(paste0(scriptDir, "/modelToStr.R"))
-source(paste0(scriptDir, "/searchModel.R"))
-source(paste0(scriptDir, "/seedGenerator.R"))
-source(paste0(scriptDir, "/simulator.R"))
-source(paste0(scriptDir, "/strToModel.R"))
-```
-
-some_models, g & agentTurn
-
-```{r}
-
-#some models -  
-load("loads/some_models")
-
-
-```
-
-
-input parameters
-
-```{r}
-
-## Number of replications
-replications <- 50 #100 originally, now 2. 
-
-## Length of the simulation
-timesteps <- 11000
-
-## Number of factors
-k <- 3
-
-## Sigma (Error variance)
-sigma <- 0.2
-
-## Sample size
-sampleSize <- 100
-
-## generating 
-models <- generateModels(k)
-
-## Identify the number of predictors of each model
-predictors <- getPredictors(models)
-
-## Generate Betas
-weights <- generateBetas(models)
-
-## True model
-trueModel <- some_models[13] 
-tModel <- strToModel(trueModel, k)
-
-## Correlation
-correlation <- 0.2
-
-## modelCompare & selection
-modelCompare <- BIC
-modelSelection <- "hard"
-
-## ndec
-ndec = 4
-
-## outputs
-outputFile <- ".csv" #
-paramFile <- ".rds"
-
-## verbose
-verbose <- TRUE
-```
-
-for output 
-
-```{r}
-
-criterion <- "BIC" #BIC
-net_type <- "small" #lattice, small
-pop_type <- "epi" #bo, tess, mave, epi
-howmany <- 100 #100
-tm <- 13 #for output
-
-```
-
-seed
-
-```{r}
-## seeds
-seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
-```
-
-```{r}
-qualitative <- function(replications, timesteps, models, k, 
-    weights, sampleSize, correlation, sigma,
-    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-    verbose, ndec, seeds, some_models){
-
-## REPLICA SIMULATION
+ABM <- function(replications, timesteps, models, k, 
+                        weights, sampleSize, correlation, sigma,
+                        modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+                        verbose, ndec, seeds, some_models){
+  
+  ## REPLICA SIMULATION
   ###################
   parameters <- list()
   for(replica in 1:replications){
@@ -148,14 +15,14 @@ qualitative <- function(replications, timesteps, models, k,
     ## Select randomly Global Model and previous Global Model
     # Sampling / randomizing stuff. 
     test <- ifelse(net_type == "small", 
-                "yes", "no")
+                   "yes", "no")
     
     if(test == "yes"){
       g <- sample_smallworld(1, 100, 2, 0.05)
     }
     else if(test == "no"){
       g <- make_lattice(length = 100, dim = 1, 
-                             nei = 2, circular = T, directed = F)
+                        nei = 2, circular = T, directed = F)
     }
     
     if(pop_type == "epi"){
@@ -189,15 +56,15 @@ qualitative <- function(replications, timesteps, models, k,
     ## OUTPUT PARAMETERS
     #######################
     output <- matrix(data=NA, nrow=timesteps, ncol=O_NUM_FIELDS)
-
-
+    
+    
     #######################
     ## SIMULATION EXECUTION
     #######################
-step <- 1
-#does it work?
-for(step in 1:timesteps){ #11000 time-steps
-
+    step <- 1
+    #does it work?
+    for(step in 1:timesteps){ #11000 time-steps
+      
       ## initialize parameters 
       changed <- 0 #for them to add in 
       tried <- 0 #for all elements in edges
@@ -205,7 +72,7 @@ for(step in 1:timesteps){ #11000 time-steps
       rejector <- 0 #those that did not change bc. they shouldn't. 
       replicated <- 0 #did they replicate?
       notreplicated <- 0 #not replicated?
-  
+      
       ## Select the token of agent
       agentToken <- agentTurn[step] 
       
@@ -214,17 +81,17 @@ for(step in 1:timesteps){ #11000 time-steps
       
       ## model & in format
       gModel <- strToModel(V(g)$model[agentIndex], k) #local model
-
+      
       ## Tess
       if(V(g)$type[agentIndex] == "Tess"){ #detect
         model <- modelSimilarByTerm(gModel, models, mode="random",
                                     modelSelection=modelSelection)
-
-      ## Mave
+        
+        ## Mave
       } else if(V(g)$type[agentIndex] == "Mave"){
         model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
         
-      ## Bo is fucked. 
+        ## Bo is fucked. 
       } else if(V(g)$type[agentIndex] == "Bo"){
         model <- modelSimilarByInteraction(gModel, models, mode="random",
                                            modelSelection=modelSelection)
@@ -232,50 +99,50 @@ for(step in 1:timesteps){ #11000 time-steps
       #setting up. 
       model1 <- model #new sampled model 
       model2 <- gModel
-
+      
       #adding variance & statistics for different engines (AIC, BIC)
-  Yset <- generateY(deterministic, sigma) #putting variance on the deterministic.
-  stat <- analysis(model, gModel, Yset, Xset, weights) #computing all the shit.
+      Yset <- generateY(deterministic, sigma) #putting variance on the deterministic.
+      stat <- analysis(model, gModel, Yset, Xset, weights) #computing all the shit.
       
       #smooth -> should we switch
       switchModel <- FALSE
       if((modelCompare == TSTATISTICS) &
-          (!is.null(stat$model$tstatistics)) &
-          (!is.null(stat$gModel$tstatistics)) &
-          (!is.na(stat$model$tstatistics)) &
-          (!is.na(stat$gModel$tstatistics))){
+         (!is.null(stat$model$tstatistics)) &
+         (!is.null(stat$gModel$tstatistics)) &
+         (!is.na(stat$model$tstatistics)) &
+         (!is.na(stat$gModel$tstatistics))){
         if(stat$model$tstatistics > stat$gModel$tstatistics){
           switchModel <- TRUE
         }
       } else if((modelCompare == RSQ) &
-          (!is.null(stat$model$rsq)) &
-          (!is.null(stat$gModel$rsq)) &
-          (!is.na(stat$model$rsq)) &
-          (!is.na(stat$gModel$rsq))){
+                (!is.null(stat$model$rsq)) &
+                (!is.null(stat$gModel$rsq)) &
+                (!is.na(stat$model$rsq)) &
+                (!is.na(stat$gModel$rsq))){
         if(stat$model$rsq > stat$gModel$rsq){
           switchModel <- TRUE
         }
       } else if((modelCompare == AIC) &
-          (!is.null(stat$model$aic)) &
-          (!is.null(stat$gModel$aic)) &
-          (!is.na(stat$model$aic)) &
-          (!is.na(stat$gModel$aic))){
+                (!is.null(stat$model$aic)) &
+                (!is.null(stat$gModel$aic)) &
+                (!is.na(stat$model$aic)) &
+                (!is.na(stat$gModel$aic))){
         if(stat$model$aic < stat$gModel$aic){
           switchModel <- TRUE
         }
       } else if((modelCompare == BIC) &
-          (!is.null(stat$model$bic)) &
-          (!is.null(stat$gModel$bic)) &
-          (!is.na(stat$model$bic)) &
-          (!is.na(stat$gModel$bic))){
+                (!is.null(stat$model$bic)) &
+                (!is.null(stat$gModel$bic)) &
+                (!is.na(stat$model$bic)) &
+                (!is.na(stat$gModel$bic))){
         if(stat$model$bic < stat$gModel$bic){
           switchModel <- TRUE
         }
       } else if((modelCompare == ARSQ) &
-          (!is.null(stat$model$arsq)) &
-          (!is.null(stat$gModel$arsq)) &
-          (!is.na(stat$model$arsq)) &
-          (!is.na(stat$gModel$arsq))){
+                (!is.null(stat$model$arsq)) &
+                (!is.null(stat$gModel$arsq)) &
+                (!is.na(stat$model$arsq)) &
+                (!is.na(stat$gModel$arsq))){
         if(stat$model$arsq > stat$gModel$arsq){
           switchModel <- TRUE
         }
@@ -297,10 +164,10 @@ for(step in 1:timesteps){ #11000 time-steps
         V(g)$model[agentIndex] <- modelStr
         
         #this ends the original agents turn
-        } else {
+      } else {
         finalGModelStat <- stat$gModel
-        }
-        
+      }
+      
       if(switchModel){
         #making ready for the loop. 
         edges <- names(which(matrix_g[, agentIndex] == 1)) #maybe. 
@@ -316,7 +183,7 @@ for(step in 1:timesteps){ #11000 time-steps
           
           ## Agents 
           agentIndex <- which((V(g)$name) == agentToken)
-      
+          
           ## model & in format
           gModel <- strToModel(V(g)$model[agentIndex], k) #just to call it else. 
           
@@ -327,77 +194,77 @@ for(step in 1:timesteps){ #11000 time-steps
           ## already at true model (atm). 
           atm <- as.numeric(compareModels(tModel, gModel))
           already <- already + atm
-      
-      #smooth -> should we switch
-      switchModel1 <- FALSE
-      if((modelCompare == TSTATISTICS) &
-          (!is.null(stat$model$tstatistics)) &
-          (!is.null(stat$gModel$tstatistics)) &
-          (!is.na(stat$model$tstatistics)) &
-          (!is.na(stat$gModel$tstatistics))){
-        if(stat$model$tstatistics > stat$gModel$tstatistics){
-          switchModel1 <- TRUE
+          
+          #smooth -> should we switch
+          switchModel1 <- FALSE
+          if((modelCompare == TSTATISTICS) &
+             (!is.null(stat$model$tstatistics)) &
+             (!is.null(stat$gModel$tstatistics)) &
+             (!is.na(stat$model$tstatistics)) &
+             (!is.na(stat$gModel$tstatistics))){
+            if(stat$model$tstatistics > stat$gModel$tstatistics){
+              switchModel1 <- TRUE
+            }
+          } else if((modelCompare == RSQ) &
+                    (!is.null(stat$model$rsq)) &
+                    (!is.null(stat$gModel$rsq)) &
+                    (!is.na(stat$model$rsq)) &
+                    (!is.na(stat$gModel$rsq))){
+            if(stat$model$rsq > stat$gModel$rsq){
+              switchModel1 <- TRUE
+            }
+          } else if((modelCompare == AIC) &
+                    (!is.null(stat$model$aic)) &
+                    (!is.null(stat$gModel$aic)) &
+                    (!is.na(stat$model$aic)) &
+                    (!is.na(stat$gModel$aic))){
+            if(stat$model$aic < stat$gModel$aic){
+              switchModel1 <- TRUE
+            }
+          } else if((modelCompare == BIC) &
+                    (!is.null(stat$model$bic)) &
+                    (!is.null(stat$gModel$bic)) &
+                    (!is.na(stat$model$bic)) &
+                    (!is.na(stat$gModel$bic))){
+            if(stat$model$bic < stat$gModel$bic){
+              switchModel1 <- TRUE
+            }
+          } else if((modelCompare == ARSQ) &
+                    (!is.null(stat$model$arsq)) &
+                    (!is.null(stat$gModel$arsq)) &
+                    (!is.na(stat$model$arsq)) &
+                    (!is.na(stat$gModel$arsq))){
+            if(stat$model$arsq > stat$gModel$arsq){
+              switchModel1 <- TRUE
+            }
+          } else { 
+            finalGModelStat <- stat$gModel
+          }
+          
+          if(switchModel1){
+            replicated <- replicated + as.numeric(compareModels(gModel, model2)) #gModel is supposed to be the new agents global model & model2 is supposed to be the global model of the previous agent (before changing). 
+            gModel <- model 
+            #finalGModelStat <- stat$model
+            modelStr <- modelToStr(gModel)
+            modelStr <- str_replace(modelStr, "Y ~", "")
+            modelStr <- str_replace_all(modelStr, ":", "")
+            V(g)$model[agentIndex] <- modelStr
+            changed <- changed + 1
+          } #this ends the for loop ()
+          
+          #did they already have the global model?
+          else if(compareModels(gModel, tModel)){
+            rejector <- rejector + 1
+          }  #did they just not change.
+          else if(compareModels(gModel, model2)){ #gModel is the global model of the new agent - model2 is the global model (before changing) of the previous one. 
+            notreplicated <- notreplicated + 1
+          } 
+          else {
+            finalGModelStat <- stat$gModel
+          }
         }
-      } else if((modelCompare == RSQ) &
-          (!is.null(stat$model$rsq)) &
-          (!is.null(stat$gModel$rsq)) &
-          (!is.na(stat$model$rsq)) &
-          (!is.na(stat$gModel$rsq))){
-        if(stat$model$rsq > stat$gModel$rsq){
-          switchModel1 <- TRUE
-        }
-      } else if((modelCompare == AIC) &
-          (!is.null(stat$model$aic)) &
-          (!is.null(stat$gModel$aic)) &
-          (!is.na(stat$model$aic)) &
-          (!is.na(stat$gModel$aic))){
-        if(stat$model$aic < stat$gModel$aic){
-          switchModel1 <- TRUE
-        }
-      } else if((modelCompare == BIC) &
-          (!is.null(stat$model$bic)) &
-          (!is.null(stat$gModel$bic)) &
-          (!is.na(stat$model$bic)) &
-          (!is.na(stat$gModel$bic))){
-        if(stat$model$bic < stat$gModel$bic){
-          switchModel1 <- TRUE
-        }
-      } else if((modelCompare == ARSQ) &
-          (!is.null(stat$model$arsq)) &
-          (!is.null(stat$gModel$arsq)) &
-          (!is.na(stat$model$arsq)) &
-          (!is.na(stat$gModel$arsq))){
-        if(stat$model$arsq > stat$gModel$arsq){
-          switchModel1 <- TRUE
-        }
-      } else { 
-        finalGModelStat <- stat$gModel
       }
       
-      if(switchModel1){
-        replicated <- replicated + as.numeric(compareModels(gModel, model2)) #gModel is supposed to be the new agents global model & model2 is supposed to be the global model of the previous agent (before changing). 
-        gModel <- model 
-        #finalGModelStat <- stat$model
-        modelStr <- modelToStr(gModel)
-        modelStr <- str_replace(modelStr, "Y ~", "")
-        modelStr <- str_replace_all(modelStr, ":", "")
-        V(g)$model[agentIndex] <- modelStr
-        changed <- changed + 1
-        } #this ends the for loop ()
-      
-        #did they already have the global model?
-      else if(compareModels(gModel, tModel)){
-        rejector <- rejector + 1
-      }  #did they just not change.
-      else if(compareModels(gModel, model2)){ #gModel is the global model of the new agent - model2 is the global model (before changing) of the previous one. 
-        notreplicated <- notreplicated + 1
-      } 
-      else {
-        finalGModelStat <- stat$gModel
-      }
-        }
-      }
-
       ## Record output data (commenting fucked stuff)
       output[step, O_STRATEGY] <- V(g)$type[agentIndex] #new.
       output[step, O_SELECTED_MODEL] <- searchModel(model, models)
@@ -443,50 +310,47 @@ for(step in 1:timesteps){ #11000 time-steps
       output[step, O_NOTREPLICATED] <- notreplicated #new
       output[step, O_SIGMA] <- sigma #new 
       output[step, O_TRUEMOD] <- gsub(" ", "", substr(modelToStr(tModel), 5,
-            nchar(modelToStr(tModel))), fixed=TRUE)
+                                                      nchar(modelToStr(tModel))), 
+                                      fixed=TRUE)
       output[step, O_NETWORK] <- net_type #new
       output[step, O_POPULATION] <- pop_type #new
-}
-
-
-## Parameter output
+    }
+    
+    
+    ## Parameter output
     param <- list()
     param[[P_TMODEL]] <- gsub(" ", "", substr(modelToStr(tModel), 5,
-            nchar(modelToStr(tModel))), fixed=TRUE)
+                                              nchar(modelToStr(tModel))), 
+                              fixed=TRUE)
     param[[P_K]] <- k
     param[[P_SAMPLE_SIZE]] <- sampleSize
     param[[P_SIGMA]] <- sigma
     param[[P_CORRELATION]] <- correlation
     #param[[P_AGENT_WEIGHTS]] <- c(nRey, nTess, nBo, nMave) /
-        #(nRey + nTess + nBo + nMave)
+    #(nRey + nTess + nBo + nMave)
     param[[P_TRUE_BETAS]] <- tModelBetas
     param[[P_XSET]] <- Xset
     param[[P_NETWORK]] <- matrix_g
     param[[P_AVG_PATH_LENGTH]] <- average.path.length(g)
     param[[P_CLUSTER_COEF]] <- transitivity(g)
     parameters[[replica]] <- param
-
+    
     ## Convert output matrix into data table
     output <- data.table(cbind(rep(replica, timesteps), 1:timesteps, output))
     names(output) <- OUTPUT_HEADER
-
+    
     ## Write output data table into a file
-    write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", sigma, "_", criterion, "_", howmany, "_", modelSelection, "_", sampleSize, "_", tm, outputFile),
-        append=ifelse(replica == 1, FALSE, TRUE),
-        quote=FALSE, sep=";", row.names=FALSE,
-        col.names=ifelse(replica == 1, TRUE, FALSE))
+    write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
+                                    sigma, "_", criterion, "_", howmany, "_", 
+                                    modelSelection, "_", sampleSize, "_", 
+                                    tm, outputFile),
+                append=ifelse(replica == 1, FALSE, TRUE),
+                quote=FALSE, sep=";", row.names=FALSE,
+                col.names=ifelse(replica == 1, TRUE, FALSE))
   }
-
-  saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", sigma, "_", criterion, "_", howmany, "_", modelSelection, "_", sampleSize, "_", tm, paramFile))
+  
+  saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
+                                  sigma, "_", criterion, "_", howmany, "_", 
+                                  modelSelection, "_", sampleSize, "_", tm, 
+                                  paramFile))
 }
-
-```
-
-```{r}
-
-qualitative(replications, timesteps, models, k, 
-    weights, sampleSize, correlation, sigma,
-    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-    verbose, ndec, seeds, some_models)
-
-```
