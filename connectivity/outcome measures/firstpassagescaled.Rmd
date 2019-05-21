@@ -7,18 +7,109 @@ output: html_document
 
 ```{r}
 #set working directory
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/model7csv")
 
 #looping 
 temp <- list.files(pattern="*.csv")
 ```
 
+loading lattice. 
+
 ```{r}
-#bo lattice
-temp1 <- temp[c(1,3,5)]
-for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ";"))
+
+#lattice
+names(temp) <- list.files(pattern=".csv")
+y <- c("lattice_bo_0.2_BIC_100_hard_100.csv",
+       "lattice_bo_0.5_BIC_100_hard_100.csv",
+       "lattice_bo_0.8_BIC_100_hard_100.csv",
+       "lattice_epi_0.2_BIC_100_hard_100.csv",
+       "lattice_epi_0.5_BIC_100_hard_100.csv",
+       "lattice_epi_0.8_BIC_100_hard_100.csv",
+       "lattice_mave_0.2_BIC_100_hard_100.csv",
+       "lattice_mave_0.5_BIC_100_hard_100.csv",
+       "lattice_mave_0.8_BIC_100_hard_100.csv",
+       "lattice_tess_0.2_BIC_100_hard_100.csv",
+       "lattice_tess_0.5_BIC_100_hard_100.csv",
+       "lattice_tess_0.8_BIC_100_hard_100.csv")
+temp1 <- temp[y]
+temp1
+
+#loading them 
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
+```
+
+putting them together 
+
+```{r}
+
+#rbind them into lattice. 
+lattice <- rbind(lattice_bo_0.2_BIC_100_hard_100.csv,
+       lattice_bo_0.5_BIC_100_hard_100.csv,
+       lattice_bo_0.8_BIC_100_hard_100.csv,
+       lattice_epi_0.2_BIC_100_hard_100.csv,
+       lattice_epi_0.5_BIC_100_hard_100.csv,
+       lattice_epi_0.8_BIC_100_hard_100.csv,
+       lattice_mave_0.2_BIC_100_hard_100.csv,
+       lattice_mave_0.5_BIC_100_hard_100.csv,
+       lattice_mave_0.8_BIC_100_hard_100.csv,
+       lattice_tess_0.2_BIC_100_hard_100.csv,
+       lattice_tess_0.5_BIC_100_hard_100.csv,
+       lattice_tess_0.8_BIC_100_hard_100.csv)
+
+#remove all the old shit 
+rm(list=setdiff(ls(), "lattice"))
+```
+
+small world 
+
+```{r}
+
+#small world 
+temp <- list.files(pattern=".csv")
+names(temp) <- list.files(pattern=".csv")
+y <- c("small_bo_0.2_BIC_100_hard_100.csv",
+       "small_bo_0.5_BIC_100_hard_100.csv", #this is fucked. 
+       "small_bo_0.8_BIC_100_hard_100.csv",
+       "small_epi_0.2_BIC_100_hard_100.csv",
+       "small_epi_0.5_BIC_100_hard_100.csv",
+       "small_epi_0.8_BIC_100_hard_100.csv",
+       "small_mave_0.2_BIC_100_hard_100.csv",
+       "small_mave_0.5_BIC_100_hard_100.csv",
+       "small_mave_0.8_BIC_100_hard_100.csv",
+       "small_tess_0.2_BIC_100_hard_100.csv",
+       "small_tess_0.5_BIC_100_hard_100.csv",
+       "small_tess_0.8_BIC_100_hard_100.csv")
+temp1 <- temp[y]
+temp1
+
+#loading them 
+for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
 
 ```
+
+putting them together 
+
+```{r}
+
+#rbind them into lattice. 
+small <- rbind(small_bo_0.2_BIC_100_hard_100.csv,
+       small_bo_0.5_BIC_100_hard_100.csv,
+       small_bo_0.8_BIC_100_hard_100.csv,
+       small_epi_0.2_BIC_100_hard_100.csv,
+       small_epi_0.5_BIC_100_hard_100.csv,
+       small_epi_0.8_BIC_100_hard_100.csv,
+       small_mave_0.2_BIC_100_hard_100.csv,
+       small_mave_0.5_BIC_100_hard_100.csv,
+       small_mave_0.8_BIC_100_hard_100.csv,
+       small_tess_0.2_BIC_100_hard_100.csv,
+       small_tess_0.5_BIC_100_hard_100.csv,
+       small_tess_0.8_BIC_100_hard_100.csv)
+
+#remove all the old shit 
+rm(list= ls()[!(ls() %in% c('lattice','small'))])
+```
+
+#### begin calculations #### 
 
 trying BO. 
 

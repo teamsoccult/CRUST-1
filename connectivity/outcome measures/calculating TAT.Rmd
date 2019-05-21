@@ -1,6 +1,6 @@
 ---
 title: "calculating"
-author: "Mikkel Werling"
+author: "Mikkel Werling & Victor Møller"
 date: "5/18/2019"
 output: html_document
 ---
@@ -9,76 +9,41 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-setup
+Set working directory & load libraries. 
 
 ```{r}
 
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
 
 library(tidyverse)
 
 ```
 
-loading data 
-small world 
+Read file. 
+Network: small world 
+Sample Size: 100
+True model: 7
 
 ```{r}
 
-#clearing & reading 
-temp <- list.files(pattern="*.csv")
-
-#small world 
-names(temp) <- list.files(pattern=".csv")
-y <- c("small_bo_0.2_BIC_100_hard_100.csv",
-       "small_bo_0.5_BIC_100_hard_100.csv", #this is fucked. 
-       "small_bo_0.8_BIC_100_hard_100.csv",
-       "small_epi_0.2_BIC_100_hard_100.csv",
-       "small_epi_0.5_BIC_100_hard_100.csv",
-       "small_epi_0.8_BIC_100_hard_100.csv",
-       "small_mave_0.2_BIC_100_hard_100.csv",
-       "small_mave_0.5_BIC_100_hard_100.csv",
-       "small_mave_0.8_BIC_100_hard_100.csv",
-       "small_tess_0.2_BIC_100_hard_100.csv",
-       "small_tess_0.5_BIC_100_hard_100.csv",
-       "small_tess_0.8_BIC_100_hard_100.csv")
-temp <- temp[y]
-temp
-
-#loading them 
-for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+small <- read.csv("small_100_m7.csv")
 
 ```
 
-putting them together 
+Calculating TAT (total time)
+Not grouped by sigma (could be revised).
+NB: proportion needs to be set to the true model (in this case 7). 
 
 ```{r}
 
-#rbind them into lattice. 
-small <- rbind(small_bo_0.2_BIC_100_hard_100.csv,
-       small_bo_0.5_BIC_100_hard_100.csv,
-       small_bo_0.8_BIC_100_hard_100.csv,
-       small_epi_0.2_BIC_100_hard_100.csv,
-       small_epi_0.5_BIC_100_hard_100.csv,
-       small_epi_0.8_BIC_100_hard_100.csv,
-       small_mave_0.2_BIC_100_hard_100.csv,
-       small_mave_0.5_BIC_100_hard_100.csv,
-       small_mave_0.8_BIC_100_hard_100.csv,
-       small_tess_0.2_BIC_100_hard_100.csv,
-       small_tess_0.5_BIC_100_hard_100.csv,
-       small_tess_0.8_BIC_100_hard_100.csv)
+#Setting the true model
+small <- small %>%
+  mutate(proportion_true = proportion_7)
 
-#remove all the old shit 
-rm(list=setdiff(ls(), "small"))
-```
-
-calculating TAT:
-
-```{r}
 #TAT
-TAT <- small %>% 
-  mutate(proportion_true = proportion_7) %>% #set the true model
+TAT <- small %>%  #set the true model
   group_by(replica, network, population) %>% #could be sigma as well
-  summarise(mean = mean(proportion_7)) #summarise 
+  summarise(mean = mean(proportion_true)) 
 
 #TAT summarized
 TAT_sum <- TAT %>%
@@ -89,12 +54,11 @@ TAT_sum <- TAT %>%
 ```
 
 calculating TAT_C:
-I would like to base this on proportion_true for the future. 
 
 ```{r}
 
 #checking when proportion is greatest. 
-logic <- as.data.frame(small$proportion_7 > small[,c(26:31, 33:39)])
+logic <- as.data.frame(small$proportion_true > small[,c(4:17, 23)])
 logic <- as.data.frame(apply(logic, 2, FUN = as.integer))
 
 #mutating 1 for TAT_c & 0 for not TAT_c
@@ -120,7 +84,7 @@ I would like to base this on proportion_true for the future.
 ```{r}
 
 TAT_50 <- small %>%
-  mutate(TAT_50 = ifelse(proportion_7 >= 0.5, 1, 0))
+  mutate(TAT_50 = ifelse(proportion_true >= 0.5, 1, 0))
 
 TAT_50_table <- TAT_50 %>%
   group_by(replica, population, network) %>%
@@ -131,10 +95,9 @@ TAT_50_table_inc <- TAT_50_table %>%
   summarize(median = median(mean),
           IQR = IQR(mean))
 
-write.csv(TAT_50_table_inc, file = "TAT_c_small")
 ```
 
-saving 
+write csv. 
 
 ```{r}
 #new working directory
@@ -145,71 +108,35 @@ write.csv(TAT_sum, file = "TAT_P_small.csv", row.names = FALSE)
 write.csv(TAT_50_table_inc, file = "TAT_50_small.csv", row.names = FALSE)
 write.csv(TAT_C_table_inc, file = "TAT_C_small.csv", row.names = FALSE)
 
-```
-
-lattice 
-loading data (keep if already in working)
-
-```{r}
-#working directory 
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
-
-#clearing & reading 
-temp <- list.files(pattern="*.csv")
-
-#lattice
-
-names(temp) <- list.files(pattern=".csv")
-y <- c("lattice_bo_0.2_BIC_100_hard_100.csv",
-       "lattice_bo_0.5_BIC_100_hard_100.csv",
-       "lattice_bo_0.8_BIC_100_hard_100.csv",
-       "lattice_epi_0.2_BIC_100_hard_100.csv",
-       "lattice_epi_0.5_BIC_100_hard_100.csv",
-       "lattice_epi_0.8_BIC_100_hard_100.csv",
-       "lattice_mave_0.2_BIC_100_hard_100.csv",
-       "lattice_mave_0.5_BIC_100_hard_100.csv",
-       "lattice_mave_0.8_BIC_100_hard_100.csv",
-       "lattice_tess_0.2_BIC_100_hard_100.csv",
-       "lattice_tess_0.5_BIC_100_hard_100.csv",
-       "lattice_tess_0.8_BIC_100_hard_100.csv")
-temp <- temp[y]
-temp
-
-#loading them 
-for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+#clear environment
+rm(list=ls())
 
 ```
 
-putting them together 
+Read file. 
+Network: small world 
+Sample Size: 100
+True model: 7
 
 ```{r}
+lattice <- read.csv("lattice_100_m7.csv")
 
-#rbind them into lattice. 
-lattice <- rbind(lattice_bo_0.2_BIC_100_hard_100.csv,
-       lattice_bo_0.5_BIC_100_hard_100.csv,
-       lattice_bo_0.8_BIC_100_hard_100.csv,
-       lattice_epi_0.2_BIC_100_hard_100.csv,
-       lattice_epi_0.5_BIC_100_hard_100.csv,
-       lattice_epi_0.8_BIC_100_hard_100.csv,
-       lattice_mave_0.2_BIC_100_hard_100.csv,
-       lattice_mave_0.5_BIC_100_hard_100.csv,
-       lattice_mave_0.8_BIC_100_hard_100.csv,
-       lattice_tess_0.2_BIC_100_hard_100.csv,
-       lattice_tess_0.5_BIC_100_hard_100.csv,
-       lattice_tess_0.8_BIC_100_hard_100.csv)
-
-#remove all the old shit 
-rm(list=setdiff(ls(), "lattice"))
 ```
 
-calculating TAT:
+
+Calculating TAT (total time)
+Not grouped by sigma (could be revised).
+NB: proportion needs to be set to the true model (in this case 7). 
 
 ```{r}
+#Setting the true model
+lattice <- lattice %>%
+  mutate(proportion_true = proportion_7)
+
 #TAT
-TAT <- lattice %>% 
-  mutate(proportion_true = proportion_7) %>% #set the true model
+TAT <- lattice %>%  #set the true model
   group_by(replica, network, population) %>% #could be sigma as well
-  summarise(mean = mean(proportion_7)) #summarise 
+  summarise(mean = mean(proportion_true)) #summarise 
 
 #TAT summarized
 TAT_sum <- TAT %>%
@@ -225,7 +152,7 @@ I would like to base this on proportion_true for the future.
 ```{r}
 
 #checking when proportion is greatest. 
-logic <- as.data.frame(lattice$proportion_7 > lattice[,c(26:31, 33:39)])
+logic <- as.data.frame(lattice$proportion_true > lattice[,c(4:17, 23)])
 logic <- as.data.frame(apply(logic, 2, FUN = as.integer))
 
 #mutating 1 for TAT_c & 0 for not TAT_c
@@ -246,12 +173,11 @@ TAT_C_table_inc <- TAT_C_table %>%
 ```
 
 TAT_50:
-I would like to base this on proportion_true for the future. 
 
 ```{r}
 
 TAT_50 <- lattice %>%
-  mutate(TAT_50 = ifelse(proportion_7 >= 0.5, 1, 0))
+  mutate(TAT_50 = ifelse(proportion_true >= 0.5, 1, 0))
 
 TAT_50_table <- TAT_50 %>%
   group_by(replica, population, network) %>%
@@ -264,7 +190,7 @@ TAT_50_table_inc <- TAT_50_table %>%
 
 ```
 
-saving 
+Saving 
 
 ```{r}
 #new working directory

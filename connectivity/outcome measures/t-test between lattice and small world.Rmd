@@ -1,0 +1,68 @@
+---
+title: "Untitled"
+author: "Mikkel Werling"
+date: "2019 M04 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(pacman)
+p_load(igraph, stringr, ggraph, wesanderson, cowplot)
+```
+
+getting the clustering coefficient and average length for lattice_bo_02
+
+```{r}
+
+
+param_lattice_bo_0.2 <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/model7Rds/lattice_bo_0.2_BIC_100_hard_100_parameters.rds")
+
+cluster <- NULL
+
+for(runs in 1:50){
+cluster[runs] <- param_lattice_bo_0.2[[runs]][[11]]
+}
+
+mean(cluster)
+
+avglength <- NULL
+
+for(runs in 1:50){
+avglength[runs] <- param_lattice_bo_0.2[[runs]][[10]]
+}
+
+mean(avglength)
+
+```
+getting the cluster coefficient and average path length for small_
+
+```{r}
+
+param_tess_0.8 <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/model7Rds/small_tess_0.8_BIC_100_hard_100_parameters.rds")
+
+cluster_small <- NULL
+
+for(runs in 1:50){
+cluster_small[runs] <- param_tess_0.8[[runs]][[11]]
+}
+
+mean(cluster_small)
+avglength_small <- NULL
+
+for(runs in 1:50){
+avglength_small[runs] <- param_tess_0.8[[runs]][[10]]
+}
+
+mean(avglength_small)
+```
+
+t-test for the two networks:
+
+```{r}
+
+t.test(avglength, avglength_small)
+t.test(cluster, cluster_small)
+
+```

@@ -1,0 +1,210 @@
+---
+title: "plotting adjacency matrix"
+author: "Mikkel Werling"
+date: "5/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse)
+```
+
+
+loading rds files
+
+```{r}
+param_lattice_bo_0.2 <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/model7Rds/lattice_bo_0.2_BIC_100_hard_100_parameters.rds")
+
+param_tess_0.8 <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/model7Rds/small_tess_0.8_BIC_100_hard_100_parameters.rds")
+```
+
+
+
+getting the adjacency matrix for all the runs in a param:
+
+```{r}
+#######
+for(runs in 1:50){
+name <- paste("M", runs, sep = "")
+assign(name, graph_from_adjacency_matrix(param_tess_0.8[[runs]][[9]], diag = F, mode = "undirected"))
+}
+```
+
+plotting the different networks:
+
+```{r}
+V(M34)$type <- gsub("\\..*","",V(M34)$name)
+
+p1 <- ggraph(M34, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(M34))) + #size according to degree
+  geom_node_text(label = degree(M34))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+
+p1
+
+V(g)$centrality <- eigen_centrality(g)[[1]]
+
+V(g)$centrality
+
+#small world
+
+for(runs in 1:50){
+name <- paste("S", runs, sep = "")
+assign(name, graph_from_adjacency_matrix(param_tess_0.8[[runs]][[9]], diag = F, mode = "undirected"))
+}
+
+V(S34)$type <- gsub("\\..*","",V(S34)$name)
+
+p2 <- ggraph(S34, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(S34))) + #size according to degree
+  geom_node_text(label = degree(S34))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+
+p2
+
+
+#Epi lattice
+param_lattice_epi_0.8 <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/model7Rds/lattice_epi_0.8_BIC_100_hard_100_parameters.rds")
+
+for(runs in 1:50){
+name <- paste("E", runs, sep = "")
+assign(name, graph_from_adjacency_matrix(param_lattice_epi_0.8[[runs]][[9]], diag = F, mode = "undirected"))
+}
+
+V(E34)$type <- gsub("\\..*","",V(E34)$name)
+
+p3 <- ggraph(E34, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(E34))) + #size according to degree
+  geom_node_text(label = degree(E34))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+
+p3
+
+#The fucked one
+
+param_lattice_bo_0.2 <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/model7Rds/lattice_bo_0.2_BIC_100_hard_100_parameters.rds")
+
+for(runs in 1:50){
+name <- paste("E", runs, sep = "")
+assign(name, graph_from_adjacency_matrix(param_lattice_bo_0.2[[runs]][[9]], diag = F, mode = "undirected"))
+}
+
+V(E34)$type <- gsub("\\..*","",V(E34)$name)
+
+p3 <- ggraph(E34, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(E34))) + #size according to degree
+  geom_node_text(label = degree(E34))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+
+p3
+
+param_tess_0.5 <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/model7Rds/small_tess_0.5_BIC_100_hard_100_parameters.rds")
+
+for(runs in 1:50){
+name <- paste("T", runs, sep = "")
+assign(name, graph_from_adjacency_matrix(param_tess_0.5[[runs]][[9]], diag = F, mode = "undirected"))
+}
+
+V(T34)$type <- gsub("\\..*","",V(T34)$name)
+
+p1_05 <- ggraph(T34, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(T34))) + #size according to degree
+  geom_node_text(label = degree(T34))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+
+p1_05
+
+plot_grid(p1, p1_05, p1_35)
+
+V(T35)$type <- gsub("\\..*","",V(T35)$name)
+
+p1_35 <- ggraph(T35, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(T35))) + #size according to degree
+  geom_node_text(label = degree(T35))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+
+p1_35
+```
+
+
+trying plotting craziness
+
+```{r}
+
+naming_small_epi <- colnames(small_epi_0.5)
+
+
+melt_qual_small_epi <- melt(small_epi_0.5, id = c(naming_small_epi[1:24], naming_small_epi[39:46]))
+
+melt_qual_small_epi <- melt_qual_small_epi[seq(1, nrow(melt_qual_small_epi), 100), ]
+
+colored_plot_qual_small_epi <- ggplot(melt_qual_small_epi, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1)
+
+colored_plot_qual_small_epi
+```
+
+til min mor:
+
+```{r}
+param_small_epi_0.5 <- readRDS("C:/Users/Mikkel/Documents/CRUST-1/data/model7Rds/small_epi_0.5_BIC_100_hard_100_parameters.rds")
+
+for(runs in 1:50){
+name <- paste("P", runs, sep = "")
+assign(name, graph_from_adjacency_matrix(param_small_epi_0.5[[runs]][[9]], diag = F, mode = "undirected"))
+}
+
+V(P34)$type <- gsub("\\..*","",V(P34)$name)
+
+p1_05 <- ggraph(P34, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(P34))) + #size according to degree
+  geom_node_text(label = degree(P34))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+
+p1_05
+
+plot_grid(p1, p1_05, p1_35)
+
+V(T35)$type <- gsub("\\..*","",V(T35)$name)
+
+p1_35 <- ggraph(T35, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(T35))) + #size according to degree
+  geom_node_text(label = degree(T35))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F)#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+
+p1_35
+```
+
