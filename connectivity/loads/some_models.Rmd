@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 
 ```{r}
+models <- generateModels(k =3)
+
 some_models <- NULL
 
 N = 1
@@ -66,6 +68,8 @@ some_models_2[10:13] <- some_models[11:14]
 some_models_2[14] <- some_models[10]
 
 some_models <- some_models_2
+
+some_models[7]
 
 save(some_models, file = "connectivity/loads/some_models")
 

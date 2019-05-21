@@ -1,0 +1,118 @@
+---
+title: "plotting_quantitative"
+author: "Mikkel Werling"
+date: "5/19/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse)
+```
+
+
+Loading small 0.5 files 
+
+```{r}
+
+small_bo_0.5_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/small_bo_0.5_BIC_100_hard_100.csv", sep = ",")
+
+small_bo_0.5_BIC_100_hard_100.csv <- small_bo_0.5_BIC_100_hard_100.csv[seq(1, nrow(small_bo_0.5_BIC_100_hard_100.csv), 25), ]
+
+small_tess_0.5_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/small_tess_0.5_BIC_100_hard_100.csv", sep = ",")
+
+small_tess_0.5_BIC_100_hard_100.csv <- small_tess_0.5_BIC_100_hard_100.csv[seq(1, nrow(small_tess_0.5_BIC_100_hard_100.csv), 25), ]
+
+small_mave_0.5_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/small_mave_0.5_BIC_100_hard_100.csv", sep = ",")
+
+small_mave_0.5_BIC_100_hard_100.csv <- small_mave_0.5_BIC_100_hard_100.csv[seq(1, nrow(small_mave_0.5_BIC_100_hard_100.csv), 25), ]
+
+small_epi_0.5_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/small_epi_0.5_BIC_100_hard_100.csv", sep = ",")
+
+small_epi_0.5_BIC_100_hard_100.csv <- small_epi_0.5_BIC_100_hard_100.csv[seq(1, nrow(small_epi_0.5_BIC_100_hard_100.csv), 25), ]
+```
+
+Plotting Bo:
+
+```{r}
+#Start the plotting
+
+naming <- colnames(small_bo_0.5_BIC_100_hard_100.csv)
+
+melt_bo <- melt(small_bo_0.5_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+bo_plot <- ggplot(melt_bo, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "Bo") +
+  theme(legend.position = "none")
+
+```
+
+Plotting Mave
+
+```{r}
+naming <- colnames(small_mave_0.5_BIC_100_hard_100.csv)
+
+melt_mave <- melt(small_mave_0.5_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+mave_plot <- ggplot(melt_mave, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "Mave") +
+  theme(legend.position = "none")
+```
+
+Plotting Tess
+
+```{r}
+naming <- colnames(small_tess_0.5_BIC_100_hard_100.csv)
+
+melt_tess <- melt(small_tess_0.5_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+tess_plot <- ggplot(melt_tess, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "Tess") +
+  theme(legend.position = "none")
+```
+
+Plotting Epi
+
+```{r}
+naming <- colnames(small_epi_0.5_BIC_100_hard_100.csv)
+
+melt_epi <- melt(small_epi_0.5_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+epi_plot <- ggplot(melt_epi, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "All")
+```
+
+Cowplot the different plots with different colors
+
+```{r}
+
+library(cowplot)
+
+main = plot_grid(tess_plot, mave_plot, bo_plot, epi_plot + theme(legend.position = "none"))
+
+all_plot <- plot_grid(main, get_legend(epi_plot))
+
+all_plot
+
+```
