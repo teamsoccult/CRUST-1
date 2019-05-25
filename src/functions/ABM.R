@@ -185,7 +185,7 @@ ABM <- function(replications, timesteps, models, k,
           agentIndex <- which((V(g)$name) == agentToken)
           
           ## model & in format
-          gModel <- strToModel(V(g)$model[agentIndex], k) #just to call it else. 
+          gModel <- strToModel(V(g)$model[agentIndex], k) #potential bug. 
           
           #adding variance & statistics for different engines (AIC, BIC)
           Yset <- generateY(deterministic, sigma) #putting variance on the                  deterministic.
@@ -238,12 +238,12 @@ ABM <- function(replications, timesteps, models, k,
               switchModel1 <- TRUE
             }
           } else { 
-            finalGModelStat <- stat$gModel
+            finalGModelStat <- stat$gModel #potential bug.
           }
           
           if(switchModel1){
             replicated <- replicated + as.numeric(compareModels(gModel, model2)) #gModel is supposed to be the new agents global model & model2 is supposed to be the global model of the previous agent (before changing). 
-            gModel <- model 
+            gModel <- model #potential bug. 
             #finalGModelStat <- stat$model
             modelStr <- modelToStr(gModel)
             modelStr <- str_replace(modelStr, "Y ~", "")
@@ -260,7 +260,7 @@ ABM <- function(replications, timesteps, models, k,
             notreplicated <- notreplicated + 1
           } 
           else {
-            finalGModelStat <- stat$gModel
+            finalGModelStat <- stat$gModel #potential bug. 
           }
         }
       }

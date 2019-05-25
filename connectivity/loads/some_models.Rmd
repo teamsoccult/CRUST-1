@@ -19,7 +19,8 @@ p_load(caTools, data.table, permute, matrixStats, MCMCpack, stringr)
 paths
 
 ```{r}
-baseDir <- "."
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/loads")
+baseDir <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/"
 scriptDir <- paste0(baseDir, "/src/functions")
 inputDir <- paste0(baseDir, "/data")
 outputDir <- paste0(baseDir, "/data")
@@ -52,8 +53,16 @@ source(paste0(scriptDir, "/strToModel.R"))
 ## R Markdown
 
 ```{r}
-models <- generateModels(k =3)
 
+#fixing their mistake with model 10 being rep. as model 14.  
+models2 <- generateModels(k = 3)
+models <- models2
+models[c(10:13)] = models2[c(11:14)]
+models[[14]] <- models2[[10]]
+
+modelToStr(models2[[1]])
+modelToStr(models[[1]])
+#initializing
 some_models <- NULL
 
 for (N in 1:length(models)){
@@ -61,17 +70,21 @@ for (N in 1:length(models)){
 }
 
 some_models <- str_replace(some_models, "Y ~", "")
-
 some_models <- str_replace_all(some_models, ":", "")
 
-some_models_2 <- some_models
+#write csv
+save(some_models, file = "some_models")
+save(models, file = "models")
 
-some_models_2[10:13] <- some_models[11:14]
-some_models_2[14] <- some_models[10]
+```
 
-some_models <- some_models_2
+```{r}
 
-save(some_models, file = "connectivity/loads/some_models")
+load("some_models")
+some_models
+
+load("models")
+models
 
 ```
 

@@ -5,75 +5,42 @@ date: "19 maj 2019"
 output: html_document
 ---
 
-lattice 100 load 
-
 ```{r}
 
 #set working directory
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/rfs50")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
 
-#lattice
-temp <- list.files(pattern=".csv")
-names(temp) <- list.files(pattern=".csv")
-y <- c("lattice_bo_0.2_BIC_100_hard_100.csv",
-       "lattice_bo_0.5_BIC_100_hard_100.csv",
-       "lattice_bo_0.8_BIC_100_hard_100.csv",
-       "lattice_epi_0.2_BIC_100_hard_100.csv",
-       "lattice_epi_0.5_BIC_100_hard_100.csv",
-       "lattice_epi_0.8_BIC_100_hard_100.csv",
-       "lattice_mave_0.2_BIC_100_hard_100.csv",
-       "lattice_mave_0.5_BIC_100_hard_100.csv",
-       "lattice_mave_0.8_BIC_100_hard_100.csv",
-       "lattice_tess_0.2_BIC_100_hard_100.csv",
-       "lattice_tess_0.5_BIC_100_hard_100.csv",
-       "lattice_tess_0.8_BIC_100_hard_100.csv")
-temp <- temp[y]
-temp
-
-#loading them 
-for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+#packages
+library(tidyverse)
 ```
 
-putting them together 
+Loading. 
+Network = Lattice
+Sample size = 100
+True model = 7
 
 ```{r}
 
-#rbind them into lattice. 
-lattice <- rbind(lattice_bo_0.2_BIC_100_hard_100.csv,
-       lattice_bo_0.5_BIC_100_hard_100.csv,
-       lattice_bo_0.8_BIC_100_hard_100.csv,
-       lattice_epi_0.2_BIC_100_hard_100.csv,
-       lattice_epi_0.5_BIC_100_hard_100.csv,
-       lattice_epi_0.8_BIC_100_hard_100.csv,
-       lattice_mave_0.2_BIC_100_hard_100.csv,
-       lattice_mave_0.5_BIC_100_hard_100.csv,
-       lattice_mave_0.8_BIC_100_hard_100.csv,
-       lattice_tess_0.2_BIC_100_hard_100.csv,
-       lattice_tess_0.5_BIC_100_hard_100.csv,
-       lattice_tess_0.8_BIC_100_hard_100.csv)
+#reading 
+lattice <- read.csv("lattice_csv")
 
-#remove all the old shit 
-rm(list=setdiff(ls(), "lattice"))
-```
-
-lattice subset.
-notice that this over writes lattice. 
-
-```{r}
-#relevant subset 
-lattice <- lattice %>%
-  subset(tried >= 1) #the only thing relevant for replication rate.
+#relevant subset (NB: over-writes lattice)
+lattice_sub <- lattice %>%
+  subset(edges_replication_study >= 1 |
+         not_replicated >= 1) #the only thing relevant for replication rate.
 
 ```
 
 lattice replication overall 
 
 ```{r}
+
 #replication overall 
 lattice_overall <- lattice %>%
   group_by(replica, network, population) %>%
   summarize(replicated = sum(replicated) / sum(not_replicated + replicated),
             not_rep = 1-replicated) 
+
 ```
 
 lattice overall summary stats

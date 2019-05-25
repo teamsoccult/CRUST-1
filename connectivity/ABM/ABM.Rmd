@@ -1,11 +1,9 @@
 ---
 title: "qualitative"
-author: "Mikkel Werling & Victor Møller"
+author: "Mikkel Werling & Victor M?ller"
 date: "5/16/2019"
 output: html_document
 ---
-
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -36,7 +34,7 @@ source(paste0(scriptDir, "/analysis.R"))
 source(paste0(scriptDir, "/calculateDet.R"))
 source(paste0(scriptDir, "/calculateDistance.R"))
 source(paste0(scriptDir, "/compareModels.R"))
-source(paste0(scriptDir, "/constants_2.R"))
+source(paste0(scriptDir, "/constants_3.R")) #new constants baby
 source(paste0(scriptDir, "/convertBinary.R"))
 source(paste0(scriptDir, "/generateBetas.R"))
 source(paste0(scriptDir, "/generateModels.R"))
@@ -51,7 +49,10 @@ source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
 source(paste0(scriptDir, "/simulator.R"))
 source(paste0(scriptDir, "/strToModel.R"))
-source(paste0(scriptDir, "/ABM.R")) #the ABM
+#source(paste0(scriptDir, "/ABM.R")) #the ABM
+#source(paste0(scriptDir, "/ABM1.R")) #new
+#source(paste0(scriptDir, "/ABM2.R")) #new!!
+source(paste0(scriptDir, "/ABM3.R")) #new!!
 ```
 
 some_models, g & agentTurn
@@ -69,10 +70,10 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 1 #100 originally, now 2. 
+replications <- 2 #100 originally, now 2. 
 
 ## Length of the simulation
-timesteps <- 1100
+turns <- 11000
 
 ## Number of factors
 k <- 3
@@ -84,7 +85,7 @@ sigma <- 0.2
 sampleSize <- 100
 
 ## generating 
-models <- generateModels(k)
+load(paste0(baseDir, "/connectivity/loads/models")) #changed
 
 ## Identify the number of predictors of each model
 predictors <- getPredictors(models)
@@ -93,7 +94,7 @@ predictors <- getPredictors(models)
 weights <- generateBetas(models)
 
 ## True model
-trueModel <- some_models[2] 
+trueModel <- some_models[7] 
 tModel <- strToModel(trueModel, k)
 
 ## Correlation
@@ -114,30 +115,33 @@ paramFile <- ".rds"
 verbose <- TRUE
 ```
 
-for output 
+for output.
 
 ```{r}
 
 criterion <- "BIC" #BIC
-net_type <- "small" #lattice, small
-pop_type <- "epi" #bo, tess, mave, epi
-howmany <- 100 #100
-tm <- 2 #for output
+net_type <- "Lattice" #Lattice, Small-world
+pop_type <- "All" #Bo, Tess, Mave, All
+net_size <- 100 #100
+tm <- 7 #for output
 
 ```
 
-seed
+seed.
 
 ```{r}
 ## seeds
 seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
 ```
 
+running the ABM. 
+
 ```{r}
 
-ABM(replications, timesteps, models, k, 
+ABM3(replications, turns, models, k, 
     weights, sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
 
 ```
+
