@@ -1,0 +1,39 @@
+---
+title: "stickiness"
+author: "Mikkel Werling"
+date: "5/19/2019"
+output: html_document
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+read data
+
+```{r}
+small_100_m7 <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/combined files/ABMcsv/real files/small_7.csv")
+```
+
+
+```{r}
+stickiness_index <- small_100_m7 %>%
+  filter(initial_global_true_model == 1) %>% #only relevant subset
+  group_by(replica, sigma, population, network) %>% #per replica
+  summarize(stickiness = 1 - mean(as.numeric(final_global_true_model == 0))) #getting it in proportion
+
+#summarized table
+stickiness_index_summary <- stickiness_index %>%
+  group_by(sigma, population, network) %>% 
+  summarize(median = median(stickiness), IQR = IQR(stickiness), mean = mean(stickiness)) 
+
+#count of the different rows fulfilling the criteria
+stickiness_count <- small_100_m7 %>%
+  filter(initial_global_true_model == 1, final_global_true_model == 0) %>%
+  group_by(sigma, population, network) %>%
+  summarize(count = n())
+
+```
+

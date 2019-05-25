@@ -1,0 +1,59 @@
+---
+title: "sigma plots for epi 0.5 across both networks"
+author: "Mikkel Werling"
+date: "5/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, gghighlight)
+```
+
+read data
+
+```{r}
+small_100_m7 <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/combined files/ABMcsv/real files/small_7.csv")
+```
+
+downsampling
+
+```{r}
+small_100_m7_downsample <- small_100_m7[seq(1, nrow(small_100_m7), 25), ]
+```
+
+Plotting
+
+###THINGS TO KEEP IN MIND ###
+1. In order to display the different models with legend and different colors, change color to "color = variable"
+2. Labels in geom_smooth does not provide labels. This is not a mistake. It just makes ggplot consider each variable as different regressions.
+
+```{r}
+naming <- colnames(small_100_m7_downsample)
+
+small_100_m7_downsample <- small_100_m7_downsample %>%
+  melt(id = c(naming[1:27])) %>% #melting with proportions becoming variable and their values becoming values
+  mutate(true = ifelse(variable == "proportion_true", "True", "False")) %>% #making a identifying column in order to color for the plot
+  mutate(variable = relevel(variable, ref = "proportion_true")) %>% #releveling so that proportion true is considered first
+  mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order to make it the top layer in the overlay between different smooths.
+
+g <- small_100_m7_downsample %>%
+  filter(sigma == 0.2, population == "Bo", network == "Small") %>%
+  ggplot(aes(studies, value, color = true))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.9, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  gghighlight()
+  labs(y = "Proportion", color = "Proportion of different models", title = "Small-world Bo 0.2")
+
+g
+
+
+```
+

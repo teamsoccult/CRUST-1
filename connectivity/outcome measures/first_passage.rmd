@@ -1,0 +1,96 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+```{r}
+library(pacman)
+
+p_load(tidyverse)
+
+#set working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/model7csv")
+
+#looping 
+temp <- list.files(pattern="*.csv")
+```
+
+```{r}
+#clearing & reading 
+
+#loading data
+small_100_m7 <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/combined files/ABMcsv/real files/small_7.csv")
+
+#how many of them got there
+hit_miss_50 <- small_100_m7 %>%
+  group_by(replica, population, network, sigma) %>%
+  summarize(hit50 = ifelse(max(proportion_true >= 0.5), 1, 0))
+
+#percentage of runs got to 50
+hit_miss_50_sum <- hit_miss_50 %>%
+  group_by(population, network, sigma) %>%
+  summarize(mean = mean(hit50))
+
+#tallying up how many of misses and hits to 50%
+hit_miss_50_tally <- hit_miss_50 %>%
+  group_by(population, network, hit50, sigma) %>%
+  summarize(count = n())
+
+#first time to true model at 50%
+small_100_fftm <- small_100_m7 %>%
+  group_by(replica, population, network, sigma) %>%
+  mutate(hit50 = ifelse(max(proportion_true >= 0.5), 1, 0)) %>%
+  filter(hit50 == 1) %>%
+  summarize(first_hit50 = min(which(proportion_true >= 0.5)))
+
+#summary of first time to to 50%
+small_100_fftm_summary <- small_100_fftm %>% 
+  group_by(population, network) %>%
+  summarise(median = median(first_hit50), 
+            IQR = IQR(first_hit50))
+```
+
+first time most adhered to
+```{r}
+
+#colnames(small_100_m7)
+
+#small_selected <- small_100_m7 %>%
+  #select(names[c(1:5, 36:50)])
+
+#Which rows have the true model as the most adhered to?
+
+small_100_fttma <- small_100_m7 %>%
+  mutate(most_adhered = ifelse(15 == max.col(.[,c(28:42)], ties.method = "last"), 1, 0)) 
+
+#Figuring out which of the conditions have the model as the most adhered at any point
+small_100_fttma_test <- small_100_fttma %>%
+  group_by(replica, population, network, sigma) %>%
+  summarize(mean = mean(most_adhered))
+
+#COMMENT ON THE RESULTS FROM ABOVE:
+#You can see that many of the runs (here's looking at you Bo) does only occasionally get the true model as the most adhered to. But as it does it sometimes (by chance), there will still be accounts of it in the statistics. 
+
+#Filtering so only those runs that have the true model as the most adhered to are included 
+small_100_filter <- small_100_fttma %>%
+  group_by(replica, population, network, sigma) %>%
+  filter(mean(most_adhered) > 0)
+
+#new col for which model is the most adhered to at the time
+small_100_filter$max_col <- max.col(small_100_filter[, c(28:42)], "last")
+
+#when is the true model first most adhered to
+small_100_filter_final <- small_100_filter %>%
+  group_by(replica, population, network, sigma) %>%
+  summarize(fpttt1 = min(which(max_col == 15)))
+
+#summarizing the above
+small_100_filter_final_sum <- small_100_filter_final %>%
+  group_by(population, network, sigma) %>%
+  summarize(median = median(fpttt1), 
+            IQR = IQR(fpttt1))
+```
+
+
