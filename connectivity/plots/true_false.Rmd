@@ -19,13 +19,49 @@ p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permu
 read data
 
 ```{r}
-small_100_m7 <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/combined files/ABMcsv/real files/small_7.csv")
+setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+
+#reading 
+path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/"
+
+files <- list.files(path = path, pattern="small") #if possible. 
+
+mycols <- c("replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "true_model",
+            "studies",
+            "proportion_1",
+            "proportion_2",
+            "proportion_3",
+            "proportion_4",
+            "proportion_5",
+            "proportion_6",
+            "proportion_7",
+            "proportion_8",
+            "proportion_9",
+            "proportion_10",
+            "proportion_11",
+            "proportion_12",
+            "proportion_13",
+            "proportion_14",
+            "proportion_true")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
 ```
 
 downsampling
 
 ```{r}
-small_100_m7_downsample <- small_100_m7[seq(1, nrow(small_100_m7), 25), ]
+df <- df[seq(1, nrow(df), 25), ]
 ```
 
 Plotting
@@ -35,22 +71,23 @@ Plotting
 2. Labels in geom_smooth does not provide labels. This is not a mistake. It just makes ggplot consider each variable as different regressions.
 
 ```{r}
-naming <- colnames(small_100_m7_downsample)
+naming <- colnames(df)
 
-small_100_m7_downsample <- small_100_m7_downsample %>%
-  melt(id = c(naming[1:27])) %>% #melting with proportions becoming variable and their values becoming values
+
+df <- df %>%
+  melt(id = c(naming[1:6])) %>% #melting with proportions becoming variable and their values becoming values
+  mutate(true_model = as.factor(true_model)) %>%
   mutate(true = ifelse(variable == "proportion_true", "True", "False")) %>% #making a identifying column in order to color for the plot
   mutate(variable = relevel(variable, ref = "proportion_true")) %>% #releveling so that proportion true is considered first
   mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order to make it the top layer in the overlay between different smooths.
 
-g <- small_100_m7_downsample %>%
-  filter(sigma == 0.2, population == "Bo", network == "Small") %>%
+g <- df %>%
+  filter(sigma == 0.5, population == "Mave", network == "Small", true_model == 13) %>%
   ggplot(aes(studies, value, color = true))+
   geom_point(alpha = 0.01) +
   geom_smooth(alpha = 0.9, aes(labels = variable)) +
   geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
-  gghighlight()
-  labs(y = "Proportion", color = "Proportion of different models", title = "Small-world Bo 0.2")
+  labs(y = "Proportion", color = "Proportion of different models", title = "Small-world Mave 0.5 - 13")
 
 g
 
