@@ -1,0 +1,129 @@
+---
+title: "replication scaled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+```{r}
+#set working directory
+setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+loading data. 
+
+```{r}
+setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+
+#reading 
+path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/"
+
+files <- list.files(path = path, pattern="*.csv") #if possible. 
+
+mycols <- c("replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "true_model",
+            "edges_replication_study",
+            "edges_replicated",
+            "final_global_true_model")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
+```
+
+Loading. 
+Network = Lattice
+Sample size = 100
+True model = 7
+
+```{r}
+
+#reading 
+#lattice <- read.csv("lattice_csv")
+
+#relevant subset (NB: over-writes lattice)
+lattice_sub <- lattice %>%
+  subset(edges_replication_study >= 1 |
+         not_replicated >= 1) #the only thing relevant for replication rate.
+
+```
+
+lattice replication overall 
+
+```{r}
+
+#replication overall 
+df_overall <- df %>%
+  group_by(replica, network, population, sigma, true_model) %>%
+  summarize(replicated = sum(edges_replicated) / sum(edges_replication_study)) 
+
+```
+
+lattice overall summary stats
+
+```{r}
+#summary stats
+df_overall_sum <- df_overall %>%
+  group_by(network, population) %>%
+  summarize(RR_median = median(replicated),
+            RR_IQR = IQR(replicated), RR_mean = mean(replicated)) 
+  #mutate(final_global_true_model = "all cases")
+```
+
+lattice by global
+
+```{r}
+#replication if true & if not
+df_byglobal <- df %>%
+  group_by(final_global_true_model, replica, network, population, true_model) %>%
+  summarize(replicated = sum(edges_replicated) / sum(edges_replication_study)) 
+```
+
+lattice summary stats by global 
+
+```{r}
+#replicated if true & if not (median & IQR)
+df_byglobal_sum <- df_byglobal %>%
+  group_by(final_global_true_model, network, population) %>%
+  summarize(RR_true_median = median(replicated, na.rm = TRUE),
+            RR_true_IQR = IQR(replicated, na.rm = TRUE), 
+            RR_true_mean = mean(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
+
+#only true 
+df_true_sum <- df_byglobal_sum %>%
+  subset(final_global_true_model == 1) %>%
+  select(network, population, RR_true_median, RR_true_IQR, RR_true_mean)
+
+```
+
+output lattice (skipped now)
+
+```{r}
+mave_all_rep <- rbind(lattice_overall_sum, lattice_byglobal_sum)
+```
+
+write.csv
+
+```{r}
+#working directory 
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/results")
+
+#writing csv. 
+write.csv(df_overall_sum, file = "C:/Users/Mikkel/Documents/CRUST-1/connectivity/outcome_results/RR_overall_100.csv", row.names = F)
+write.csv(df_true_sum, file = "C:/Users/Mikkel/Documents/CRUST-1/connectivity/outcome_results/RR_true_100.csv", row.names = F)
+
+```
