@@ -8,7 +8,7 @@ output: html_document
 ```{r}
 library(pacman)
 
-p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, gghighlight, ggunchained)
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, ggunchained)
 ```
 
 read data
