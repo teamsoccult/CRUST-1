@@ -11,29 +11,66 @@ editor_options:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-read data
 
 ```{r}
-small_100_m7 <- read.csv("C:/Users/Mikkel/Documents/CRUST-1/data/combined files/ABMcsv/real files/small_7.csv")
+#set working directory
+setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
 ```
 
+loading data. 
 
 ```{r}
-stickiness_index <- small_100_m7 %>%
+setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+
+#reading 
+path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/"
+
+files <- list.files(path = path, pattern="*.csv") #if possible. 
+
+mycols <- c("replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "true_model",
+            "initial_global_true_model",
+            "final_global_true_model")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
+```
+
+```{r}
+stickiness_index <- df %>%
   filter(initial_global_true_model == 1) %>% #only relevant subset
-  group_by(replica, sigma, population, network) %>% #per replica
+  group_by(replica, sigma, population, network, true_model) %>% #per replica
   summarize(stickiness = 1 - mean(as.numeric(final_global_true_model == 0))) #getting it in proportion
 
 #summarized table
 stickiness_index_summary <- stickiness_index %>%
-  group_by(sigma, population, network) %>% 
+  group_by(population, network) %>% 
   summarize(median = median(stickiness), IQR = IQR(stickiness), mean = mean(stickiness)) 
 
 #count of the different rows fulfilling the criteria
-stickiness_count <- small_100_m7 %>%
+stickiness_count <- df %>%
   filter(initial_global_true_model == 1, final_global_true_model == 0) %>%
-  group_by(sigma, population, network) %>%
+  group_by(population, network) %>%
   summarize(count = n())
 
+```
+
+write
+
+```{r}
+write.csv(stickiness_index_summary, "C:/Users/Mikkel/Documents/CRUST-1/connectivity/outcome_results/stickiness_100.csv", row.names = F)
 ```
 
