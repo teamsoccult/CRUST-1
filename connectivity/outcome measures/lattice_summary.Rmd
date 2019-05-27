@@ -9,7 +9,7 @@ output: html_document
 ```{r setup, include=FALSE}
 
 #working directory 
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results/sample_size_100")
 
 #libraries
 library(pacman)
