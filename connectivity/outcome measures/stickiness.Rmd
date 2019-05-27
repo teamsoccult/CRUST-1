@@ -24,7 +24,7 @@ loading data.
 #reading 
 path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/"
 
-files <- list.files(path = path, pattern="*.csv") #if possible. 
+files <- list.files(path = path, pattern="small") #if possible. 
 
 mycols <- c("replica", 
             "network", 
@@ -32,7 +32,9 @@ mycols <- c("replica",
             "sigma",
             "true_model",
             "initial_global_true_model",
-            "final_global_true_model")
+            "final_global_true_model",
+            "edges_already_true",
+            "edges_already_true_changing")
 
 #loading them 
 dfList <- lapply(files, function(f) {  
