@@ -115,7 +115,7 @@ write csv.
 setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results")
 
 #save 
-write.csv(TAT_C_table_inc, file = "TAT_C_small.csv", row.names = FALSE)
+write.csv(TAT_C_table_inc, file = "TATC_small_100.csv", row.names = FALSE)
 
 #clear environment
 rm(list=ls())
@@ -226,7 +226,7 @@ write csv.
 setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results")
 
 #save 
-write.csv(TAT_C_table_inc, file = "TAT_C_lattice.csv", row.names = FALSE)
+write.csv(TAT_C_table_inc, file = "TATC_lattice_100.csv", row.names = FALSE)
 
 #clear environment
 rm(list=ls())

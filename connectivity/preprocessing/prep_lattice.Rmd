@@ -10,7 +10,7 @@ This is where the working directory is refering.
 
 ```{r}
 #set working directory to where you have raw files
-setwd("D:/soc_kult_exam/data raw/model2csv")
+setwd("D:/soc_kult_exam/data raw/model7_20csv")
 
 #packages
 library(tidyverse)
@@ -54,9 +54,9 @@ all(lattice_checking$edges_total == lattice_checking$together) #TRUE
 #check 3. 
 #Set "true_model" = the true model you are working with. 
 small_mod <- lattice %>%
-  filter(true_model == 2) 
+  filter(true_model == 7) 
 
-all(small_mod$proportion_2 == small_mod$proportion_true) #TRUE
+all(small_mod$proportion_7 == small_mod$proportion_true) #TRUE
 
 #check 4
 sum(lattice[37:50]) #6.600.000
@@ -142,7 +142,7 @@ setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition
 getwd()
 #write csv. 
 #write.csv(lattice, "lattice_sanity.csv", row.names = FALSE)
-write.csv(lattice, "lattice_2.csv", row.names = FALSE)
+write.csv(lattice, "lattice_7_20.csv", row.names = FALSE)
 
 ```
 

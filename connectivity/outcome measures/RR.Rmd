@@ -7,7 +7,7 @@ output: html_document
 
 ```{r}
 #set working directory
-setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
 
 #packages 
 library(pacman)
@@ -17,10 +17,9 @@ p_load(tidyverse, ggunchained)
 loading data. 
 
 ```{r}
-setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
 
 #reading 
-path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/"
+path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/"
 
 files <- list.files(path = path, pattern="*.csv") #if possible. 
 
@@ -43,24 +42,7 @@ df <- do.call(rbind, dfList)
 rm(dfList)
 ```
 
-Loading. 
-Network = Lattice
-Sample size = 100
-True model = 7
-
-```{r}
-
-#reading 
-#lattice <- read.csv("lattice_csv")
-
-#relevant subset (NB: over-writes lattice)
-lattice_sub <- lattice %>%
-  subset(edges_replication_study >= 1 |
-         not_replicated >= 1) #the only thing relevant for replication rate.
-
-```
-
-lattice replication overall 
+replication overall 
 
 ```{r}
 
@@ -71,18 +53,19 @@ df_overall <- df %>%
 
 ```
 
-lattice overall summary stats
+overall summary stats
 
 ```{r}
 #summary stats
 df_overall_sum <- df_overall %>%
   group_by(network, population) %>%
   summarize(RR_median = median(replicated),
-            RR_IQR = IQR(replicated), RR_mean = mean(replicated)) 
+            RR_mean = mean(replicated),
+            RR_IQR = IQR(replicated)) 
   #mutate(final_global_true_model = "all cases")
 ```
 
-lattice by global
+by global
 
 ```{r}
 #replication if true & if not
@@ -98,10 +81,9 @@ lattice summary stats by global
 df_byglobal_sum <- df_byglobal %>%
   group_by(final_global_true_model, network, population) %>%
   summarize(RR_true_median = median(replicated, na.rm = TRUE),
-            RR_true_IQR = IQR(replicated, na.rm = TRUE), 
-            RR_true_mean = mean(replicated, na.rm = TRUE)) %>%
+            RR_true_mean = mean(replicated, na.rm = TRUE),
+            RR_true_IQR = IQR(replicated, na.rm = TRUE)) %>%
   ungroup()
-
 
 #only true 
 df_true_sum <- df_byglobal_sum %>%
@@ -110,20 +92,56 @@ df_true_sum <- df_byglobal_sum %>%
 
 ```
 
-output lattice (skipped now)
+relevant subsets 
 
 ```{r}
-mave_all_rep <- rbind(lattice_overall_sum, lattice_byglobal_sum)
+
+RR_lattice_100 <- df_overall_sum %>%
+  filter(network == "Lattice") %>%
+  select(network, population, RR_median, RR_mean, RR_IQR)
+
+RR_small_100 <- df_overall_sum %>%
+  filter(network == "Small") %>%
+  select(network, population, RR_median, RR_mean, RR_IQR)
+
+RRT_lattice_100 <- df_true_sum %>%
+  filter(network == "Lattice") %>%
+  select(network, population, RR_true_median, RR_true_mean, RR_true_IQR)
+    
+RRT_small_100 <- df_true_sum %>%
+  filter(network == "Small") %>%
+  select(network, population, RR_true_median, RR_true_mean, RR_true_IQR)
+
+#checking 
+head(RR_lattice_100)
+head(RR_small_100)
+head(RRT_lattice_100)
+head(RRT_small_100)
+
 ```
 
 write.csv
 
 ```{r}
 #working directory 
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/results")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results")
 
 #writing csv. 
-write.csv(df_overall_sum, file = "C:/Users/Mikkel/Documents/CRUST-1/connectivity/outcome_results/RR_overall_100.csv", row.names = F)
-write.csv(df_true_sum, file = "C:/Users/Mikkel/Documents/CRUST-1/connectivity/outcome_results/RR_true_100.csv", row.names = F)
+write.csv(RR_lattice_100, "RR_lattice_100.csv", row.names = F)
+write.csv(RR_small_100, "RR_small_100.csv", row.names = F)
+write.csv(RRT_lattice_100, "RRT_lattice_100.csv", row.names = F)
+write.csv(RRT_small_100, "RRT_small_100.csv", row.names = F)
+
+#testing 
+RR_lattice_100 <- read.csv("RR_lattice_100.csv")
+RR_small_100 <- read.csv("RR_small_100.csv")
+RRT_lattice_100 <- read.csv("RRT_lattice_100.csv")
+RRT_small_100 <- read.csv("RRT_small_100.csv")
+
+#testing 
+head(RR_lattice_100)
+head(RR_small_100)
+head(RRT_lattice_100)
+head(RRT_small_100)
 
 ```

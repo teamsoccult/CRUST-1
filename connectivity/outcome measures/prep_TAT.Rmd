@@ -1,6 +1,6 @@
 ---
 title: "Untitled"
-author: "Victor Møller"
+author: "Victor M?ller"
 date: "23 maj 2019"
 output: html_document
 ---
@@ -10,13 +10,58 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Set working directory & load libraries. 
+packages & working directory. 
+
+```{r}
+library(pacman)
+p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes)
+
+#working directory. 
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
+```
+
+loading data. 
 
 ```{r}
 
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
+#reading 
+path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/"
 
-library(tidyverse)
+files <- list.files(path = path, pattern="*.csv") #if possible. 
+
+#taken from the scatter-plot file (reconsider what is needed)
+mycols <- c("replica", 
+            "turn", 
+            "studies", 
+            "network", 
+            "population", 
+            "sigma",
+            "sample_size",
+            "true_model",
+            "strategy",
+            "proportion_true",
+            "proportion_1",
+            "proportion_2",
+            "proportion_3",
+            "proportion_4",
+            "proportion_5",
+            "proportion_6",
+            "proportion_7",
+            "proportion_8",
+            "proportion_9",
+            "proportion_10",
+            "proportion_11",
+            "proportion_12",
+            "proportion_13",
+            "proportion_14")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
 
 ```
 
