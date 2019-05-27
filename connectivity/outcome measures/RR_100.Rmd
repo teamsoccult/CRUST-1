@@ -19,7 +19,7 @@ loading data.
 ```{r}
 
 #reading 
-path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/"
+path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/sample_size_100"
 
 files <- list.files(path = path, pattern="*.csv") #if possible. 
 

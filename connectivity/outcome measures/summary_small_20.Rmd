@@ -19,15 +19,17 @@ p_load(knitr, kableExtra, tidyverse)
 temp <- list.files(pattern="small")
 for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
 
+
 #making rownames
-a <- data.frame(name=c("Proportion of time at true model",  
-                      "Proportion of time at true model > 50%",
-                      "Stickiness of true model",
+a <- data.frame(name=c("Agents at the true model",  
+                      "50% of agents at the true model",
+                      "Stickiness of the true model",
+                      "First passage time to true model",
                       "Replication rate",
                       "Replication rate of the true model"), 
-                b=1:5,
-                c=1:5,
-                d=1:5)
+                b=1:6,
+                c=1:6,
+                d=1:6)
 
 ```
 
@@ -38,41 +40,45 @@ organizing small world median.
 #TAT
 TAT_median_20 <- TAT_small_20.csv %>%
   select(population, TAT_median) %>% 
+  mutate(TAT_median = round(TAT_median*100,2)) %>%
   spread(population, TAT_median) 
 
 #TAT 50
 TAT50_median_20 <- TAT50_small_20.csv %>%
   select(population, TAT50_median) %>%
+  mutate(TAT50_median = round(TAT50_median*100,2)) %>%
   spread(population, TAT50_median)
 
 #stickiness 
 stickiness_median_20 <- stickiness_small_20.csv %>%
   select(population, stickiness_median) %>%
+  mutate(stickiness_median = round(stickiness_median*100,2)) %>%
   spread(population, stickiness_median)
+
+#first passage 
+FPTT_median_20 <- FPTT_small_20.csv %>%
+  select(population, FPTT_median) %>%
+  spread(population, FPTT_median)
 
 #replication rate overall
 RR_median_20 <- RR_small_20.csv %>%
   select(population, RR_median) %>%
+  mutate(RR_median = round(RR_median*100,2)) %>%
   spread(population, RR_median)
 
 #replication rate true
 RRT_median_20 <- RRT_small_20.csv %>%
   select(population, RR_true_median) %>%
+  mutate(RR_true_median = round(RR_true_median*100,2)) %>%
   spread(population, RR_true_median)
 
 #rbinding 
 small_median <- rbind(TAT_median_20, #time at true most adhered
                    TAT50_median_20,
                    stickiness_median_20,
+                   FPTT_median_20,
                    RR_median_20,
                    RRT_median_20) #time at true > 50 %
-
-#times 100
-small_median <- small_median %>%
-  mutate(Bo = round(Bo*100, 2),
-         All = round(All*100, 2),
-         Mave = round(Mave*100, 2),
-         Tess = round(Tess*100, 2)) 
 
 #new rownames 
 rownames(small_median) <- a$name
@@ -102,43 +108,43 @@ organizing small world & mean.
 
 ```{r}
 #TAT
-TAT_mean_100 <- TAT_small_100.csv %>%
+TAT_mean_20 <- TAT_small_20.csv %>%
   select(population, TAT_mean) %>% 
   spread(population, TAT_mean) 
 
 #TAT 50
-TAT50_mean_100 <- TAT50_small_100.csv %>%
+TAT50_mean_20 <- TAT50_small_20.csv %>%
   select(population, TAT50_mean) %>%
   spread(population, TAT50_mean)
 
 #stickiness 
-stickiness_mean_100 <- stickiness_small_100.csv %>%
+stickiness_mean_20 <- stickiness_small_20.csv %>%
   select(population, stickiness_mean) %>%
   spread(population, stickiness_mean)
 
 #replication rate overall
-RR_mean_100 <- RR_small_100.csv %>%
+RR_mean_20 <- RR_small_20.csv %>%
   select(population, RR_mean) %>%
   spread(population, RR_mean)
 
 #replication rate true
-RRT_mean_100 <- RRT_small_100.csv %>%
+RRT_mean_20 <- RRT_small_20.csv %>%
   select(population, RR_true_mean) %>%
   spread(population, RR_true_mean)
 
 #rbinding 
-small_mean <- rbind(TAT_mean_100, #time at true 
-                   TAT50_mean_100,
-                   stickiness_mean_100,
-                   RR_mean_100,
-                   RRT_mean_100) #time at true > 50 %
+small_mean <- rbind(TAT_mean_20, #time at true 
+                   TAT50_mean_20,
+                   stickiness_mean_20,
+                   RR_mean_20,
+                   RRT_mean_20) #time at true > 50 %
 
-#times 100
+#times 20
 small_mean <- small_mean %>%
-  mutate(Bo = round(Bo*100, 2),
-         All = round(All*100, 2),
-         Mave = round(Mave*100, 2),
-         Tess = round(Tess*100, 2)) 
+  mutate(Bo = round(Bo*20, 2),
+         All = round(All*20, 2),
+         Mave = round(Mave*20, 2),
+         Tess = round(Tess*20, 2)) 
 
 #new rownames 
 rownames(small_mean) <- a$name
@@ -160,41 +166,45 @@ organizing small world & IQR
 #TAT
 TAT_IQR_20 <- TAT_small_20.csv %>%
   select(population, TAT_IQR) %>% 
+  mutate(TAT_IQR = round(TAT_IQR*100,2)) %>%
   spread(population, TAT_IQR) 
 
 #TAT 50
 TAT50_IQR_20 <- TAT50_small_20.csv %>%
   select(population, TAT50_IQR) %>%
+  mutate(TAT50_IQR = round(TAT50_IQR*100,2)) %>%
   spread(population, TAT50_IQR)
 
 #stickiness 
 stickiness_IQR_20 <- stickiness_small_20.csv %>%
   select(population, stickiness_IQR) %>%
+  mutate(stickiness_IQR = round(stickiness_IQR*100,2)) %>%
   spread(population, stickiness_IQR)
+
+#FPTT
+FPTT_IQR_20 <- FPTT_small_20.csv %>%
+  select(population, FPTT_IQR) %>%
+  spread(population, FPTT_IQR)
 
 #replication rate overall
 RR_IQR_20 <- RR_small_20.csv %>%
   select(population, RR_IQR) %>%
+  mutate(RR_IQR = round(RR_IQR*100,2)) %>%
   spread(population, RR_IQR)
 
 #replication rate true
 RRT_IQR_20 <- RRT_small_20.csv %>%
   select(population, RR_true_IQR) %>%
+  mutate(RR_true_IQR = round(RR_true_IQR*100,2)) %>%
   spread(population, RR_true_IQR)
 
 #rbinding 
 small_IQR <- rbind(TAT_IQR_20, #time at true 
                    TAT50_IQR_20,
                    stickiness_IQR_20,
+                   FPTT_IQR_20,
                    RR_IQR_20,
                    RRT_IQR_20) #time at true > 50 %
-
-#times 100
-small_IQR <- small_IQR %>%
-  mutate(Bo = round(Bo*100, 2),
-         All = round(All*100, 2),
-         Mave = round(Mave*100, 2),
-         Tess = round(Tess*100, 2)) 
 
 #new rownames 
 rownames(small_IQR) <- a$name
@@ -212,24 +222,13 @@ rm(list=setdiff(ls(), c("a", "temp", "small_median", "small_mean", "small_IQR"))
 Kable
 
 ```{r}
-library(tibble)
-dataset <- data.frame(a = 1:5, b = 2:6, c=3:7)
-add_column(dataset, d = 4:8, .after = 2)
 
 #creating the relevant groups 
 small_median_IQR <- cbind(small_median, small_IQR)
-small_mean_IQR <- cbind(small_mean, small_IQR)
-
 small_median_IQR <- add_column(small_median_IQR, " " = "", .after = 4)
-small_mean_IQR <- add_column(small_mean_IQR, " " = "", .after = 4)
+
 #now we have to rename columns 
 small_median_IQR <- small_median_IQR %>%
-  rename(All = "All.1",
-         Bo = "Bo.1",
-         Mave = "Mave.1",
-         Tess = "Tess.1")
-
-small_mean_IQR <- small_mean_IQR %>%
   rename(All = "All.1",
          Bo = "Bo.1",
          Mave = "Mave.1",
@@ -243,7 +242,7 @@ small_median_IQR %>%
                                       #"condensed", 
                                       "responsive")) %>%
   add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
-  add_header_above(c(" ", "Small-world" = 9)) #%>%
+  add_header_above(c(" ", "Small-world | Sample size: 20" = 9)) #%>%
   #add_indent(c(2, 5)) 
 
 #kable mean & IQR
