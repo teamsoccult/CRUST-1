@@ -8,90 +8,76 @@ output: html_document
 ```{r setup, include=FALSE}
 
 #working directory 
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/results")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results")
+
+#libraries
+library(pacman)
+p_load(knitr, kableExtra, tidyverse)
 
 #clearing & reading 
-temp <- list.files(pattern="*.csv")
+temp <- list.files(pattern="small")
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
 
 #making rownames
-a <- data.frame(name=c("Proportion of time at true model", 
-                      "Proportion of time with true majority", 
+a <- data.frame(name=c("Proportion of time at true model",  
                       "Proportion of time at true model > 50%",
+                      "Stickiness of true model",
                       "Replication rate",
-                      "Replication rate if true model"), 
+                      "Replication rate of the true model"), 
                 b=1:5,
                 c=1:5,
                 d=1:5)
 
 ```
 
-reading small world
+organizing small world median.
 
 ```{r}
-#only small world 
-names(temp) <- list.files(pattern=".csv")
-y <- c("RR_overall_small.csv",
-       "RR_true_small.csv", #this is fucked. 
-       "TAT_50_small.csv",
-       "TAT_C_small.csv",
-       "TAT_P_small.csv")
 
-temp1 <- temp[y]
-#reading 
-for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
+#TAT
+TAT_median_100 <- TAT_small_100.csv %>%
+  select(population, TAT_median) %>% 
+  spread(population, TAT_median) 
 
+#TAT 50
+TAT50_median_100 <- TAT50_small_100.csv %>%
+  select(population, TAT50_median) %>%
+  spread(population, TAT50_median)
 
-```
+#stickiness 
+stickiness_median_100 <- stickiness_small_100.csv %>%
+  select(population, stickiness_median) %>%
+  spread(population, stickiness_median)
 
-organizing small world median
+#replication rate overall
+RR_median_100 <- RR_small_100.csv %>%
+  select(population, RR_median) %>%
+  spread(population, RR_median)
 
-```{r}
-RR_overall_small_med <- RR_overall_small.csv %>%
-  select(population, median) %>%
-  spread(population, median) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
-
-RR_true_small_med <- RR_true_small.csv %>%
-  select(population, median) %>%
-  spread(population, median) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
-
-TAT_50_small_med <- TAT_50_small.csv %>%
-  select(population, median) %>%
-  spread(population, median) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
-
-TAT_C_small_med <- TAT_C_small.csv %>%
-  select(population, median) %>%
-  spread(population, median) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
-
-TAT_P_small_med <- TAT_P_small.csv %>%
-  select(population, median) %>%
-  spread(population, median) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+#replication rate true
+RRT_median_100 <- RRT_small_100.csv %>%
+  select(population, RR_true_median) %>%
+  spread(population, RR_true_median)
 
 #rbinding 
-small_med <- rbind(TAT_P_small_med,
-                   TAT_C_small_med,
-                   TAT_50_small_med,
-                   RR_overall_small_med,
-                   RR_true_small_med)
+small_median <- rbind(TAT_median_100, #time at true most adhered
+                   TAT50_median_100,
+                   stickiness_median_100,
+                   RR_median_100,
+                   RRT_median_100) #time at true > 50 %
 
 #times 100
-small_med <- small_med %>%
+small_median <- small_median %>%
   mutate(Bo = round(Bo*100, 2),
          All = round(All*100, 2),
          Mave = round(Mave*100, 2),
          Tess = round(Tess*100, 2)) 
-  
 
-rownames(small_med) <- a$name
+#new rownames 
+rownames(small_median) <- a$name
 
-library(knitr)
-library(kableExtra)
 #kable - too much space 
-small_med %>%
+small_median %>%
   kable() %>%
   kable_styling(bootstrap_options = c("striped", 
                                       "hover", 
@@ -100,67 +86,116 @@ small_med %>%
                 full_width = F) %>%
   add_header_above(c("", "Small World & Median" = 4))
 
-
-
 ```
 
-reading small world
+clearing environment
 
 ```{r}
 
-rm(list=setdiff(ls(), c("a", "temp")))
-
-#only small world 
-
-names(temp) <- list.files(pattern=".csv")
-
-y <- c("RR_overall_small.csv",
-       "RR_true_small.csv", #this is fucked. 
-       "TAT_50_small.csv",
-       "TAT_C_small.csv",
-       "TAT_P_small.csv")
-
-temp1 <- temp[y]
-
-#reading 
-for(i in 1:length(temp1)) assign(temp1[i], read.csv(temp1[i], sep = ","))
-
+rm(list=setdiff(ls(), c("a", "temp", "small_median")))
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
 
 ```
 
-organizing small world IQR
+organizing small world & mean. 
 
 ```{r}
-RR_overall_small_IQR <- RR_overall_small.csv %>%
-  select(population, IQR) %>%
-  spread(population, IQR) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+#TAT
+TAT_mean_100 <- TAT_small_100.csv %>%
+  select(population, TAT_mean) %>% 
+  spread(population, TAT_mean) 
 
-RR_true_small_IQR <- RR_true_small.csv %>%
-  select(population, IQR) %>%
-  spread(population, IQR) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+#TAT 50
+TAT50_mean_100 <- TAT50_small_100.csv %>%
+  select(population, TAT50_mean) %>%
+  spread(population, TAT50_mean)
 
-TAT_50_small_IQR <- TAT_50_small.csv %>%
-  select(population, IQR) %>%
-  spread(population, IQR) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+#stickiness 
+stickiness_mean_100 <- stickiness_small_100.csv %>%
+  select(population, stickiness_mean) %>%
+  spread(population, stickiness_mean)
 
-TAT_C_small_IQR <- TAT_C_small.csv %>%
-  select(population, IQR) %>%
-  spread(population, IQR) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+#replication rate overall
+RR_mean_100 <- RR_small_100.csv %>%
+  select(population, RR_mean) %>%
+  spread(population, RR_mean)
 
-TAT_P_small_IQR <- TAT_P_small.csv %>%
-  select(population, IQR) %>%
-  spread(population, IQR) %>%
-  rename(Bo = "bo", All = "epi", Mave = "mave", Tess = "tess")
+#replication rate true
+RRT_mean_100 <- RRT_small_100.csv %>%
+  select(population, RR_true_mean) %>%
+  spread(population, RR_true_mean)
 
-small_IQR <- rbind(TAT_P_small_IQR,
-                   TAT_C_small_IQR,
-                   TAT_50_small_IQR,
-                   RR_overall_small_IQR,
-                   RR_true_small_IQR)
+#rbinding 
+small_mean <- rbind(TAT_mean_100, #time at true 
+                   TAT50_mean_100,
+                   stickiness_mean_100,
+                   RR_mean_100,
+                   RRT_mean_100) #time at true > 50 %
+
+#times 100
+small_mean <- small_mean %>%
+  mutate(Bo = round(Bo*100, 2),
+         All = round(All*100, 2),
+         Mave = round(Mave*100, 2),
+         Tess = round(Tess*100, 2)) 
+
+#new rownames 
+rownames(small_mean) <- a$name
+
+```
+
+clearing environment
+
+```{r}
+
+rm(list=setdiff(ls(), c("a", "temp", "small_median", "small_mean")))
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+
+```
+
+clearing environment
+
+```{r}
+
+rm(list=setdiff(ls(), c("a", "temp", "small_median", "small_mean")))
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+
+```
+
+organizing small world & IQR
+
+```{r}
+#TAT
+TAT_IQR_100 <- TAT_small_100.csv %>%
+  select(population, TAT_IQR) %>% 
+  spread(population, TAT_IQR) 
+
+#TAT 50
+TAT50_IQR_100 <- TAT50_small_100.csv %>%
+  select(population, TAT50_IQR) %>%
+  spread(population, TAT50_IQR)
+
+#stickiness 
+stickiness_IQR_100 <- stickiness_small_100.csv %>%
+  select(population, stickiness_IQR) %>%
+  spread(population, stickiness_IQR)
+
+#replication rate overall
+RR_IQR_100 <- RR_small_100.csv %>%
+  select(population, RR_IQR) %>%
+  spread(population, RR_IQR)
+
+#replication rate true
+RRT_IQR_100 <- RRT_small_100.csv %>%
+  select(population, RR_true_IQR) %>%
+  spread(population, RR_true_IQR)
+
+#rbinding 
+small_IQR <- rbind(TAT_IQR_100, #time at true 
+                   TAT50_IQR_100,
+                   stickiness_IQR_100,
+                   RR_IQR_100,
+                   RRT_IQR_100) #time at true > 50 %
 
 #times 100
 small_IQR <- small_IQR %>%
@@ -168,41 +203,97 @@ small_IQR <- small_IQR %>%
          All = round(All*100, 2),
          Mave = round(Mave*100, 2),
          Tess = round(Tess*100, 2)) 
-  
 
+#new rownames 
 rownames(small_IQR) <- a$name
-
-#kable 
-library(knitr)
-library(kableExtra)
-
-#actual plot
-small_IQR %>%
-  kable() %>%
-  kable_styling(bootstrap_options = c("striped",
-                                      "hover", 
-                                      "condensed", 
-                                      "responsive"),
-                full_width = F) %>%
-  add_header_above(c("", "Small World & IQR" = 4))
 
 ```
 
+clearing environment
+
+```{r}
+
+rm(list=setdiff(ls(), c("a", "temp", "small_median", "small_mean", "small_IQR")))
+
+```
+
+Kable
+
+```{r}
+library(tibble)
+dataset <- data.frame(a = 1:5, b = 2:6, c=3:7)
+add_column(dataset, d = 4:8, .after = 2)
+
+#creating the relevant groups 
+small_median_IQR <- cbind(small_median, small_IQR)
+small_mean_IQR <- cbind(small_mean, small_IQR)
+
+small_median_IQR <- add_column(small_median_IQR, " " = "", .after = 4)
+small_mean_IQR <- add_column(small_mean_IQR, " " = "", .after = 4)
+#now we have to rename columns 
+small_median_IQR <- small_median_IQR %>%
+  rename(All = "All.1",
+         Bo = "Bo.1",
+         Mave = "Mave.1",
+         Tess = "Tess.1")
+
+small_mean_IQR <- small_mean_IQR %>%
+  rename(All = "All.1",
+         Bo = "Bo.1",
+         Mave = "Mave.1",
+         Tess = "Tess.1")
+
+#kable - median & IQR
+small_median_IQR %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", 
+                                      #"hover", 
+                                      #"condensed", 
+                                      "responsive")) %>%
+  add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
+  add_header_above(c(" ", "Small-world" = 9)) #%>%
+  #add_indent(c(2, 5)) 
+
+#kable mean & IQR
+small_mean_IQR %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", 
+                                      #"hover", 
+                                      #"condensed", 
+                                      "responsive")) %>%
+  add_header_above(c("", "Mean" = 4," " = 1, "IQR" = 4)) %>%
+  add_header_above(c("", "Small-world" = 9)) #%>%
+  #add_indent(c(2, 5)) 
+
+```
+
+
+plotting can get more crazy. 
 https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
 
 ```{r}
 
 #plot for another time 
-small_IQR %>%
+small_mean %>%
   mutate(
     measures = rownames(.),
-    bo = cell_spec(bo, "html", color = "red"),
-    mave = cell_spec(mave, "html", color = "blue"),
-    tess = cell_spec(tess, "html", color = "green"),
-    epi = cell_spec(epi, "html", color = "purple")) %>%
-  select(measures, bo, mave, tess, epi) %>%
+    Bo = cell_spec(Bo, "html", color = "red"),
+    Mave = cell_spec(Mave, "html", color = "blue"),
+    Tess = cell_spec(Tess, "html", color = "green"),
+    All = cell_spec(All, "html", color = "purple")) %>%
+  select(measures, Bo, Mave, Tess, All) %>%
   kable(format = "html", escape = F) %>%
   kable_styling("striped", full_width = F)
+
+#footnote
+  #footnote(general = "Here is a general comments of the table. ", #we can add notes. 
+           #number = c("Footnote 1; ", "Footnote 2; "),
+           #alphabet = c("Footnote A; ", "Footnote B; "),
+           #symbol = c("Footnote Symbol 1; ", "Footnote Symbol 2"),
+           #general_title = "General: ", number_title = "Type I: ",
+           #alphabet_title = "Type II: ", symbol_title = "Type III: ",
+           #footnote_as_chunk = T, title_format = c("italic", "underline")
+           #)
 
 ```
 

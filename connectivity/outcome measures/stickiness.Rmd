@@ -7,14 +7,10 @@ editor_options:
   chunk_output_type: inline
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
 
 ```{r}
 #set working directory
-setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
 
 #packages 
 library(pacman)
@@ -24,10 +20,9 @@ p_load(tidyverse, ggunchained)
 loading data. 
 
 ```{r}
-setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
 
 #reading 
-path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/"
+path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/"
 
 files <- list.files(path = path, pattern="*.csv") #if possible. 
 
@@ -49,7 +44,10 @@ df <- do.call(rbind, dfList)
 rm(dfList)
 ```
 
+computing stickiness.
+
 ```{r}
+
 stickiness_index <- df %>%
   filter(initial_global_true_model == 1) %>% #only relevant subset
   group_by(replica, sigma, population, network, true_model) %>% #per replica
@@ -58,9 +56,11 @@ stickiness_index <- df %>%
 #summarized table
 stickiness_index_summary <- stickiness_index %>%
   group_by(population, network) %>% 
-  summarize(median = median(stickiness), IQR = IQR(stickiness), mean = mean(stickiness)) 
+  summarize(stickiness_median = median(stickiness),
+            stickiness_mean = mean(stickiness),
+            stickiness_IQR = IQR(stickiness)) 
 
-#count of the different rows fulfilling the criteria
+#count of the different rows fulfilling the criteria (not relevant).
 stickiness_count <- df %>%
   filter(initial_global_true_model == 1, final_global_true_model == 0) %>%
   group_by(population, network) %>%
@@ -68,9 +68,43 @@ stickiness_count <- df %>%
 
 ```
 
-write
+relevant subsets 
 
 ```{r}
-write.csv(stickiness_index_summary, "C:/Users/Mikkel/Documents/CRUST-1/connectivity/outcome_results/stickiness_100.csv", row.names = F)
+
+#subsetting
+stickiness_lattice <- stickiness_index_summary %>%
+  filter(network == "Lattice") %>%
+  select(population, network, stickiness_median, stickiness_mean, stickiness_IQR)
+  
+stickiness_small <- stickiness_index_summary %>%
+  filter(network == "Small") %>%
+  select(population, network, stickiness_median, stickiness_mean, stickiness_IQR)
+
+#checking 
+head(stickiness_lattice)
+head(stickiness_small)
+
+```
+
+write csv
+
+```{r}
+#working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results")
+
+#writing csv
+write.csv(stickiness_lattice, "stickiness_lattice_100.csv", row.names = F)
+write.csv(stickiness_small, "stickiness_small_100.csv", row.names = F)
+
+#checking
+rm(list = ls())
+stickiness_lattice <- read.csv("stickiness_lattice_100.csv")
+stickiness_small <- read.csv("stickiness_small_100.csv")
+
+#checking again
+head(stickiness_lattice)
+head(stickiness_small)
+
 ```
 

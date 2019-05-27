@@ -72,14 +72,39 @@ TAT_sum <- TAT %>%
 
 ```
 
+relevant subsets 
+
+```{r}
+TAT_lattice_100 <- TAT_sum %>%
+  filter(network == "Lattice") %>%
+  select(network, population, TAT_median, TAT_mean, TAT_IQR)
+  
+TAT_small_100 <- TAT_sum %>%
+  filter(network == "Small") %>%
+  select(network, population, TAT_median, TAT_mean, TAT_IQR)
+
+TAT50_lattice_100 <- TAT_sum %>%
+  filter(network == "Lattice") %>%
+  select(network, population, TAT50_median, TAT50_mean, TAT50_IQR)
+
+TAT50_small_100 <- TAT_sum %>%
+  filter(network == "Small") %>%
+  select(network, population, TAT50_median, TAT50_mean, TAT50_IQR)
+
+```
+
+
 write csv 
 
 ```{r}
 #new working directory 
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results"
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results")
       
 #write csv
-write.csv(TAT_sum, "TAT_TAT50.csv", row.names = FALSE)
+write.csv(TAT_lattice_100, "TAT_lattice_100.csv", row.names = FALSE)
+write.csv(TAT_small_100, "TAT_small_100.csv", row.names = FALSE)
+write.csv(TAT50_lattice_100, "TAT50_lattice_100.csv", row.names = FALSE)
+write.csv(TAT50_small_100, "TAT50_small_100.csv", row.names = FALSE)
 
 ```
 
