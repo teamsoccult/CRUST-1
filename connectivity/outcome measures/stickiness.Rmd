@@ -10,6 +10,8 @@ editor_options:
 
 ```{r}
 #set working directory
+setwd("~/CRUST-1/data/ABMdata/ABMcsv")
+
 setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
 
 #packages 
@@ -20,9 +22,8 @@ p_load(tidyverse, ggunchained)
 loading data. 
 
 ```{r}
-
 #reading 
-path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/"
+path <- "~/CRUST-1/data/ABMdata/ABMcsv/"
 
 files <- list.files(path = path, pattern="small") #if possible. 
 
@@ -49,6 +50,40 @@ rm(dfList)
 computing stickiness.
 
 ```{r}
+
+df_1_1 <- df %>%
+  group_by(replica, sigma, population, network, true_model) %>%
+  filter(initial_global_true_model == 1) %>%
+  filter(final_global_true_model == 0) %>%
+  summarize(count = n())
+
+df_1_2 <- df %>%
+  group_by(replica, sigma, population, network, true_model) %>%
+  filter(initial_global_true_model == 1) %>%
+  filter(final_global_true_model == 1) %>%
+  summarize(count = n())
+
+df_2_1 <- df %>%
+  group_by(replica, sigma, population, network, true_model) %>%
+  filter(edges_already_true_changing >= 1)
+  
+
+df_2_2 <- df %>%
+  group_by(replica, sigma, population, network, true_model) %>%
+  filter(edges_already_true_changing >= 1)
+
+stickiness_index <- df %>%
+  filter(edges_already_true >= 1) %>% #only relevant subset
+  group_by(replica, sigma, population, network, true_model) %>% #per replica
+  summarize(stickiness = 1 - mean(as.numeric(edges_already_true_changing / edges_already_true))) #getting it in proportion
+
+stickiness_index_summary <- stickiness_index %>%
+  group_by(population, network) %>% 
+  summarize(stickiness_median = median(stickiness),
+            stickiness_mean = mean(stickiness),
+            stickiness_IQR = IQR(stickiness), 
+            stickiness_SD = SD(stickiness)) 
+
 
 stickiness_index <- df %>%
   filter(initial_global_true_model == 1) %>% #only relevant subset
