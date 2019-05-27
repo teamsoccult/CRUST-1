@@ -3,16 +3,12 @@ title: "stickiness"
 author: "Mikkel Werling"
 date: "5/19/2019"
 output: html_document
-editor_options: 
-  chunk_output_type: inline
 ---
 
 
 ```{r}
-#set working directory
-setwd("~/CRUST-1/data/ABMdata/ABMcsv")
 
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/sample_size_100")
 
 #packages 
 library(pacman)
@@ -23,7 +19,7 @@ loading data.
 
 ```{r}
 #reading 
-path <- "~/CRUST-1/data/ABMdata/ABMcsv/"
+path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/sample_size_20/"
 
 files <- list.files(path = path, pattern="small") #if possible. 
 
@@ -51,57 +47,23 @@ computing stickiness.
 
 ```{r}
 
-df_1_1 <- df %>%
+df1 <- df %>%
   group_by(replica, sigma, population, network, true_model) %>%
-  filter(initial_global_true_model == 1) %>%
-  filter(final_global_true_model == 0) %>%
-  summarize(count = n())
+  summarize(agent_away = sum(as.numeric(initial_global_true_model == 1 & 
+                                 final_global_true_model == 0)),
+            agent_total = sum(as.numeric(initial_global_true_model == 1)),
+            edge_away = sum(edges_already_true_changing),
+            edge_total = sum(edges_already_true))
 
-df_1_2 <- df %>%
-  group_by(replica, sigma, population, network, true_model) %>%
-  filter(initial_global_true_model == 1) %>%
-  filter(final_global_true_model == 1) %>%
-  summarize(count = n())
-
-df_2_1 <- df %>%
-  group_by(replica, sigma, population, network, true_model) %>%
-  filter(edges_already_true_changing >= 1)
-  
-
-df_2_2 <- df %>%
-  group_by(replica, sigma, population, network, true_model) %>%
-  filter(edges_already_true_changing >= 1)
-
-stickiness_index <- df %>%
-  filter(edges_already_true >= 1) %>% #only relevant subset
-  group_by(replica, sigma, population, network, true_model) %>% #per replica
-  summarize(stickiness = 1 - mean(as.numeric(edges_already_true_changing / edges_already_true))) #getting it in proportion
-
-stickiness_index_summary <- stickiness_index %>%
-  group_by(population, network) %>% 
+df2 <- df1 %>%
+  mutate(all_losing_global = agent_away + edge_away,
+         all_global_combined = agent_total + edge_total,
+         stickiness = 1 - (all_losing_global / all_global_combined)) %>%
+  group_by(network, population) %>%
   summarize(stickiness_median = median(stickiness),
             stickiness_mean = mean(stickiness),
             stickiness_IQR = IQR(stickiness), 
-            stickiness_SD = SD(stickiness)) 
-
-
-stickiness_index <- df %>%
-  filter(initial_global_true_model == 1) %>% #only relevant subset
-  group_by(replica, sigma, population, network, true_model) %>% #per replica
-  summarize(stickiness = 1 - mean(as.numeric(final_global_true_model == 0))) #getting it in proportion
-
-#summarized table
-stickiness_index_summary <- stickiness_index %>%
-  group_by(population, network) %>% 
-  summarize(stickiness_median = median(stickiness),
-            stickiness_mean = mean(stickiness),
-            stickiness_IQR = IQR(stickiness)) 
-
-#count of the different rows fulfilling the criteria (not relevant).
-stickiness_count <- df %>%
-  filter(initial_global_true_model == 1, final_global_true_model == 0) %>%
-  group_by(population, network) %>%
-  summarize(count = n())
+            stickiness_SD = sd(stickiness))
 
 ```
 
@@ -110,13 +72,15 @@ relevant subsets
 ```{r}
 
 #subsetting
-stickiness_lattice <- stickiness_index_summary %>%
+stickiness_lattice <- df2 %>%
   filter(network == "Lattice") %>%
-  select(population, network, stickiness_median, stickiness_mean, stickiness_IQR)
+  select(population, network, stickiness_median, stickiness_mean, 
+         stickiness_IQR, stickiness_SD)
   
-stickiness_small <- stickiness_index_summary %>%
+stickiness_small <- df2 %>%
   filter(network == "Small") %>%
-  select(population, network, stickiness_median, stickiness_mean, stickiness_IQR)
+  select(population, network, stickiness_median, stickiness_mean, 
+         stickiness_IQR, stickiness_SD)
 
 #checking 
 head(stickiness_lattice)
@@ -128,11 +92,12 @@ write csv
 
 ```{r}
 #working directory
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results")
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results/sample_size_20")
 
+getwd()
 #writing csv
 write.csv(stickiness_lattice, "stickiness_lattice_100.csv", row.names = F)
-write.csv(stickiness_small, "stickiness_small_100.csv", row.names = F)
+write.csv(stickiness_small, "stickiness_small_20.csv", row.names = F)
 
 #checking
 rm(list = ls())
