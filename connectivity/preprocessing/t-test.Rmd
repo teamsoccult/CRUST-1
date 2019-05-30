@@ -16,7 +16,7 @@ p_load(igraph, stringr, ggraph, wesanderson, cowplot, reshape)
 reading all the parameter-files:
 
 ```{r}
-setwd("C:/Users/Mikkel/Documents/CRUST-1/data/combined files/ABMrds/ABMrds13/model13rds")
+setwd("~/CRUST-1/data/ABMdata/ABMrds/Sample_size_100/ABMrds2")
 
 #readRDS
 

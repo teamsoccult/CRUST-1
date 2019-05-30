@@ -11,6 +11,13 @@ library(pacman)
 p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, ggunchained)
 ```
 
+INTRODUCTION TO THE DOCUMENT:
+1. Read data is obligatory
+2. Downsampling is always recommendable, as it does not make any aesthetic difference, but significantly increases the computational load.
+3. True/False plots for the individual conditions
+4. Bo-plot for all the conditions with 14th and true model
+5. Averaged plot of true_proportion for all the different populations 
+
 read data
 
 ```{r}
@@ -21,8 +28,7 @@ path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/"
 
 files <- list.files(path = path, pattern="small") #if possible. 
 
-mycols <- c("network", 
-            "population", 
+mycols <- c("population", 
             "sigma",
             "true_model",
             "studies",
@@ -55,6 +61,7 @@ rm(dfList)
 downsampling
 
 ```{r}
+
 df <- df[seq(1, nrow(df), 100), ]
 ```
 
@@ -72,7 +79,7 @@ naming <- colnames(df)
   #mutate(network = "Small-world")
 
 df <- df %>%
-  melt(id = c(naming[1:6])) %>% #melting with proportions becoming variable and their values becoming values
+  melt(id = c(naming[1:4])) %>% #melting with proportions becoming variable and their values becoming values
   mutate(true_model = as.factor(true_model)) %>%
   mutate(true = ifelse(variable == "proportion_true", "True", "False")) %>% #making a identifying column in order to color for the plot
   mutate(variable = relevel(variable, ref = "proportion_true")) %>% #releveling so that proportion true is considered first
@@ -103,9 +110,7 @@ bo plot for viweing the 14th
 ```{r}
 df_bo <- df %>%
   filter(variable == c("proportion_true", "proportion_14"), population == "Bo") %>%
-  mutate(unique_col = as.factor(paste(true_model, sigma)))
-
-head(df_bo)
+  mutate(unique_col = as.factor(paste("True Model:",true_model, "|", "Sigma:", sigma)))
 
 #what you want to plot
 sigma_p <- 0.2
@@ -126,16 +131,28 @@ g <- df_bo %>%
 
 g
 
-# g <- df_bo %>%
-#   ggplot(aes(studies, value, fill = variable))+
-#   geom_point(alpha = 0.01) +
-#   geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2, aes(labels = true_model)) +
-#   geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
-#   labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
-#        title = "Model 14 and the true model for Bo-populations",
-#        subtitle = paste("Network:", network_p, "|", "Population:", population_p)) +
-#   theme_janco_point()
-# 
-# g
+```
+
+plotting all populations
+
+```{r}
+naming <- colnames(df)
+
+df <- df %>%
+  melt(id = c(naming[1:4])) #melting with proportions becoming variable and their values becoming values
+
+
+g <- df %>%
+  filter(variable == "proportion_true") %>%
+  ggplot(aes(studies, value, color = population))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.4) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
+  labs(x = "Studies", y = "Proportion", color = "Proportion of different populations", 
+       title = "Proportion of agents at the true model for the different populations",
+       subtitle = "Downsampled by a factor 100:1") +
+  theme_janco_point()
+
+g
 ```
 
