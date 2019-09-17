@@ -1,16 +1,25 @@
-# the function running our ABM 
-# changed 22-05-2019
-# the final SocKult model (so a nice baseline to keep)
+"The function running our ABM (with new selection).
+changed 14-09-2019. This document can accomodate running all 
+combinations of parameters at once. I have cleaned it a bit,
+but we should still go over it together. 
+1. check whether the function needs all its arguments. 
+2. check that we understand the code at all times. 
+3. comment it better than we already have."
 
-# should anything change here?
-ABM3 <- function(replications, turns, models, k, 
+# should anything change here - do we use all of it? 
+ABM5 <- function(replications, turns, models, k, 
                 weights, sampleSize, correlation, sigma,
-                modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-                verbose, ndec, seeds, some_models){
+                modelCompare, modelSelection, inputDir, outputDir, 
+                outputFile, paramFile, verbose, ndec, seeds, some_models){
   
   ## REPLICA SIMULATION
   ###################
   parameters <- list()
+  
+  #Has to be done to run all true models in one go. 
+  trueModel <- some_models[tMod] #tMod er en liste med 2, 7, 13. 
+  tModel <- strToModel(trueModel, k) #conversion. 
+  
   for(replica in 1:replications){
     set.seed(seeds[replica])
     
@@ -64,24 +73,21 @@ ABM3 <- function(replications, turns, models, k,
     #######################
     turn <- 1 
     study <- 0
-    #does it work?
+    
     for(turn in 1:turns){ #11000 time-turns
       
-      #if(study < turns){
       ## initialize parameters 
-      edges_testing <- 0 #new change
-      edges_changing <- 0 #new change
-      edges_already_true <- 0 #new change
-      edges_already_true_changing <- 0 #new change!!
-      edges_already_true_rejecting <- 0 #new change
-      edges_replication_study <- 0 #new change!!
-      edges_replicated <- 0 #new change
-      edges_not_replicated <- 0 #new change
-      edges_total <- NULL #from NULL
-      #edges_not_same_global <- 0 #not same
-      #edges_same_global <- 0 #same
-      edges_not_same_global <- NULL #new!!
-      edges_same_global <- NULL #new!!
+      edges_testing <- 0 
+      edges_changing <- 0 
+      edges_already_true <- 0 
+      edges_already_true_changing <- 0 
+      edges_already_true_rejecting <- 0 
+      edges_replication_study <- 0 
+      edges_replicated <- 0 
+      edges_not_replicated <- 0
+      edges_total <- NULL 
+      edges_not_same_global <- NULL #we have this twice.  
+      edges_same_global <- NULL #we have this twice. 
       
       ## Select the token of agent
       agentToken <- agentTurn[turn] 
@@ -92,30 +98,67 @@ ABM3 <- function(replications, turns, models, k,
       ## model & in format
       gModel <- strToModel(V(g)$model[agentIndex], k) #local model
       
-      ## Tess
-      if(V(g)$type[agentIndex] == "Tess"){ #detect
-        model <- modelSimilarByTerm(gModel, models, mode="random",
-                                    modelSelection=modelSelection)
+      ### NEW MODEL SELECTION BLOCK ### 
+      
+      edges_legible <- list() #empty list.
+      
+      #Getting edges of agent on turn 
+      edges_total <- names(which(matrix_g[, agentIndex] == 1)) #all edges from agent on turn.
+      for(i in edges_total){ #looping over those edges. 
         
-        ## Mave
-      } else if(V(g)$type[agentIndex] == "Mave"){
-        model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+        #token for the i'th edge.  
+        edgeToken <- i #should be edgeToken, not agentToken (as before)
         
-        ## Bo 
-      } else if(V(g)$type[agentIndex] == "Bo"){
-        model <- modelSimilarByInteraction(gModel, models, mode="random",
-                                           modelSelection=modelSelection)
+        #index for the i'th edge
+        edge_agentIndex <- which((V(g)$name) == edgeToken)
+        
+        #checking their model against agent on turn. 
+        #if same then nothing happens. 
+        #if not the same then their token is put into edges_legible
+        if(identical(gModel, strToModel(V(g)$model[edge_agentIndex],k))){
+        } else {  
+          edges_legible[i] <- edgeToken
+        }
       }
       
-      #new commented. 
-      #model1 <- model 
-      #model2 <- gModel
+      #determining reserach strategy. 
+      if(length(edges_legible) == 0){ #if no edges in the list then strat. must be research. 
+        strategy <- 'research'
+      } else { #if there are edges in the list, then research strat. is probabilistic. 
+        strategy <- sample(c('research', 'neighbor'), size = 1, prob = c(.50, .50))
+      }
       
+      #what happens on RESEARCH (the old system copied)
+      if(strategy == "research"){ 
+        if(V(g)$type[agentIndex] == "Tess"){ 
+          model <- modelSimilarByTerm(gModel, models, mode="random",
+                                      modelSelection=modelSelection)
+          
+          ## Mave
+        } else if(V(g)$type[agentIndex] == "Mave"){
+          model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+          
+          ## Bo 
+        } else if(V(g)$type[agentIndex] == "Bo"){
+          model <- modelSimilarByInteraction(gModel, models, mode="random",
+                                             modelSelection=modelSelection)
+        }
+        
+      } else { #what happens on NEIGHBOR (could be else if, but it has to be if not research)
+        chosen_edge <- sample(edges_legible, size = 1) #sampling just 1 from the list. 
+        edge_agentIndex <- which((V(g)$name) == chosen_edge) #finding index.
+        model <- strToModel(V(g)$model[edge_agentIndex],k) #finding model. 
+      }
+      
+      ### MODEL SELECTION STOPS ###
+      
+      ### MODEL STATISTICS GENERATION ###
       #adding variance & statistics for different engines (AIC, BIC)
       Yset <- generateY(deterministic, sigma) #putting variance on the deterministic.
       stat <- analysis(model, gModel, Yset, Xset, weights) #computing all the shit.
       
-      #smooth -> should we switch
+      ### MODEL CHANGE ### 
+      
       switchModel <- FALSE
       if((modelCompare == TSTATISTICS) &
          (!is.null(stat$model$tstatistics)) &
@@ -159,7 +202,7 @@ ABM3 <- function(replications, turns, models, k,
         }
       }
       
-      #what do you do?
+      #we need to figure out what we use this for. 
       initGModel <- gModel 
       initGModelStat <- stat$gModel
       
@@ -175,14 +218,17 @@ ABM3 <- function(replications, turns, models, k,
         modelStr <- str_replace_all(modelStr, ":", "")
         V(g)$model[agentIndex] <- modelStr
         
-        #this ends the original agents turn
       } else {
         finalGModelStat <- stat$gModel
       }
       
-      if(switchModel){ #NOW STARTS FUCKED. 
+      ### END OF ORIGINAL AGENTS TURN ###
+      
+      ### IF MODEL-SWITCH THEN EDGES NOW TEST ### 
+      
+      if(switchModel){ 
         #making ready for the loop. 
-        edges_total <- names(which(matrix_g[, agentIndex] == 1)) #total edges 
+        edges_total <- names(which(matrix_g[, agentIndex] == 1)) #total edges (already have this??)
         edges_not_same_global <- NULL #new!!
         edges_same_global <- NULL #new!!
         
@@ -205,11 +251,9 @@ ABM3 <- function(replications, turns, models, k,
         }
         }
         
-        # logging 
-        #timeturns <- timeturns - length(edges_not_same_global) #new!!
+        ### THE EDGES WITH DIFF. GLOBAL MOD. NOW TEST ### 
         
-        #the edges now do stuff. 
-        for(i in edges_not_same_global){ #new!!
+        for(i in edges_not_same_global){ 
           
           ## tried 
           edges_testing <- edges_testing + 1 #how many tested. 
@@ -277,9 +321,9 @@ ABM3 <- function(replications, turns, models, k,
             if(stat$model$arsq > stat$gModel$arsq){
               edge_switchModel <- TRUE
             }
-          } #else { 
-            #finalGModelStat <- stat$gModel #potential bug.
-          #}
+          } 
+          
+          ### IF THEY SHOULD SHIFT ### 
           
           if(edge_switchModel){
             
@@ -300,9 +344,9 @@ ABM3 <- function(replications, turns, models, k,
             modelStr <- str_replace_all(modelStr, ":", "")
             V(g)$model[edge_agentIndex] <- modelStr
             
-          } #this ends the for loop ()
+          } 
           
-          #did they already have the true model?
+          ### LOGGING REPLICATION INFORMATION ###
           else {
             
             #how many rejected rightfully
@@ -312,28 +356,23 @@ ABM3 <- function(replications, turns, models, k,
             #how many did not replicate
             edges_not_replicated <- edges_not_replicated +
               as.numeric(compareModels(edge_gModel, old_gModel))
-            
           }
-          
-          #else {
-            #finalGModelStat <- stat$gModel #potential bug. 
-          #}
         }
       }
       
-      #trying to change turn 
+      # how many studies conducted? 
       study <- study + (1 + edges_testing)
       
-      ## Record output data
+      ### Record output data ###
       output[turn, O_STUDIES] <- study
-      output[turn, O_NETWORK] <- net_type #new
-      output[turn, O_POPULATION] <- pop_type #new
-      output[turn, O_SIGMA] <- sigma #new 
-      output[turn, O_NET_SIZE] <- net_size #new
-      output[turn, O_SAMPLE_SIZE] <- sampleSize #new
-      output[turn, O_TRUE_MODEL] <- tm #new
-      output[turn, O_STRATEGY] <- V(g)$type[agentIndex] #new.
-      output[turn, O_AGENT_INDEX] <- V(g)$name[agentIndex] #new
+      output[turn, O_NETWORK] <- net_type 
+      output[turn, O_POPULATION] <- pop_type 
+      output[turn, O_SIGMA] <- sigma 
+      output[turn, O_NET_SIZE] <- net_size 
+      output[turn, O_SAMPLE_SIZE] <- sampleSize 
+      output[turn, O_TRUE_MODEL] <- tMod #this edition. 
+      output[turn, O_STRATEGY] <- V(g)$type[agentIndex] 
+      output[turn, O_AGENT_INDEX] <- V(g)$name[agentIndex] 
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       output[turn, O_SELECTED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
       output[turn, O_SELECTED_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, stat$model$betasEst), ndec)
@@ -351,15 +390,15 @@ ABM3 <- function(replications, turns, models, k,
       output[turn, O_ARSQ] <- round(finalGModelStat$arsq, ndec)
       output[turn, O_AIC] <- round(finalGModelStat$aic, ndec)
       output[turn, O_BIC] <- round(finalGModelStat$bic, ndec)
-      output[turn, O_EDGES_TESTING] <- edges_testing #new
-      output[turn, O_EDGES_CHANGING] <- edges_changing #new
-      output[turn, O_EDGES_ALREADY_TRUE] <- edges_already_true #new
-      output[turn, O_EDGES_ALREADY_TRUE_CHANGING] <- edges_already_true_changing #new!!
-      output[turn, O_EDGES_ALREADY_TRUE_REJECTING] <- edges_already_true_rejecting #new
-      output[turn, O_EDGES_REPLICATION_STUDY] <- edges_replication_study #new
-      output[turn, O_EDGES_REPLICATED] <- edges_replicated #new
-      output[turn, O_EDGES_NOT_REPLICATED] <- edges_not_replicated #new
-      output[turn, O_PROPORTION_1] <- mean(as.numeric(V(g)$model == some_models[1])) #new
+      output[turn, O_EDGES_TESTING] <- edges_testing 
+      output[turn, O_EDGES_CHANGING] <- edges_changing 
+      output[turn, O_EDGES_ALREADY_TRUE] <- edges_already_true 
+      output[turn, O_EDGES_ALREADY_TRUE_CHANGING] <- edges_already_true_changing 
+      output[turn, O_EDGES_ALREADY_TRUE_REJECTING] <- edges_already_true_rejecting 
+      output[turn, O_EDGES_REPLICATION_STUDY] <- edges_replication_study 
+      output[turn, O_EDGES_REPLICATED] <- edges_replicated 
+      output[turn, O_EDGES_NOT_REPLICATED] <- edges_not_replicated 
+      output[turn, O_PROPORTION_1] <- mean(as.numeric(V(g)$model == some_models[1])) 
       output[turn, O_PROPORTION_2] <- mean(as.numeric(V(g)$model == some_models[2]))
       output[turn, O_PROPORTION_3] <- mean(as.numeric(V(g)$model == some_models[3]))
       output[turn, O_PROPORTION_4] <- mean(as.numeric(V(g)$model == some_models[4]))
@@ -373,40 +412,37 @@ ABM3 <- function(replications, turns, models, k,
       output[turn, O_PROPORTION_12] <- mean(as.numeric(V(g)$model == some_models[12]))
       output[turn, O_PROPORTION_13] <- mean(as.numeric(V(g)$model == some_models[13]))
       output[turn, O_PROPORTION_14] <- mean(as.numeric(V(g)$model == some_models[14]))
-      output[turn, O_PROPORTION_TRUE] <- mean(as.numeric(V(g)$model == trueModel)) #new
-      output[turn, O_EDGES_TOTAL] <- length(edges_total) #new!!
-      output[turn, O_EDGES_SAME_GLOBAL] <- length(edges_same_global) #new!!
-      output[turn, O_EDGES_NOT_SAME_GLOBAL] <- length(edges_not_same_global) #new!!
+      output[turn, O_PROPORTION_TRUE] <- mean(as.numeric(V(g)$model == trueModel)) 
+      output[turn, O_EDGES_TOTAL] <- length(edges_total) 
+      output[turn, O_EDGES_SAME_GLOBAL] <- length(edges_same_global) 
+      output[turn, O_EDGES_NOT_SAME_GLOBAL] <- length(edges_not_same_global) 
     }
-  #}
-    ## Parameter output
+
+    ### Parameter output ###
     param <- list()
-    param[[P_TMODEL]] <- gsub(" ", "", substr(modelToStr(tModel), 5,
-                                              nchar(modelToStr(tModel))), 
-                              fixed=TRUE)
-    param[[P_K]] <- k
+    param[[P_TMODEL]] <- tMod #BA 
     param[[P_SAMPLE_SIZE]] <- sampleSize
     param[[P_SIGMA]] <- sigma
-    param[[P_CORRELATION]] <- correlation
-    #param[[P_AGENT_WEIGHTS]] <- c(nRey, nTess, nBo, nMave) /
-    #(nRey + nTess + nBo + nMave)
-    param[[P_TRUE_BETAS]] <- tModelBetas
-    param[[P_XSET]] <- Xset
+    param[[P_NETNAME]] <- net_type #BA
+    param[[P_POP]] <- pop_type #BA
+    param[[P_K]] <- k #what is this. 
+    param[[P_CORRELATION]] <- correlation #should we use this?
+    param[[P_TRUE_BETAS]] <- tModelBetas #use this?
     param[[P_NETWORK]] <- matrix_g
+    param[[P_XSET]] <- Xset #use this?
     param[[P_AVG_PATH_LENGTH]] <- average.path.length(g)
     param[[P_CLUSTER_COEF]] <- transitivity(g)
     parameters[[replica]] <- param
     
-    ## Convert output matrix into data table
+    ## Convert output matrix into data table ##
     output <- data.table(cbind(rep(replica, turns), 1:turns, output))
     names(output) <- OUTPUT_HEADER
-    #output <- na.omit(output)
     
-    ## Write output data table into a file
+    ## Write output data table into a file ##
     write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                     sigma, "_", criterion, "_", net_size, "_", 
                                     modelSelection, "_", sampleSize, "_", 
-                                    tm, outputFile),
+                                    tMod, outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=";", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
@@ -414,6 +450,6 @@ ABM3 <- function(replications, turns, models, k,
   
   saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                   sigma, "_", criterion, "_", net_size, "_", 
-                                  modelSelection, "_", sampleSize, "_", tm, 
+                                  modelSelection, "_", sampleSize, "_", tMod, 
                                   paramFile))
 }

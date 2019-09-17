@@ -1,9 +1,9 @@
-# the function running our ABM 
-# changed 22-05-2019
-# the final SocKult model (so a nice baseline to keep)
+"the function running our ABM, changed september 2019. Model sampling with 
+neighbors but without the sophistication of ABM5, so should be redundant.
+Also, it has not been cleaned like ABM5."
 
 # should anything change here?
-ABM3 <- function(replications, turns, models, k, 
+ABM4 <- function(replications, turns, models, k, 
                 weights, sampleSize, correlation, sigma,
                 modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
                 verbose, ndec, seeds, some_models){
@@ -92,19 +92,31 @@ ABM3 <- function(replications, turns, models, k,
       ## model & in format
       gModel <- strToModel(V(g)$model[agentIndex], k) #local model
       
-      ## Tess
-      if(V(g)$type[agentIndex] == "Tess"){ #detect
-        model <- modelSimilarByTerm(gModel, models, mode="random",
-                                    modelSelection=modelSelection)
+      ## crazy new segment w. selection 
+      strategy <- sample(c('research','neighbor'), size=1, prob=c(.50,.50))
+      
+      if(strategy == "research"){
+        if(V(g)$type[agentIndex] == "Tess"){ #detect
+          model <- modelSimilarByTerm(gModel, models, mode="random",
+                                      modelSelection=modelSelection)
+          
+          ## Mave
+        } else if(V(g)$type[agentIndex] == "Mave"){
+          model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+          
+          ## Bo 
+        } else if(V(g)$type[agentIndex] == "Bo"){
+          model <- modelSimilarByInteraction(gModel, models, mode="random",
+                                             modelSelection=modelSelection)
+        }
         
-        ## Mave
-      } else if(V(g)$type[agentIndex] == "Mave"){
-        model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
-        
-        ## Bo 
-      } else if(V(g)$type[agentIndex] == "Bo"){
-        model <- modelSimilarByInteraction(gModel, models, mode="random",
-                                           modelSelection=modelSelection)
+      }
+      
+      if(strategy == "neighbor"){
+        edges_total <- names(which(matrix_g[, agentIndex] == 1))
+        chosen_edge <- sample(edges_total, size = 1)
+        edge_agentIndex <- which((V(g)$name) == chosen_edge)
+        model <- strToModel(V(g)$model[edge_agentIndex],k)
       }
       
       #new commented. 

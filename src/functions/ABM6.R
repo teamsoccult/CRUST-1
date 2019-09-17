@@ -1,9 +1,8 @@
-# the function running our ABM 
-# changed 22-05-2019
-# the final SocKult model (so a nice baseline to keep)
+"14-09-2019
+basically just ABM3 which is capable of running all combinations from ABM2.Rmd"
 
 # should anything change here?
-ABM3 <- function(replications, turns, models, k, 
+ABM6 <- function(replications, turns, models, k, 
                 weights, sampleSize, correlation, sigma,
                 modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
                 verbose, ndec, seeds, some_models){
@@ -11,6 +10,11 @@ ABM3 <- function(replications, turns, models, k,
   ## REPLICA SIMULATION
   ###################
   parameters <- list()
+  
+  #Has to be done to run all true models in one go. 
+  trueModel <- some_models[tMod] #tMod er en liste med 2, 7, 13. 
+  tModel <- strToModel(trueModel, k) #conversion. 
+  
   for(replica in 1:replications){
     set.seed(seeds[replica])
     
@@ -331,7 +335,7 @@ ABM3 <- function(replications, turns, models, k,
       output[turn, O_SIGMA] <- sigma #new 
       output[turn, O_NET_SIZE] <- net_size #new
       output[turn, O_SAMPLE_SIZE] <- sampleSize #new
-      output[turn, O_TRUE_MODEL] <- tm #new
+      output[turn, O_TRUE_MODEL] <- tMod #new
       output[turn, O_STRATEGY] <- V(g)$type[agentIndex] #new.
       output[turn, O_AGENT_INDEX] <- V(g)$name[agentIndex] #new
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
@@ -406,7 +410,7 @@ ABM3 <- function(replications, turns, models, k,
     write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                     sigma, "_", criterion, "_", net_size, "_", 
                                     modelSelection, "_", sampleSize, "_", 
-                                    tm, outputFile),
+                                    tMod, outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=";", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
@@ -414,6 +418,6 @@ ABM3 <- function(replications, turns, models, k,
   
   saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                   sigma, "_", criterion, "_", net_size, "_", 
-                                  modelSelection, "_", sampleSize, "_", tm, 
+                                  modelSelection, "_", sampleSize, "_", tMod, 
                                   paramFile))
 }

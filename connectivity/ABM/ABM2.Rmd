@@ -1,0 +1,219 @@
+---
+title: "qualitative"
+author: "Mikkel Werling & Victor Moeller"
+date: "5/16/2019"
+output: html_document
+---
+
+Updated on 14-09-2019
+This now runs all combinations of parameters. 
+Some stuff have been deleted & added to accomodate this change. 
+Set to Victors working directory at the moment. 
+NB: the document outputs to the folder "new_data" (which is only supposed to
+hold data directly generated). The should be moved to "tests" or something else
+after preprocessing.
+Since we are running tests right now it only does 1 iteration & 3000 turns.  
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+packages
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse)
+
+```
+
+paths
+
+```{r}
+baseDir <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1" #the "." stopped working. 
+scriptDir <- paste0(baseDir, "/src/functions")
+inputDir <- paste0(baseDir, "/data")
+outputDir <- paste0(baseDir, "/data/new_data")
+```
+
+functions
+
+```{r}
+source(paste0(scriptDir, "/analysis.R"))
+source(paste0(scriptDir, "/calculateDet.R"))
+source(paste0(scriptDir, "/calculateDistance.R"))
+source(paste0(scriptDir, "/compareModels.R"))
+source(paste0(scriptDir, "/constants_3.R")) #new constants baby
+source(paste0(scriptDir, "/convertBinary.R"))
+source(paste0(scriptDir, "/generateBetas.R"))
+source(paste0(scriptDir, "/generateModels.R"))
+source(paste0(scriptDir, "/generateXSet.R"))
+source(paste0(scriptDir, "/generateY.R"))
+source(paste0(scriptDir, "/getBetas.R"))
+source(paste0(scriptDir, "/getPredictors.R"))
+source(paste0(scriptDir, "/modelSimilarByInteraction.R"))
+source(paste0(scriptDir, "/modelSimilarByTerm.R"))
+source(paste0(scriptDir, "/modelToStr.R"))
+source(paste0(scriptDir, "/searchModel.R"))
+source(paste0(scriptDir, "/seedGenerator.R"))
+source(paste0(scriptDir, "/simulator.R"))
+source(paste0(scriptDir, "/strToModel.R"))
+#source(paste0(scriptDir, "/ABM.R")) #the ABM
+#source(paste0(scriptDir, "/ABM1.R")) #old
+#source(paste0(scriptDir, "/ABM2.R")) #old.
+#source(paste0(scriptDir, "/ABM3.R")) #The final SocKult version. 
+#source(paste0(scriptDir, "/ABM4.R")) #w. neighbor-strategy.
+source(paste0(scriptDir, "/ABM5.R")) #w. modified neighbor strategy. 
+```
+
+some_models, g & agentTurn
+
+```{r}
+
+#some models -  
+load(paste0(baseDir, "/connectivity/loads/some_models"))
+
+```
+
+input parameters
+
+```{r}
+
+## Number of replications
+replications <- 3 #100 originally, now 2. 
+
+## Length of the simulation
+turns <- 11000
+
+## Number of factors
+k <- 3
+
+## generating 
+load(paste0(baseDir, "/connectivity/loads/models")) #changed
+
+## Identify the number of predictors of each model
+predictors <- getPredictors(models)
+
+## Generate Betas
+weights <- generateBetas(models)
+
+## Correlation
+correlation <- 0.2
+
+## modelCompare & selection
+modelCompare <- BIC
+modelSelection <- "hard"
+
+## ndec
+ndec = 4
+
+## outputs
+outputFile <- ".csv" 
+paramFile <- ".rds"
+
+## verbose
+verbose <- TRUE
+```
+
+For output. 
+These are the parameters we don't vary. 
+
+```{r}
+
+criterion <- "BIC" #BIC
+net_size <- 100 #100
+
+```
+
+setting seeds
+
+```{r}
+seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
+
+```
+
+defining parameters 
+
+```{r}
+net_types <- list("Lattice", "Small")
+sigmas <- list(0.2, 0.5, 0.8) #0.2 & 0.8 deleted. 
+sampleSizes <- list(20, 100) #20 deleted. 
+pop_types <- list("Bo", "Tess", "Mave", "All")
+tMods <- list(2, 7, 13)
+criterion <- list("BIC", "AIC")
+
+```
+
+running the ABM. 
+
+```{r}
+
+start_time <- Sys.time()
+
+### running the ABM for all combinations of parameters ### 
+
+for(net_type in net_types){ 
+  for(sigma in sigmas){
+    for(sampleSize in sampleSizes){
+      for(pop_type in pop_types){
+        for(tMod in tMods){ #not sure this works. 
+          for(criterion in criterions){
+        
+ABM5(replications, turns, models, k, 
+    weights, sampleSize, correlation, sigma,
+    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+    verbose, ndec, seeds, some_models)
+          }
+        }
+      }
+    }
+  }
+}
+
+end_time <- Sys.time()
+end_time - start_time
+
+```
+
+Combinations which are unstable in terms of finding the true model. 
+
+```{r}
+net_types <- list("Lattice", "Small")
+sigmas <- list(0.5) #0.2 & 0.8 deleted. 
+sampleSizes <- list(100) #20 deleted. 
+pop_types <- list("Bo", "Tess", "Mave", "All")
+tMods <- list(7, 13)
+criterions <- list("BIC", "AIC") #should be modelCompare. 
+```
+
+```{r}
+
+start_time <- Sys.time()
+
+### running the ABM for all combinations of parameters ### 
+
+for(net_type in net_types){ 
+  for(sigma in sigmas){
+    for(sampleSize in sampleSizes){
+      for(pop_type in pop_types){
+        for(tMod in tMods){ #not sure this works. 
+          for(criterion in criterions){ #should be 
+        
+ABM5(replications, turns, models, k, 
+    weights, sampleSize, correlation, sigma,
+    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
+    verbose, ndec, seeds, some_models)
+          }
+        }
+      }
+    }
+  }
+}
+
+end_time <- Sys.time()
+end_time - start_time
+
+```
+
+
+
