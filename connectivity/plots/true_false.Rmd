@@ -21,10 +21,10 @@ INTRODUCTION TO THE DOCUMENT:
 read data
 
 ```{r}
-setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/Sample_size_20")
 
 #reading 
-path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/"
+path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/Sample_size_20/"
 
 files <- list.files(path = path, pattern="small") #if possible. 
 
@@ -108,9 +108,15 @@ g
 bo plot for viweing the 14th
 
 ```{r}
+naming <- colnames(df)
+
+df <- df %>%
+  melt(id = c(naming[1:4]))
+
 df_bo <- df %>%
   filter(variable == c("proportion_true", "proportion_14"), population == "Bo") %>%
-  mutate(unique_col = as.factor(paste("True Model:",true_model, "|", "Sigma:", sigma)))
+  mutate(unique_col = as.factor(paste("True Model:",true_model, "|", "Sigma:", sigma))) %>%
+  mutate(variable = ifelse(variable == "proportion_true", "True Model", "Model 14"))
 
 #what you want to plot
 sigma_p <- 0.2
@@ -123,13 +129,12 @@ g <- df_bo %>%
   geom_point(alpha = 0.01) +
   geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2) +
   geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
-  labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
-       title = "Model 14 and the true model for Bo-populations",
-       subtitle = paste("Network:", network_p, "|", "Population:", population_p)) +
+  labs(x = "Studies", y = "Proportion", color = "Model:") +
   facet_wrap(~unique_col) + 
   theme_janco_point()
 
-g
+g + labs(caption = "Sample size: 100 | Population: Bo | Downsampled by a factor 100. \n Lines are averaged over replicas. Points are raw data.") + 
+  theme(plot.caption = element_text(hjust = 0.5))
 
 ```
 
@@ -148,11 +153,10 @@ g <- df %>%
   geom_point(alpha = 0.01) +
   geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.4) +
   geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
-  labs(x = "Studies", y = "Proportion", color = "Proportion of different populations", 
-       title = "Proportion of agents at the true model for the different populations",
-       subtitle = "Downsampled by a factor 100:1") +
+  labs(x = "Studies", y = "Proportion", color = "Populations:") +
   theme_janco_point()
 
-g
+g + labs(caption = "Sample size: 20 | Downsampled by a factor 100. \n Lines are averaged over sigma-levels, true models and replicas. Points are raw data.") + 
+  theme(plot.caption = element_text(hjust = 0.5))
 ```
 
