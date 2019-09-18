@@ -440,7 +440,7 @@ ABM5 <- function(replications, turns, models, k,
     
     ## Write output data table into a file ##
     write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
-                                    sigma, "_", criterion, "_", net_size, "_", 
+                                    sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), "_", net_size, "_", 
                                     modelSelection, "_", sampleSize, "_", 
                                     tMod, outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
@@ -449,7 +449,7 @@ ABM5 <- function(replications, turns, models, k,
   }
   
   saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
-                                  sigma, "_", criterion, "_", net_size, "_", 
+                                  sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), "_", net_size, "_", 
                                   modelSelection, "_", sampleSize, "_", tMod, 
                                   paramFile))
 }

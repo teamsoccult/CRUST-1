@@ -80,10 +80,10 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 3 #100 originally, now 2. 
+replications <- 2 #100 originally, now 2. 
 
 ## Length of the simulation
-turns <- 11000
+turns <- 2000
 
 ## Number of factors
 k <- 3
@@ -101,7 +101,6 @@ weights <- generateBetas(models)
 correlation <- 0.2
 
 ## modelCompare & selection
-modelCompare <- BIC
 modelSelection <- "hard"
 
 ## ndec
@@ -120,7 +119,6 @@ These are the parameters we don't vary.
 
 ```{r}
 
-criterion <- "BIC" #BIC
 net_size <- 100 #100
 
 ```
@@ -132,7 +130,8 @@ seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
 
 ```
 
-defining parameters 
+FULL RUN: 
+defining parameters
 
 ```{r}
 net_types <- list("Lattice", "Small")
@@ -140,7 +139,7 @@ sigmas <- list(0.2, 0.5, 0.8) #0.2 & 0.8 deleted.
 sampleSizes <- list(20, 100) #20 deleted. 
 pop_types <- list("Bo", "Tess", "Mave", "All")
 tMods <- list(2, 7, 13)
-criterion <- list("BIC", "AIC")
+modelCompares <- list(BIC, AIC)
 
 ```
 
@@ -157,7 +156,7 @@ for(net_type in net_types){
     for(sampleSize in sampleSizes){
       for(pop_type in pop_types){
         for(tMod in tMods){ #not sure this works. 
-          for(criterion in criterions){
+          for(modelCompare in modelCompares){
         
 ABM5(replications, turns, models, k, 
     weights, sampleSize, correlation, sigma,
@@ -175,15 +174,16 @@ end_time - start_time
 
 ```
 
-Combinations which are unstable in terms of finding the true model. 
+SPECIFIC PARAMETERS:
+Just change the hell out of this so that it suits your needs. 
 
 ```{r}
-net_types <- list("Lattice", "Small")
-sigmas <- list(0.5) #0.2 & 0.8 deleted. 
-sampleSizes <- list(100) #20 deleted. 
-pop_types <- list("Bo", "Tess", "Mave", "All")
-tMods <- list(7, 13)
-criterions <- list("BIC", "AIC") #should be modelCompare. 
+net_types <- list("Lattice") #"Lattice", "Small"
+sigmas <- list(0.5) #0.2, 0.5, 0.8 
+sampleSizes <- list(100) #20, 100. 
+pop_types <- list("Bo") #"Bo", "Mave", "Tess", "All"
+tMods <- list(7) #2, 7, 13. 
+modelCompares <- list(BIC, AIC) #AIC, BIC 
 ```
 
 ```{r}
@@ -197,7 +197,7 @@ for(net_type in net_types){
     for(sampleSize in sampleSizes){
       for(pop_type in pop_types){
         for(tMod in tMods){ #not sure this works. 
-          for(criterion in criterions){ #should be 
+          for(modelCompare in modelCompares){ #should be 
         
 ABM5(replications, turns, models, k, 
     weights, sampleSize, correlation, sigma,
