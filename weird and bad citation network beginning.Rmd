@@ -16,11 +16,15 @@ p_load(stringr)
 Reading the data file
 
 ```{r}
-
-
 D <- readFiles("http://www.bibliometrix.org/datasets/savedrecs.bib")
 
 M <- convert2df(D, dbsource = "isi", format = "bibtex")
+
+```
+
+bibliometrix own analysis (don't run)
+
+```{r}
 
 results <- biblioAnalysis(M, sep = ";")
 
@@ -29,13 +33,11 @@ NetMatrix <- biblioNetwork(M, analysis = "collaboration", network = "authors", s
 # Plot the network
 net=networkPlot(NetMatrix, n = 30, Title = "Collaboration Network", type = "fruchterman", size=T, remove.multiple=FALSE, labelsize=0.7,edgesize = 5)
 
-
-
 A <- cocMatrix(M, Field = "AU", sep = ". ")
 
 net <- biblioNetwork(A, analysis = "co-citation", network = "references", sep = ";")
-
 ```
+
 
 parsing CR
 ```{r}
