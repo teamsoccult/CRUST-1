@@ -38,8 +38,8 @@ A <- cocMatrix(M, Field = "AU", sep = ". ")
 net <- biblioNetwork(A, analysis = "co-citation", network = "references", sep = ";")
 ```
 
-
 parsing CR
+
 ```{r}
 head(M$CR)
 authors <- str_split(M$CR, ";") #authors are split by semicolon in the dataset
