@@ -63,7 +63,8 @@ source(paste0(scriptDir, "/strToModel.R"))
 #source(paste0(scriptDir, "/ABM2.R")) #old.
 #source(paste0(scriptDir, "/ABM3.R")) #The final SocKult version. 
 #source(paste0(scriptDir, "/ABM4.R")) #w. neighbor-strategy.
-source(paste0(scriptDir, "/ABM5.R")) #w. modified neighbor strategy. 
+#source(paste0(scriptDir, "/ABM5.R")) #w. modified neighbor strategy. 
+source(paste0(scriptDir, "/ABMtime.R")) #testing time. 
 ```
 
 some_models, g & agentTurn
@@ -83,7 +84,7 @@ input parameters
 replications <- 1 #100 originally, now 2. 
 
 ## Length of the simulation
-turns <- 100
+turns <- 1
 
 ## Number of factors
 k <- 3
@@ -130,23 +131,23 @@ seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
 
 ```
 
-FULL RUN: 
-defining parameters
+Just one setting. 
+This is basically redundant for testing. 
 
 ```{r}
-net_types <- list("Lattice", "Small")
-sigmas <- list(0.2, 0.5, 0.8) #0.2 & 0.8 deleted. 
-sampleSizes <- list(20, 100) #20 deleted. 
-pop_types <- list("Bo", "Tess", "Mave", "All")
-tMods <- list(2, 7, 13)
-modelCompares <- list(BIC, AIC)
+net_types <- list("Lattice")
+sigmas <- list(0.2) #0.2 & 0.8 deleted. 
+sampleSizes <- list(20) #20 deleted. 
+pop_types <- list("Bo")
+tMods <- list(2)
+modelCompares <- list(BIC)
 
 ```
 
 running the ABM. 
 
 ```{r}
-
+options(digits.secs = 6)
 start_time <- Sys.time()
 
 ### running the ABM for all combinations of parameters ### 
@@ -158,7 +159,7 @@ for(net_type in net_types){
         for(tMod in tMods){ #not sure this works. 
           for(modelCompare in modelCompares){
         
-ABM5(replications, turns, models, k, 
+ABMtime(replications, turns, models, k, 
     weights, sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
@@ -185,7 +186,6 @@ pop_types <- list("Bo", "Mave", "Tess", "All") #"Bo", "Mave", "Tess", "All"
 tMods <- list(7) #2, 7, 13. 
 modelCompares <- list(BIC, AIC) #AIC, BIC 
 ```
-
 
 ```{r}
 
@@ -216,48 +216,5 @@ end_time - start_time
 
 ```
 
-Just one setting. 
-This is basically redundant for testing. 
-
-```{r}
-net_types <- list("Lattice")
-sigmas <- list(0.2) #0.2 & 0.8 deleted. 
-sampleSizes <- list(20) #20 deleted. 
-pop_types <- list("Bo")
-tMods <- list(2)
-modelCompares <- list(BIC)
-
-```
-
-running the ABM. 
-
-```{r}
-options(digits.secs = 6)
-start_time <- Sys.time()
-
-### running the ABM for all combinations of parameters ### 
-
-for(net_type in net_types){ 
-  for(sigma in sigmas){
-    for(sampleSize in sampleSizes){
-      for(pop_type in pop_types){
-        for(tMod in tMods){ #not sure this works. 
-          for(modelCompare in modelCompares){
-        
-ABM5(replications, turns, models, k, 
-    weights, sampleSize, correlation, sigma,
-    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-    verbose, ndec, seeds, some_models)
-          }
-        }
-      }
-    }
-  }
-}
-
-end_time <- Sys.time()
-end_time - start_time
-
-```
 
 
