@@ -9,6 +9,12 @@ CURRENT NETWORK:
 Vertices: 221
 Max Degree: 59
 Mean Degree: 5.34
+____________________
+CURRENT NETWORK (without filter)
+Vertices: 807
+Max Degree: 184
+Mean Degree: 9.46
+Median Degree: 6
 
 ```{r}
 library(pacman)
@@ -35,10 +41,10 @@ M <- convert2df(D, dbsource = "isi", format = "bibtex")
 parsing CR.
 
 ```{r}
-#limiting publications from within the last 5 years
+#limiting publications (explodes into 807 without this)
 
-M <- M %>%
-  filter(PY >= 2018)
+#M <- M %>%
+  #filter(PY >= 2018)
 
 cited <- str_split(M$CR, ";") #cited ref. are split by semicolon in CR column. 
 
@@ -144,6 +150,9 @@ max(degree(g))
 
 #average degree
 mean(degree(g))
+
+#median degree
+median(degree(g))
 
 #plotting
 ggraph(g, "kk")+
