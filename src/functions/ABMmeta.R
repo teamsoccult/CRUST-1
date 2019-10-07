@@ -1,7 +1,13 @@
-"Trying to make it qualitative for shiny."
+"The function running our ABM (with new selection).
+changed 14-09-2019. This document can accomodate running all 
+combinations of parameters at once. I have cleaned it a bit,
+but we should still go over it together. 
+1. check whether the function needs all its arguments. 
+2. check that we understand the code at all times. 
+3. comment it better than we already have."
 
 # should anything change here - do we use all of it? 
-ABMqualitative <- function(replications, turns, models, k, 
+ABM5 <- function(replications, turns, models, k, 
                 weights, sampleSize, correlation, sigma,
                 modelCompare, modelSelection, inputDir, outputDir, 
                 outputFile, paramFile, verbose, ndec, seeds, some_models){
@@ -47,10 +53,9 @@ ABMqualitative <- function(replications, turns, models, k,
     V(g)$type <- sample(V(g)$type)
     V(g)$name <- make.unique(V(g)$type) 
     V(g)$model <- sample(some_models)
-    V(g)$model <- sample(V(g)$model) #randomizing?
+    V(g)$model <- sample(V(g)$model)
     matrix_g <- as_adjacency_matrix(g, sparse = F) 
     agentTurn <- sample(V(g)$name, size = 11000, replace = T) 
-    V(g)$index <- which((V(g)$name) == V(g)$name) #hacky, but should work. 
     
     ## Generate Xset and deterministic value of the linear regression
     #trueModel <- some_models[replica]
@@ -93,58 +98,70 @@ ABMqualitative <- function(replications, turns, models, k,
       ## model & in format
       gModel <- strToModel(V(g)$model[agentIndex], k) #local model
       
-      ### NEW MODEL SELECTION BLOCK ### 
+      ### Collaborative science ? ###
       
-      edges_legible <- list() #empty list.
+      strategy <- sample(c('collaborative', 'undecided'), size = 1, prob = c(.02, .88))
       
-      #Getting edges of agent on turn 
-      edges_total <- names(which(matrix_g[, agentIndex] == 1)) #all edges from agent on turn.
-      for(i in edges_total){ #looping over those edges. 
+      ### NEW MODEL SELECTION BLOCK - Research vs. Edge strategy ### 
+      
+      if(strategy != 'collaborative'){ #does not!!
+        edges_legible <- list() #empty list.
         
-        #token for the i'th edge.  
-        edgeToken <- i #should be edgeToken, not agentToken (as before)
-        
-        #index for the i'th edge
-        edge_agentIndex <- which((V(g)$name) == edgeToken)
-        
-        #checking their model against agent on turn. 
-        #if same then nothing happens. 
-        #if not the same then their token is put into edges_legible
-        if(identical(gModel, strToModel(V(g)$model[edge_agentIndex],k))){
-        } else {  
-          edges_legible[i] <- edgeToken
-        }
-      }
-      
-      #determining reserach strategy. 
-      if(length(edges_legible) == 0){ #if no edges in the list then strat. must be research. 
-        strategy <- 'research'
-      } else { #if there are edges in the list, then research strat. is probabilistic. 
-        strategy <- sample(c('research', 'neighbor'), size = 1, prob = c(.50, .50))
-      }
-      
-      #what happens on RESEARCH (the old system copied)
-      if(strategy == "research"){ 
-        if(V(g)$type[agentIndex] == "Tess"){ 
-          model <- modelSimilarByTerm(gModel, models, mode="random",
-                                      modelSelection=modelSelection)
+        #Getting edges of agent on turn 
+        edges_total <- names(which(matrix_g[, agentIndex] == 1)) #all edges from agent on turn.
+        for(i in edges_total){ #looping over those edges. 
           
-          ## Mave
-        } else if(V(g)$type[agentIndex] == "Mave"){
-          model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+          #token for the i'th edge.  
+          edgeToken <- i #should be edgeToken, not agentToken (as before)
           
-          ## Bo 
-        } else if(V(g)$type[agentIndex] == "Bo"){
-          model <- modelSimilarByInteraction(gModel, models, mode="random",
-                                             modelSelection=modelSelection)
+          #index for the i'th edge
+          edge_agentIndex <- which((V(g)$name) == edgeToken)
+          
+          #checking their model against agent on turn. 
+          #if same then nothing happens. 
+          #if not the same then their token is put into edges_legible
+          if(identical(gModel, strToModel(V(g)$model[edge_agentIndex],k))){
+          } else {  
+            edges_legible[i] <- edgeToken
+          }
         }
         
-      } else { #what happens on NEIGHBOR (could be else if, but it has to be if not research)
-        chosen_edge <- sample(edges_legible, size = 1) #sampling just 1 from the list. 
-        edge_agentIndex <- which((V(g)$name) == chosen_edge) #finding index.
-        model <- strToModel(V(g)$model[edge_agentIndex],k) #finding model. 
-      }
-      
+        #determining reserach strategy. 
+        if(length(edges_legible) == 0){ #if no edges in the list then strat. must be research. 
+          strategy <- 'research'
+        } else { #if there are edges in the list, then research strat. is probabilistic. 
+          strategy <- sample(c('research', 'neighbor'), size = 1, prob = c(.50, .50))
+        }
+        
+        #what happens on RESEARCH (the old system copied)
+        if(strategy == "research"){ 
+          if(V(g)$type[agentIndex] == "Tess"){ 
+            model <- modelSimilarByTerm(gModel, models, mode="random",
+                                        modelSelection=modelSelection)
+            
+            ## Mave
+          } else if(V(g)$type[agentIndex] == "Mave"){
+            model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
+            
+            ## Bo 
+          } else if(V(g)$type[agentIndex] == "Bo"){
+            model <- modelSimilarByInteraction(gModel, models, mode="random",
+                                               modelSelection=modelSelection)
+          }
+          
+        } else { #what happens on NEIGHBOR (could be else if, but it has to be if not research)
+          chosen_edge <- sample(edges_legible, size = 1) #sampling just 1 from the list. 
+          edge_agentIndex <- which((V(g)$name) == chosen_edge) #finding index.
+          model <- strToModel(V(g)$model[edge_agentIndex],k) #finding model. 
+        }
+        
+        
+      ### collaborative model selection ###  
+        else if(strategy == 'collaborative'){
+          edges_total <- names(which(matrix_g[, agentIndex] == 1))
+          
+        }
+        
       ### MODEL SELECTION STOPS ###
       
       ### MODEL STATISTICS GENERATION ###
@@ -363,25 +380,56 @@ ABMqualitative <- function(replications, turns, models, k,
       output[turn, O_NETWORK] <- net_type 
       output[turn, O_POPULATION] <- pop_type 
       output[turn, O_SIGMA] <- sigma 
-      output[turn, O_CRITERION] <- ifelse(modelCompare == 5, "BIC", "AIC")
       output[turn, O_NET_SIZE] <- net_size 
       output[turn, O_SAMPLE_SIZE] <- sampleSize 
       output[turn, O_TRUE_MODEL] <- tMod #this edition. 
+      output[turn, O_STRATEGY] <- V(g)$type[agentIndex] 
       output[turn, O_AGENT_INDEX] <- V(g)$name[agentIndex] 
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       output[turn, O_SELECTED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
+      output[turn, O_SELECTED_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, stat$model$betasEst), ndec)
+      output[turn, O_INITIAL_GLOBAL_MODEL] <- searchModel(initGModel, models)
+      output[turn, O_INITIAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(initGModel, tModel))
+      output[turn, O_INITIAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, initGModelStat$betasEst), ndec)
+      output[turn, O_FINAL_GLOBAL_MODEL] <- searchModel(gModel, models)
+      output[turn, O_FINAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(gModel, tModel))
+      output[turn, O_FINAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, finalGModelStat$betasEst), ndec)
+      output[turn, O_BETA1_TRUE] <- round(tModelBetas[,2], ndec)
+      output[turn, O_BETA1_ESTIMATE] <- round(finalGModelStat$betasEst[2], ndec)
+      output[turn, O_BETA1_ERROR] <- round(finalGModelStat$betasErr[2], ndec)
+      output[turn, O_TSTATISTICS] <- round(finalGModelStat$tstatistics, ndec)
+      output[turn, O_RSQ] <- round(finalGModelStat$rsq, ndec)
+      output[turn, O_ARSQ] <- round(finalGModelStat$arsq, ndec)
+      output[turn, O_AIC] <- round(finalGModelStat$aic, ndec)
+      output[turn, O_BIC] <- round(finalGModelStat$bic, ndec)
       output[turn, O_EDGES_TESTING] <- edges_testing 
       output[turn, O_EDGES_CHANGING] <- edges_changing 
-      
-      #new output stuff - mod_out is a file in which the y ~ is included in mod. name. 
-      for(string in str){
-        output[turn, assign(string, as.numeric(str_extract_all(string, "\\d+")) + 13)] <- match(modelToStr(strToModel(V(g)$model[as.numeric(str_extract_all(string, "\\d+"))],k)), mod_out)
-      }
+      output[turn, O_EDGES_ALREADY_TRUE] <- edges_already_true 
+      output[turn, O_EDGES_ALREADY_TRUE_CHANGING] <- edges_already_true_changing 
+      output[turn, O_EDGES_ALREADY_TRUE_REJECTING] <- edges_already_true_rejecting 
+      output[turn, O_EDGES_REPLICATION_STUDY] <- edges_replication_study 
+      output[turn, O_EDGES_REPLICATED] <- edges_replicated 
+      output[turn, O_EDGES_NOT_REPLICATED] <- edges_not_replicated 
+      output[turn, O_PROPORTION_1] <- mean(as.numeric(V(g)$model == some_models[1])) 
+      output[turn, O_PROPORTION_2] <- mean(as.numeric(V(g)$model == some_models[2]))
+      output[turn, O_PROPORTION_3] <- mean(as.numeric(V(g)$model == some_models[3]))
+      output[turn, O_PROPORTION_4] <- mean(as.numeric(V(g)$model == some_models[4]))
+      output[turn, O_PROPORTION_5] <- mean(as.numeric(V(g)$model == some_models[5]))
+      output[turn, O_PROPORTION_6] <- mean(as.numeric(V(g)$model == some_models[6]))
+      output[turn, O_PROPORTION_7] <- mean(as.numeric(V(g)$model == some_models[7]))
+      output[turn, O_PROPORTION_8] <- mean(as.numeric(V(g)$model == some_models[8]))
+      output[turn, O_PROPORTION_9] <- mean(as.numeric(V(g)$model == some_models[9]))
+      output[turn, O_PROPORTION_10] <- mean(as.numeric(V(g)$model == some_models[10]))
+      output[turn, O_PROPORTION_11] <- mean(as.numeric(V(g)$model == some_models[11]))
+      output[turn, O_PROPORTION_12] <- mean(as.numeric(V(g)$model == some_models[12]))
+      output[turn, O_PROPORTION_13] <- mean(as.numeric(V(g)$model == some_models[13]))
+      output[turn, O_PROPORTION_14] <- mean(as.numeric(V(g)$model == some_models[14]))
+      output[turn, O_PROPORTION_TRUE] <- mean(as.numeric(V(g)$model == trueModel)) 
+      output[turn, O_EDGES_TOTAL] <- length(edges_total) 
+      output[turn, O_EDGES_SAME_GLOBAL] <- length(edges_same_global) 
+      output[turn, O_EDGES_NOT_SAME_GLOBAL] <- length(edges_not_same_global) 
     }
-    
-    #this is close. 
-    
-    
+
     ### Parameter output ###
     param <- list()
     param[[P_TMODEL]] <- tMod #BA 

@@ -1,0 +1,92 @@
+---
+title: "plotting"
+author: "Victor M?ller"
+date: "11 sep 2019"
+output: html_document
+---
+
+PREP: 
+
+```{r}
+
+library(pacman)
+p_load(tidyverse)
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/new_data")
+
+```
+
+LOAD DATA: 
+
+```{r setup, include=FALSE}
+
+lat_bo <- read.csv("Lattice_Bo_0.2_BIC_100_hard_20_1.csv", sep = ";")
+
+```
+
+SUBSETTING & PLOTTING: 
+
+```{r cars}
+
+#columns that we need. 
+mycols <- c("replica", 
+            "turn", 
+            "studies", 
+            "network", 
+            "population", 
+            "sigma",
+            "sample_size",
+            "true_model",
+            "strategy",
+            "edges_replication_study", 
+            "edges_replicated", 
+            "proportion_true", 
+            "initial_global_true_model", 
+            "final_global_true_model",
+            "selected_true_model")
+
+#subset 
+bo_subset <- small_bo %>%
+  select(mycols)
+
+tess_subset <- small_tess %>%
+  select(mycols)
+
+mave_subset <- small_mave %>%
+  select(mycols)
+
+all_subset <- small_all %>%
+  select(mycols)
+
+bo_lat <- lat_bo %>%
+  select(mycols)
+
+bo_lat$population <- "great"
+
+bo_lat_worse <- lat_bo_worse %>%
+  select(mycols)
+
+bo_lat_worse$population <- "worse"
+```
+
+concatenating / binding 
+
+```{r}
+
+full_data <- do.call("rbind", list(bo_subset, tess_subset, mave_subset, all_subset, bo_lat, bo_lat_worse))
+
+```
+
+
+PLOTTING
+
+```{r pressure, echo=FALSE}
+
+small_subset$replica <- as.factor(small_subset$replica)
+
+## plot 
+ggplot(full_data, aes(studies, proportion_true, color = population)) +
+  geom_point() +
+  geom_smooth()
+
+```
+
