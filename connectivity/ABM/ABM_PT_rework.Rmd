@@ -138,7 +138,7 @@ defining parameters
 ```{r}
 net_types <- list("Lattice", "Small", "Citation")
 sigmas <- list(0.2, 0.5, 0.8) #0.2 & 0.8 deleted. 
-sampleSizes <- list(20, 100) #20 deleted. 
+base_sampleSizes <- list(20, 100) #20 deleted. 
 pop_types <- list("Bo", "Tess", "Mave", "All")
 tMods <- list(2, 7, 13)
 modelCompares <- list(BIC, AIC)
@@ -155,13 +155,13 @@ start_time <- Sys.time()
 
 for(net_type in net_types){ 
   for(sigma in sigmas){
-    for(sampleSize in sampleSizes){
+    for(base_sampleSize in base_sampleSizes){
       for(pop_type in pop_types){
         for(tMod in tMods){ #not sure this works. 
           for(modelCompare in modelCompares){
         
 ABM7(replications, turns, models, k, 
-    weights, sampleSize, correlation, sigma,
+    weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
           }
@@ -182,7 +182,7 @@ Just change the hell out of this so that it suits your needs.
 ```{r}
 net_types <- list("Small") #"Lattice", "Small", "Citation"
 sigmas <- list(0.5) #0.2, 0.5, 0.8 
-sampleSizes <- list(100) #20, 100. 
+base_sampleSizes <- list(100) #20, 100. 
 pop_types <- list("Mave", "Tess") #"Bo", "Mave", "Tess", "All"
 tMods <- list(13) #2, 7, 13. 
 modelCompares <- list(BIC) #AIC, BIC 
@@ -196,13 +196,13 @@ start_time <- Sys.time()
 
 for(net_type in net_types){ 
   for(sigma in sigmas){
-    for(sampleSize in sampleSizes){
+    for(base_sampleSize in base_sampleSizes){
       for(pop_type in pop_types){
         for(tMod in tMods){ #not sure this works. 
           for(modelCompare in modelCompares){ #should be 
         
 ABM_PT(replications, turns, models, k, 
-    weights, sampleSize, correlation, sigma,
+    weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
           }
@@ -234,13 +234,13 @@ start_time <- Sys.time()
 
 for(net_type in net_types){ 
   for(sigma in sigmas){
-    for(sampleSize in sampleSizes){
+    for(base_sampleSize in base_sampleSizes){
       for(pop_type in pop_types){
         for(tMod in tMods){ #not sure this works. 
           for(modelCompare in modelCompares){ #should be 
         
 ABM_TOM(replications, turns, models, k, 
-    weights, sampleSize, correlation, sigma,
+    weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
           }

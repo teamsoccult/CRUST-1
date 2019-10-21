@@ -1,0 +1,85 @@
+---
+title: "pearson R"
+author: "Mikkel Werling"
+date: "5/30/2019"
+output: html_document
+---
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, ggunchained)
+```
+
+read data
+
+```{r}
+setwd("C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv")
+
+#reading 
+path <- "C:/Users/Mikkel/Documents/CRUST-1/data/ABMdata/ABMcsv/"
+
+files <- list.files(path = path, pattern="small") #if possible. 
+
+mycols <- c("replica",
+            "population", 
+            "sigma",
+            "true_model",
+            "studies",
+            "initial_global_true_model",
+            "selected_true_model",
+            "final_global_true_model",
+            "edges_already_true",
+            "edges_already_true_changing",
+            "edges_replication_study",
+            "edges_replicated",
+            "proportion_true")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
+```
+
+all the measures
+
+```{r}
+df1 <- df %>%
+  group_by(replica, sigma, population, true_model) %>%
+  summarize(agent_away = sum(as.numeric(initial_global_true_model == 1 & 
+                                 final_global_true_model == 0)),
+            agent_total = sum(as.numeric(initial_global_true_model == 1)),
+            edge_away = sum(edges_already_true_changing),
+            edge_total = sum(edges_already_true))
+
+df2 <- df1 %>%
+  mutate(all_losing_global = agent_away + edge_away,
+         all_global_combined = agent_total + edge_total,
+         stickiness = 1 - (all_losing_global / all_global_combined))
+
+df_overall <- df %>%
+  group_by(replica, sigma, population, true_model) %>%
+  mutate(TAT_50 = ifelse(proportion_true >= 0.5, 1, 0)) %>%
+  summarize(replicated = sum(edges_replicated) / sum(edges_replication_study), 
+            obtained = min(which(selected_true_model == 1 & final_global_true_model == 1)),
+            TAT = mean(proportion_true),
+            TAT50 = mean(TAT_50))
+
+df_overall$obtained[df_overall$obtained == Inf] <- 11000
+
+df_final <- cbind(df2, df_overall)
+
+cor.test(df_final$replicated, df_final$TAT, method = "spearman")
+
+cor.test(df_final$replicated, df_final$TAT50, method = "spearman")
+
+cor.test(df_final$replicated, df_final$obtained, method = "spearman")
+
+cor.test(df_final$replicated, df_final$stickiness, method = "spearman")
+
+```
+

@@ -156,7 +156,6 @@ which(degree(g)==max(degree(g)))
 sort(degree(g), decreasing = T)
 
 
-
 #plotting
 ggraph(g, "kk")+
   geom_node_point(aes(size = degree(g), alpha = degree(g)))+
