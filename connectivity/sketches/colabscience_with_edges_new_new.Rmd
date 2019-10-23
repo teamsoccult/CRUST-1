@@ -64,16 +64,18 @@ edges_already_true_rejecting <- 0
 edges_replication_study <- 0 
 edges_replicated <- 0 
 edges_not_replicated <- 0
-edges_total <- NULL 
 edges_not_same_global <- NULL #we have this twice.  
 edges_same_global <- NULL #we have this twice. 
       
+#TESTED INITIALIZING PARAMETERS:
+propModel <- list() #CHANGE IN NAME: from prop_m to propModel
+
 ## Select the token of agent
 agentToken <- agentTurn[turn] 
 
 ## Agents 
 agentIndex <- which((V(g)$name) == agentToken)
-agentOriginal <- agentIndex #now we have the information logged. 
+agentOriginal <- agentIndex #now we have the information logged - but do we need it? If we don't need to log it, than it should be removed
 
 ## model & in format
 #gModel <- strToModel(V(g)$model[agentIndex], k) #local model
@@ -88,13 +90,14 @@ collaborative
 ### Collaborative science ? ###
 
 colab <- sample(c('yes', 'no'), size = 1, prob = c(.02, .98))
-prop_m <- list() #where to put these? 
       
 ## Makes a list of the agents indexes ##
-if(colab == 'yes'){
-  agents_testing <- names(which(matrix_g[, agentIndex] == 1))
-  agents_testing <- append(agents_testing, 
+
+agents_testing <- names(which(matrix_g[, agentIndex] == 1))
+agents_testing <- append(agents_testing, 
                            agentToken, after = length(agents_testing))
+
+if(colab == 'yes'){
   #have to create a list, NB. this overwrites the original agentIndex. 
   agentIndex <- list() #maybe not overwrite. 
   
@@ -143,32 +146,32 @@ for(i in seq_len(length(agentIndex))){ #does this work though??
         #what happens on RESEARCH (the old system copied)
         if(strategy == "research"){ 
           if(V(g)$type[agentIndex[[i]]] == "Tess"){ 
-            prop_m[[i]] <- modelSimilarByTerm(gModel, models, mode="random",
+            propModel[[i]] <- modelSimilarByTerm(gModel, models, mode="random",
                                         modelSelection=modelSelection)
 
             ## Mave
           } else if(V(g)$type[agentIndex[[i]]] == "Mave"){
-            prop_m[[i]]  <- models[[as.integer(
+            propModel[[i]]  <- models[[as.integer(
               runif(1, min=1,max=length(models)+1))]]
 
             
             ## Bo 
           } else if(V(g)$type[agentIndex[[i]]] == "Bo"){
-            prop_m[[i]] <- modelSimilarByInteraction(gModel, models, mode="random",
+            propModel[[i]] <- modelSimilarByInteraction(gModel, models, mode="random",
                                                modelSelection=modelSelection)
           }
           
         } else { #what happens on NEIGHBOR (could be else if, but it has to be if not research)
           chosen_edge <- sample(edges_legible, size = 1) #sampling just 1 from the list. 
           edge_agentIndex <- which((V(g)$name) == chosen_edge) #finding index.
-          prop_m[[i]] <- strToModel(V(g)$model[edge_agentIndex],k) #finding model.
+          propModel[[i]] <- strToModel(V(g)$model[edge_agentIndex],k) #finding model.
         }
   }
 
 ### modelselection ###
 ### Just chosing randomly for now ###
 
-model <- sample(prop_m, size = 1) 
+model <- sample(propModel, size = 1) 
 model <- model[[1]]
 ## this becomes the equivalent of "model" from the old code. 
 ## I.e., the model that is being tested. 
@@ -239,17 +242,16 @@ for (i in seq_len(length(agentIndex))){ #checked that gModel works (it does refe
       }
       
       #we need to figure out what we use this for. 
-      #initGModel <- gModel  --> what does this do?
-      #initGModelStat <- stat$gModel --> what does this do?
+      initGModel <- gModel #what does this do?
+      initGModelStat <- stat$gModel #what does this do?
       
       ### now they switch ###
       if(switchModel){ #already is a TRUE/FALSE variable.
         #from the old. 
-        old_gModel <- gModel #do we use this?
-        gModel <- model
+        old_gModel <- gModel #do we use this? if we need to use this, it needs to be lists
         finalGModelStat <- stat$model #do we use this?
         #local change of model
-        modelStr <- modelToStr(gModel)
+        modelStr <- modelToStr(model)
         modelStr <- str_replace(modelStr, "Y ~", "")
         modelStr <- str_replace_all(modelStr, ":", "")
         V(g)$model[agentIndex[[i]]] <- modelStr
@@ -273,7 +275,7 @@ agentsSwitch = agentsSwitch[-which(sapply(agentsSwitch, is.null))]
       ### EVERYTHING CALLED "SWITCH" SOMETHING ###
 
 ## initialize parameters 
-      switch_testing <- 0 
+      switch_testing <- 0 #USED
       switch_changing <- 0 
       switch_already_true <- 0 
       switch_already_true_changing <- 0 
@@ -299,7 +301,7 @@ if(length(agentsSwitch) != 0){ #only if some changed.
       switch_agentIndex <- which((V(g)$name) == switch_agentToken)
       switch_gModel <- strToModel(V(g)$model[switch_agentIndex],k)
       
-      if(!compareModels(switch_gModel, gModel)){ 
+      if(!compareModels(switch_gModel, model)){ #changed to model instead of gModel
         switch_not_same_global <- c(switch_not_same_global, switch_agentToken)
         } else {
         switch_same_global <- c(switch_same_global, switch_agentToken)
@@ -329,6 +331,7 @@ if(length(agentsSwitch) != 0){ #only if some changed.
   }
 }
 
+      #NOT EDGES_TOTAL - SHOULD BE CHANGED, JUST A COPY OF OLD CODE
         
         for(i in edges_total){
         agentToken <- i #"Mave.13" 
