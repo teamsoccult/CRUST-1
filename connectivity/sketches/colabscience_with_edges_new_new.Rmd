@@ -69,6 +69,8 @@ edges_same_global <- NULL #we have this twice.
       
 #TESTED INITIALIZING PARAMETERS:
 propModel <- list() #CHANGE IN NAME: from prop_m to propModel
+agentsSwitch <- list()
+old_gModel <- list() #now a list in order to check replications for colabs. 
 
 ## Select the token of agent
 agentToken <- agentTurn[turn] 
@@ -188,7 +190,6 @@ Xset <- generateXSet(sampleSize, k, correlation)
 tModelBetas <- getBetas(tModel, weights, sigma)
 deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
 Yset <- generateY(deterministic, sigma)
-agentsSwitch <- list()
 
 for (i in seq_len(length(agentIndex))){ #checked that gModel works (it does refer to the right ones)
   gModel <- strToModel(V(g)$model[agentIndex[[i]]],k) #something here..
@@ -248,7 +249,7 @@ for (i in seq_len(length(agentIndex))){ #checked that gModel works (it does refe
       ### now they switch ###
       if(switchModel){ #already is a TRUE/FALSE variable.
         #from the old. 
-        old_gModel <- gModel #do we use this? if we need to use this, it needs to be lists
+        old_gModel[[i]] <- gModel #do we use this? if we need to use this, it needs to be lists
         finalGModelStat <- stat$model #do we use this?
         #local change of model
         modelStr <- modelToStr(model)
@@ -264,6 +265,7 @@ for (i in seq_len(length(agentIndex))){ #checked that gModel works (it does refe
 
 #making the variable that we base the rest on.. 
 agentsSwitch = agentsSwitch[-which(sapply(agentsSwitch, is.null))]
+old_gModel = old_gModel[-which(sapply(old_gModel, is.null))]
 
 ```
 
@@ -307,17 +309,22 @@ if(length(agentsSwitch) != 0){ #only if some changed.
         switch_same_global <- c(switch_same_global, switch_agentToken)
         }
     }
-  }
+  
   
   ## making switch_not_same_global / switch_same_global unique. 
-  switch_not_same_global <- unique(unlist(strsplit(switch_not_same_global, " ")))
-  switch_same_global <- unique(unlist(strsplit(switch_same_global, " "))) #hmm..
+  if(length(switch_same_global) > 0){
+    switch_same_global <- unique(unlist(strsplit(switch_same_global, " "))) #hmm..
+  }
+  if(length(switch_same_global) > 0){
+    switch_not_same_global <- unique(unlist(strsplit(switch_not_same_global, " "))) #hmm..
+  }
+
 
     ### THE EDGES WITH DIFF. GLOBAL MOD. NOW TEST ### 
         
-    for(i in switch_not_same_global){ 
+    for(y in switch_not_same_global){ 
       switch_testing <- switch_testing + 1 
-      switch_agentToken <- i
+      switch_agentToken <- y
       
       ## Agents 
       switch_agentIndex <- which((V(g)$name) == switch_agentToken) #new change.
@@ -327,7 +334,8 @@ if(length(agentsSwitch) != 0){ #only if some changed.
       
       ## tried replication
       switch_replication_study <- switch_replication_study + 
-        as.numeric(compareModels(switch_gModel, old_gModel)) 
+        as.numeric(compareModels(switch_gModel, old_gModel[[i]]))  
+    }
   }
 }
 
