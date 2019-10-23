@@ -24,6 +24,8 @@ parameters <- list()
 trueModel <- some_models[tMod] #tMod er en liste med 2, 7, 13. 
 tModel <- strToModel(trueModel, k) #conversion. 
   
+#BETAS#
+tModelBetas <- getBetas(tModel, weights, sigma)
     
 ## Select randomly Global Model and previous Global Model
 # Sampling / randomizing stuff. 
@@ -187,7 +189,6 @@ model <- model[[1]]
 ## who's models? ##
 sampleSize <- length(agentIndex) * base_sampleSize
 Xset <- generateXSet(sampleSize, k, correlation)
-tModelBetas <- getBetas(tModel, weights, sigma)
 deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
 Yset <- generateY(deterministic, sigma)
 
@@ -335,26 +336,110 @@ if(length(agentsSwitch) != 0){ #only if some changed.
       ## tried replication
       switch_replication_study <- switch_replication_study + 
         as.numeric(compareModels(switch_gModel, old_gModel[[i]]))  
+      
+      ## already at true model (atm). 
+      switch_already_true <- switch_already_true + 
+        as.numeric(compareModels(tModel, switch_gModel)) #new change. 
+      
+      ## who's models? ##
+      sampleSize <- base_sampleSize
+      Xset <- generateXSet(sampleSize, k, correlation)
+      deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
+      Yset <- generateY(deterministic, sigma)
+      stat <- analysis(model, switch_gModel, Yset, Xset, weights)
+          
+          #smooth -> should we switch
+          switchModel <- FALSE
+          if((modelCompare == TSTATISTICS) &
+             (!is.null(stat$model$tstatistics)) &
+             (!is.null(stat$gModel$tstatistics)) & #is in fact switch_gModel
+             (!is.na(stat$model$tstatistics)) &
+             (!is.na(stat$gModel$tstatistics))){
+            if(stat$model$tstatistics > stat$gModel$tstatistics){
+              switchModel <- TRUE
+            }
+          } else if((modelCompare == RSQ) &
+                    (!is.null(stat$model$rsq)) &
+                    (!is.null(stat$gModel$rsq)) &
+                    (!is.na(stat$model$rsq)) &
+                    (!is.na(stat$gModel$rsq))){
+            if(stat$model$rsq > stat$gModel$rsq){
+              switchModel <- TRUE
+            }
+          } else if((modelCompare == AIC) &
+                    (!is.null(stat$model$aic)) &
+                    (!is.null(stat$gModel$aic)) &
+                    (!is.na(stat$model$aic)) &
+                    (!is.na(stat$gModel$aic))){
+            if(stat$model$aic < stat$gModel$aic){
+              switchModel <- TRUE
+            }
+          } else if((modelCompare == BIC) &
+                    (!is.null(stat$model$bic)) &
+                    (!is.null(stat$gModel$bic)) &
+                    (!is.na(stat$model$bic)) &
+                    (!is.na(stat$gModel$bic))){
+            if(stat$model$bic < stat$gModel$bic){
+              switchModel <- TRUE
+            }
+          } else if((modelCompare == ARSQ) &
+                    (!is.null(stat$model$arsq)) &
+                    (!is.null(stat$gModel$arsq)) &
+                    (!is.na(stat$model$arsq)) &
+                    (!is.na(stat$gModel$arsq))){
+            if(stat$model$arsq > stat$gModel$arsq){
+              switchModel <- TRUE
+            }
+          } 
+          
+          ### IF THEY SHOULD SHIFT ### 
+          
+          if(switchModel){
+            
+            #how many changes in total 
+            switch_changing <- switch_changing + 1 #new change. 
+            
+            #replicated
+            switch_replicated <- switch_replicated + 
+              as.numeric(compareModels(switch_gModel, old_gModel[[i]])) #new change!!
+            
+            #changed away from true 
+            switch_already_true_changing <- switch_already_true_changing + #new change!!
+              as.numeric(compareModels(switch_gModel, tModel))
+            
+            #changing their information 
+            modelStr <- modelToStr(switch_gModel)
+            modelStr <- str_replace(modelStr, "Y ~", "")
+            modelStr <- str_replace_all(modelStr, ":", "")
+            V(g)$model[switch_agentIndex] <- modelStr
+            
+          } 
+          
+          ### LOGGING REPLICATION INFORMATION ###
+          else {
+            
+            #how many rejected rightfully
+            switch_already_true_rejecting <- switch_already_true_rejecting +
+              as.numeric(compareModels(switch_gModel, tModel))
+            
+            #how many did not replicate
+            switch_not_replicated <- switch_not_replicated +
+              as.numeric(compareModels(switch_gModel, old_gModel[[i]]))
+          }
+        }
+      }
+      
+      # how many studies conducted? 
+      study <- study + (length(agentIndex) + edges_testing)
     }
   }
 }
 
-      #NOT EDGES_TOTAL - SHOULD BE CHANGED, JUST A COPY OF OLD CODE
+
+####GENERATING MODELS FOR SWITCH #####
         
-        for(i in edges_total){
-        agentToken <- i #"Mave.13" 
-        edge_agentIndex <- which((V(g)$name) == agentToken)
-        edge_gModel <-strToModel(V(g)$model[edge_agentIndex],k)
-        if(!compareModels(edge_gModel, gModel)){ #if they are the same then it does
-        edges_not_same_global <- c(edges_not_same_global, agentToken)
-        } else {
-        edges_same_global <- c(edges_same_global, agentToken)
-        }
-        }
         
-        ### THE EDGES WITH DIFF. GLOBAL MOD. NOW TEST ### 
-        
-        for(i in edges_not_same_global){ 
+for(i in switch_not_same_global){ 
           
           ## tried 
           edges_testing <- edges_testing + 1 #how many tested. 
@@ -462,6 +547,6 @@ if(length(agentsSwitch) != 0){ #only if some changed.
       }
       
       # how many studies conducted? 
-      study <- study + (1 + edges_testing)
+      study <- study + (length(agentIndex) + edges_testing)
 ```
 
