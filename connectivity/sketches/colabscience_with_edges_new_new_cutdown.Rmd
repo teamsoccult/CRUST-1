@@ -75,9 +75,10 @@ collaborative.
 
 ```{r}
 
-### Collaborative science ? ###
+## Collaborative science ? ##
 colab <- sample(c('yes', 'no'), size = 1, prob = c(.02, .98))
-colab <- 'yes' 
+colab <- 'yes'
+
 ## midlertidig test variabel ##
 test_models <- list() 
 
@@ -143,8 +144,8 @@ for(i in seq_len(length(agentIndex))){
 
           ## Mave
         } else if(V(g)$type[agentIndex[[i]]] == "Mave"){
-          propModel[[i]]  <- matrix(models[[as.integer(
-            runif(1, min=1,max=length(models)+1))]], ncol = 3) 
+          propModel[[i]]  <- models[[as.integer(
+            runif(1, min=1,max=length(models)+1))]]
           #the change here might not be necessary if it can be changed in models.
 
           ## Bo 
@@ -164,6 +165,17 @@ for(i in seq_len(length(agentIndex))){
 ### modelselection - random for now ###
 model <- sample(propModel, size = 1) 
 model <- model[[1]]
+
+##### NB!!! PLAYING AROUND WITH SELECTION ######
+great <- sapply(propModel, modelToStr)
+great1 <- sort(table(great), decreasing=TRUE)[1:5]
+
+mode(great)
+
+count(propModel)
+lengths(propModel)
+
+sort(table(great), decreasing=TRUE)
 
 ## generate statistics ##
 sampleSize <- length(agentIndex) * base_sampleSize
