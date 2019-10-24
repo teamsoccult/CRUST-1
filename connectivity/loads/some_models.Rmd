@@ -19,8 +19,8 @@ p_load(caTools, data.table, permute, matrixStats, MCMCpack, stringr)
 paths
 
 ```{r}
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/loads")
-baseDir <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/"
+setwd("~/CRUST-1/connectivity/loads")
+baseDir <- "~/CRUST-1"
 scriptDir <- paste0(baseDir, "/src/functions")
 inputDir <- paste0(baseDir, "/data")
 outputDir <- paste0(baseDir, "/data")
@@ -71,6 +71,8 @@ for (N in 1:length(models)){
 
 some_models <- str_replace(some_models, "Y ~", "")
 some_models <- str_replace_all(some_models, ":", "")
+
+models[[1]] <- matrix(models[[1]], ncol = 3)
 
 #write csv
 save(some_models, file = "some_models")
