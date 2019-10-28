@@ -61,6 +61,8 @@ study <- 0
 propModel <- list() #CHANGE IN NAME: from prop_m to propModel
 agentsSwitch <- list() #original agents switching model. 
 old_gModel <- list() #now a list in order to check replications for colabs. 
+init_gModel <- 0 
+final_gModel <- 0
 
 ## Select the token of agent
 agentToken <- agentTurn[turn] 
@@ -77,7 +79,7 @@ collaborative.
 
 ## Collaborative science ? ##
 colab <- sample(c('yes', 'no'), size = 1, prob = c(.02, .98))
-#colab <- 'yes'
+colab <- 'yes'
 
 ## midlertidig test variabel ##
 test_models <- list() 
@@ -102,6 +104,10 @@ if(colab == 'yes'){
 
 ## Finding proposed models ##
 for(i in seq_len(length(agentIndex))){ 
+  
+  #how many agents are at the true model?
+  init_gModel <- init_gModel + as.numeric(compareModels(tModel, strToModel(V(g)$model[agentIndex[[i]]],k)))
+  
   
   #initializing lists 
   edges_legible <- list() 
@@ -241,8 +247,10 @@ for (i in seq_len(length(agentIndex))){
         modelStr <- str_replace_all(modelStr, ":", "")
         V(g)$model[agentIndex[[i]]] <- modelStr
         agentsSwitch[[i]] <- agentIndex[[i]] 
-        
-      } 
+      }
+      
+  #How many agents end at the true? 
+  final_gModel <- final_gModel + as.numeric(compareModels(tModel, strToModel(V(g)$model[agentIndex[[i]]],k)))
 }
 
 ## Creating variables for the next part ##

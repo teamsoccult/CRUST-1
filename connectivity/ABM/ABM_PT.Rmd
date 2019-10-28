@@ -23,7 +23,7 @@ packages
 ```{r}
 library(pacman)
 
-p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse)
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, rlist)
 
 ```
 

@@ -8,7 +8,7 @@ but we should still go over it together.
 
 # should anything change here - do we use all of it? 
 ABM_PT <- function(replications, turns, models, k, 
-                weights, sampleSize, correlation, sigma,
+                weights, base_sampleSize, correlation, sigma,
                 modelCompare, modelSelection, inputDir, outputDir, 
                 outputFile, paramFile, verbose, ndec, seeds, some_models){
   
@@ -78,6 +78,8 @@ ABM_PT <- function(replications, turns, models, k,
       propModel <- list() #CHANGE IN NAME: from prop_m to propModel
       agentsSwitch <- list() #original agents switching model. 
       old_gModel <- list() #now a list in order to check replications for colabs. 
+      init_gModel <- 0
+      final_gModel <- 0
       
       ## Select the token of agent
       agentToken <- agentTurn[turn] 
@@ -114,6 +116,9 @@ ABM_PT <- function(replications, turns, models, k,
       
       ## Finding proposed models ##
       for(i in seq_len(length(agentIndex))){ 
+        
+        #how many agents are at the true model?
+        init_gModel <- init_gModel + as.numeric(compareModels(tModel, strToModel(V(g)$model[agentIndex[[i]]],k)))
         
         #initializing lists 
         edges_legible <- list() 
@@ -255,6 +260,8 @@ ABM_PT <- function(replications, turns, models, k,
           agentsSwitch[[i]] <- agentIndex[[i]] 
           
         } 
+        #How many agents end at the true? 
+        final_gModel <- final_gModel + as.numeric(compareModels(tModel, strToModel(V(g)$model[agentIndex[[i]]],k)))
       }
       
       ## Creating variables for the next part ##
@@ -273,8 +280,8 @@ ABM_PT <- function(replications, turns, models, k,
       switch_replication_study <- 0 #USED (for logging)
       switch_replicated <- 0 #USED (for logging)
       switch_not_replicated <- 0 #USED (for logging)
-      switch_not_same_global <- NULL #USED (for logging)
-      switch_same_global <- NULL #USED (for logging)
+      switch_not_same_global <- NULL #USED 
+      switch_same_global <- NULL #USED 
       
       ## If any original agents switched model ##
       if(length(agentsSwitch) != 0){ 
@@ -416,40 +423,42 @@ ABM_PT <- function(replications, turns, models, k,
       study <- study + (length(agentIndex) + switch_testing) #switch_testing?
       
       ### Record output data ###
+      
+      ##IDENTIFICATION COLUMNS ##
       output[turn, O_STUDIES] <- study
       output[turn, O_NETWORK] <- net_type 
       output[turn, O_POPULATION] <- pop_type 
       output[turn, O_SIGMA] <- sigma 
       output[turn, O_NET_SIZE] <- net_size 
-      output[turn, O_SAMPLE_SIZE] <- sampleSize 
+      output[turn, O_BASE_SAMPLE_SIZE] <- base_sampleSize 
       output[turn, O_TRUE_MODEL] <- tMod #this edition. 
-      output[turn, O_STRATEGY] <- V(g)$type[agentIndex] 
-      output[turn, O_AGENT_INDEX] <- V(g)$name[agentIndex] 
+      output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
-      output[turn, O_SELECTED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
-      output[turn, O_SELECTED_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, stat$model$betasEst), ndec)
-      output[turn, O_INITIAL_GLOBAL_MODEL] <- searchModel(initGModel, models)
-      output[turn, O_INITIAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(initGModel, tModel))
-      output[turn, O_INITIAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, initGModelStat$betasEst), ndec)
-      output[turn, O_FINAL_GLOBAL_MODEL] <- searchModel(gModel, models)
-      output[turn, O_FINAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(gModel, tModel))
-      output[turn, O_FINAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, finalGModelStat$betasEst), ndec)
-      output[turn, O_BETA1_TRUE] <- round(tModelBetas[,2], ndec)
-      output[turn, O_BETA1_ESTIMATE] <- round(finalGModelStat$betasEst[2], ndec)
-      output[turn, O_BETA1_ERROR] <- round(finalGModelStat$betasErr[2], ndec)
-      output[turn, O_TSTATISTICS] <- round(finalGModelStat$tstatistics, ndec)
-      output[turn, O_RSQ] <- round(finalGModelStat$rsq, ndec)
-      output[turn, O_ARSQ] <- round(finalGModelStat$arsq, ndec)
-      output[turn, O_AIC] <- round(finalGModelStat$aic, ndec)
-      output[turn, O_BIC] <- round(finalGModelStat$bic, ndec)
-      output[turn, O_EDGES_TESTING] <- edges_testing 
-      output[turn, O_EDGES_CHANGING] <- edges_changing 
-      output[turn, O_EDGES_ALREADY_TRUE] <- edges_already_true 
-      output[turn, O_EDGES_ALREADY_TRUE_CHANGING] <- edges_already_true_changing 
-      output[turn, O_EDGES_ALREADY_TRUE_REJECTING] <- edges_already_true_rejecting 
-      output[turn, O_EDGES_REPLICATION_STUDY] <- edges_replication_study 
-      output[turn, O_EDGES_REPLICATED] <- edges_replicated 
-      output[turn, O_EDGES_NOT_REPLICATED] <- edges_not_replicated 
+      output[turn, O_STRATEGY] <- ifelse(colab == "yes", "colab", strategy)
+      
+      ## META ## 
+      output[turn, O_SAMPLE_SIZE] <- sampleSize 
+      output[turn, O_NUM_AGENTS] <- sampleSize / base_sampleSize
+      
+      ## STICKINESS ## 
+      output[turn, O_INITIAL_GLOBAL_TRUE_MODEL] <- init_gModel
+      output[turn, O_FINAL_GLOBAL_TRUE_MODEL] <- final_gModel
+      
+      ## REPLICATION ##
+      output[turn, O_PROPOSED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
+      output[turn, O_SWITCH_TESTING] <- switch_testing 
+      output[turn, O_SWITCH_CHANGING] <- switch_changing 
+      output[turn, O_SWITCH_ALREADY_TRUE] <- switch_already_true 
+      output[turn, O_SWITCH_ALREADY_TRUE_CHANGING] <- switch_already_true_changing 
+      output[turn, O_SWITCH_ALREADY_TRUE_REJECTING] <- switch_already_true_rejecting 
+      output[turn, O_SWITCH_REPLICATION_STUDY] <- switch_replication_study 
+      output[turn, O_SWITCH_REPLICATED] <- switch_replicated 
+      output[turn, O_SWITCH_NOT_REPLICATED] <- switch_not_replicated 
+      #output[turn, O_EDGES_TOTAL] <- length(edges_total) 
+      #output[turn, O_EDGES_SAME_GLOBAL] <- length(edges_same_global) 
+      #output[turn, O_EDGES_NOT_SAME_GLOBAL] <- length(edges_not_same_global) 
+      
+      ## PROPORTION ## 
       output[turn, O_PROPORTION_1] <- mean(as.numeric(V(g)$model == some_models[1])) 
       output[turn, O_PROPORTION_2] <- mean(as.numeric(V(g)$model == some_models[2]))
       output[turn, O_PROPORTION_3] <- mean(as.numeric(V(g)$model == some_models[3]))
@@ -465,23 +474,16 @@ ABM_PT <- function(replications, turns, models, k,
       output[turn, O_PROPORTION_13] <- mean(as.numeric(V(g)$model == some_models[13]))
       output[turn, O_PROPORTION_14] <- mean(as.numeric(V(g)$model == some_models[14]))
       output[turn, O_PROPORTION_TRUE] <- mean(as.numeric(V(g)$model == trueModel)) 
-      output[turn, O_EDGES_TOTAL] <- length(edges_total) 
-      output[turn, O_EDGES_SAME_GLOBAL] <- length(edges_same_global) 
-      output[turn, O_EDGES_NOT_SAME_GLOBAL] <- length(edges_not_same_global) 
     }
 
     ### Parameter output ###
     param <- list()
     param[[P_TMODEL]] <- tMod #BA 
-    param[[P_SAMPLE_SIZE]] <- sampleSize
+    param[[P_SAMPLE_SIZE]] <- base_sampleSize
     param[[P_SIGMA]] <- sigma
     param[[P_NETNAME]] <- net_type #BA
     param[[P_POP]] <- pop_type #BA
-    param[[P_K]] <- k #what is this. 
-    param[[P_CORRELATION]] <- correlation #should we use this?
-    param[[P_TRUE_BETAS]] <- tModelBetas #use this?
     param[[P_NETWORK]] <- matrix_g
-    param[[P_XSET]] <- Xset #use this?
     param[[P_AVG_PATH_LENGTH]] <- average.path.length(g)
     param[[P_CLUSTER_COEF]] <- transitivity(g)
     parameters[[replica]] <- param
@@ -493,7 +495,7 @@ ABM_PT <- function(replications, turns, models, k,
     ## Write output data table into a file ##
     write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                     sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), "_", net_size, "_", 
-                                    modelSelection, "_", sampleSize, "_", 
+                                    modelSelection, "_", base_sampleSize, "_", 
                                     tMod, outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=";", row.names=FALSE,
