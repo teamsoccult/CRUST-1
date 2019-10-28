@@ -23,14 +23,14 @@ packages
 ```{r}
 library(pacman)
 
-p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse)
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, rlist)
 
 ```
 
 paths
 
 ```{r}
-baseDir <- "~/CRUST-1" #the "." stopped working. 
+baseDir <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1" #the "." stopped working. 
 scriptDir <- paste0(baseDir, "/src/functions")
 inputDir <- paste0(baseDir, "/data")
 outputDir <- paste0(baseDir, "/data/new_data")
