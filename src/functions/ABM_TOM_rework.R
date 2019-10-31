@@ -334,8 +334,7 @@ ABM_TOM <- function(replications, turns, models, k,
               as.numeric(compareModels(tModel, switch_gModel)) 
             
             ## statistics ##
-            sampleSize <- base_sampleSize
-            Xset <- generateXSet(sampleSize, k, correlation)
+            Xset <- generateXSet(base_sampleSize, k, correlation)
             deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
             Yset <- generateY(deterministic, sigma)
             stat <- analysis(model, switch_gModel, Yset, Xset, weights)
