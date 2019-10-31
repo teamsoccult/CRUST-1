@@ -104,8 +104,8 @@ Filtering columns
 #selecting the columns we don't want. 
 #cols <- c("") any cols we don't want. 
 
-data <- data %>%
-  dplyr::select(-one_of(cols)) 
+#data <- data %>%
+  #dplyr::select(-one_of(cols)) 
 
 #BE CAREFUL, YOU ARE DELETING DATA!!
 data <- data %>%
@@ -117,12 +117,7 @@ data_check <- data %>%
   summarize(studymax = max(studies))
   
 #changing column index (hacky but works)
-col_start <- 1:20
-col_end <- 21:41
-col_great <- 42
 
-data <- data[, c(1:20, 42, 21:41)]
-colnames(data)
 
 ```
 
@@ -131,10 +126,10 @@ new working directory & writing files.
 ```{r}
 
 #output directory - NOW TESTS.
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/tests")
+setwd("~/CRUST-1/data/tests")
 
 getwd()
-write.csv(data, "breaking_points.csv", row.names = FALSE)
+write.csv(data, "tessy.csv", row.names = FALSE)
 
 ```
 
