@@ -144,6 +144,8 @@ write csv
 
 ```{r}
 
+#We should make outcome folders compatible with the rework
+
 setwd("~/CRUST-1/connectivity/outcome_results/sample_size_100")
 getwd()
 
