@@ -82,6 +82,9 @@ all(data2$proportion_2 == data2$proportion_true) #TRUE
 all(data7$proportion_7 == data7$proportion_true) #TRUE
 all(data13$proportion_13 == data13$proportion_true) #TRUE
 
+#remove
+rm(list=setdiff(ls(), "data")) 
+
 #check 2: sum of proportions
 sum(data[27:40]) #same as number of rows. 
 
@@ -99,6 +102,31 @@ data_check <- data_check %>%
   mutate(all_true = switch_true_changing + switch_true_rejecting)
   
 all(data_check$all_true == data_check$switch_true) #TRUE 
+
+#remove
+rm(list=setdiff(ls(), "data")) 
+
+#check 6: only colab in colab & more research than neighbor. 
+colab <- data %>%
+  group_by(colab_cond, strategy) %>%
+  summarize(count = n())
+
+#check 7: more turns in no-colab than in colab. 
+colab <- data %>%
+  group_by(colab_cond) %>%
+  summarize(study_max = max(studies))
+
+rm(list=setdiff(ls(), "data")) 
+
+#check 8: checking SS spread in colab condition
+ss_spread <- data %>%
+  filter(colab_cond == "yes") %>%
+  group_by(network) %>%
+  summarize(SS_max = max(SS), #TOM & PT > SMALL > LATTICE
+            SS_mean = mean(SS), #all between 100-120 (ish). 
+            SS_median = median(SS)) #always 100
+
+rm(list=setdiff(ls(), "data")) 
 
 ```
 
