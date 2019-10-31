@@ -95,21 +95,21 @@ OUTPUT_HEADER <- c("replica",
                    "switch_rep_study", #count: rep studies cond. 
                    "switch_rep", #count: succesful rep. 
                    "switch_not_rep", #count: unsuccesful rep. 
-                   "proportion_1", 
-                   "proportion_2", 
-                   "proportion_3", 
-                   "proportion_4", 
-                   "proportion_5", 
-                   "proportion_6", 
-                   "proportion_7", 
-                   "proportion_8", 
-                   "proportion_9", 
-                   "proportion_10", 
-                   "proportion_11", 
-                   "proportion_12", 
-                   "proportion_13", 
-                   "proportion_14", 
-                   "proportion_true")
+                   "prop_1", 
+                   "prop_2", 
+                   "prop_3", 
+                   "prop_4", 
+                   "prop_5", 
+                   "prop_6", 
+                   "prop_7", 
+                   "prop_8", 
+                   "prop_9", 
+                   "prop_10", 
+                   "prop_11", 
+                   "prop_12", 
+                   "prop_13", 
+                   "prop_14", 
+                   "prop_true")
 
 ## Parameter output
 P_TMODEL <- 1
