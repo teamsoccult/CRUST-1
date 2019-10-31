@@ -56,7 +56,6 @@ summary(data$base_SS) #min: 20, mean: 60, max: 100
 summary(data$true_model) #min: 2, mean: 7.33!!, max: 13. 
 summary(data$strategy) #Bo, Mave, Tess (should be more or less equal). 
 
-
 ```
 
 More sophisticated tests. 
@@ -79,7 +78,7 @@ all(data7$proportion_7 == data7$proportion_true) #TRUE
 all(data13$proportion_13 == data13$proportion_true) #TRUE
 
 #check 2:
-sum(data[26:39]) #same as number of rows. 
+sum(data[27:40]) #same as number of rows. 
 
 #check 3: 
 all(data$switch_testing >= data$switch_changing) #TRUE 
