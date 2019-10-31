@@ -15,7 +15,7 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 38 
+O_NUM_FIELDS <- 39
 
 #GLOBAL ID VARIABLES#
 O_STUDIES <- 1
@@ -25,48 +25,49 @@ O_SIGMA <- 4
 O_NET_SIZE <- 5 #shows whether it is PT condition or TOM condition. 
 O_BASE_SAMPLE_SIZE <- 6 
 O_TRUE_MODEL <- 7
+O_COLAB_COND <- 8
 
 #LOCAL ID VARIABLES#
-O_TYPE <- 8
-O_STRATEGY <- 9 #colab, neighbor, research. 
-O_SELECTED_MODEL <- 10
+O_TYPE <- 9
+O_STRATEGY <- 10 #colab, neighbor, research. 
+O_SELECTED_MODEL <- 11
  
 
 #META CATEGORY
-O_SAMPLE_SIZE <- 11
-O_NUM_AGENTS <- 12 #how many in the study. 
+O_SAMPLE_SIZE <- 12
+O_NUM_AGENTS <- 13 #how many in the study. 
 
 #STICKINESS
-O_INITIAL_GLOBAL_TRUE_MODEL <- 13
-O_FINAL_GLOBAL_TRUE_MODEL <- 14 
+O_INITIAL_GLOBAL_TRUE_MODEL <- 14
+O_FINAL_GLOBAL_TRUE_MODEL <- 15
 
 #REPLICATION
-O_PROPOSED_TRUE_MODEL <- 15
-O_SWITCH_TESTING <- 16
-O_SWITCH_CHANGING <- 17
-O_SWITCH_ALREADY_TRUE <-18
-O_SWITCH_ALREADY_TRUE_CHANGING <- 19
-O_SWITCH_ALREADY_TRUE_REJECTING <- 20
-O_SWITCH_REPLICATION_STUDY <- 21
-O_SWITCH_REPLICATED <- 22
-O_SWITCH_NOT_REPLICATED <- 23
+O_PROPOSED_TRUE_MODEL <- 16
+O_SWITCH_TESTING <- 17
+O_SWITCH_CHANGING <- 18
+O_SWITCH_ALREADY_TRUE <-19
+O_SWITCH_ALREADY_TRUE_CHANGING <- 20
+O_SWITCH_ALREADY_TRUE_REJECTING <- 21
+O_SWITCH_REPLICATION_STUDY <- 22
+O_SWITCH_REPLICATED <- 23
+O_SWITCH_NOT_REPLICATED <- 24
 
 #PROPORTIONS 
-O_PROPORTION_1 <- 24
-O_PROPORTION_2 <- 25
-O_PROPORTION_3 <- 26
-O_PROPORTION_4 <- 27
-O_PROPORTION_5 <- 28
-O_PROPORTION_6 <- 29
-O_PROPORTION_7 <- 30
-O_PROPORTION_8 <- 31
-O_PROPORTION_9 <- 32
-O_PROPORTION_10 <- 33
-O_PROPORTION_11 <- 34
-O_PROPORTION_12 <- 35
-O_PROPORTION_13 <- 36
-O_PROPORTION_14 <- 37
-O_PROPORTION_TRUE <- 38
+O_PROPORTION_1 <- 25
+O_PROPORTION_2 <- 26
+O_PROPORTION_3 <- 27
+O_PROPORTION_4 <- 28
+O_PROPORTION_5 <- 29
+O_PROPORTION_6 <- 30
+O_PROPORTION_7 <- 31
+O_PROPORTION_8 <- 32
+O_PROPORTION_9 <- 33
+O_PROPORTION_10 <- 34
+O_PROPORTION_11 <- 35
+O_PROPORTION_12 <- 36
+O_PROPORTION_13 <- 37
+O_PROPORTION_14 <- 38
+O_PROPORTION_TRUE <- 39
 
 
 ## File output headers
@@ -79,6 +80,7 @@ OUTPUT_HEADER <- c("replica",
                    "net_size", #from net_size
                    "base_SS", #base sample size 
                    "true_model", 
+                   "colab_cond", #colab condition or no. 
                    "orig_type", #type of agent on turn 
                    "strategy", #colab, neighbor, research. 
                    "selected_model",#sampled model 

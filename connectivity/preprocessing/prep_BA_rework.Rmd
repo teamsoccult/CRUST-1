@@ -56,6 +56,7 @@ summary(data$base_SS) #min: 20, mean: 60, max: 100
 summary(data$true_model) #min: 2, mean: 7.33!!, max: 13. 
 summary(data$strategy) #Bo, Mave, Tess (should be more or less equal). 
 
+
 ```
 
 More sophisticated tests. 
