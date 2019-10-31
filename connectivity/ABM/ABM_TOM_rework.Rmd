@@ -73,7 +73,7 @@ input parameters
 replications <- 2 #100 originally, now 2. 
 
 ## Length of the simulation
-turns <- 10000
+turns <- 2000
 
 ## Number of factors
 k <- 3
