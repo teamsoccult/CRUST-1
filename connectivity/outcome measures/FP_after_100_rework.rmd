@@ -96,7 +96,7 @@ small_100_filter_final <- small_100_filter_100 %>%
 
 #summarizing the above
 small_100_filter_final_sum <- small_100_filter_final %>%
-  group_by(population, network) %>%
+  group_by(population, network, net_size) %>%
   summarize(FPMA_median = median(fpttt1), 
             FPMA_mean = mean(fpttt1),
             FPMA_IQR = IQR(fpttt1),
