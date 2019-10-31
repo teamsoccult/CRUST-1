@@ -70,7 +70,7 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 2 #100 originally, now 2. 
+replications <- 1 #100 originally, now 2. 
 
 ## Length of the simulation
 turns <- 10000
@@ -167,7 +167,7 @@ SPECIFIC PARAMETERS:
 Just change the hell out of this so that it suits your needs. 
 
 ```{r}
-net_types <- list("Small") #"Lattice", "Small", "Citation"
+net_types <- list("PT") #"Lattice", "Small", "PT"
 sigmas <- list(0.5) #0.2, 0.5, 0.8 
 base_sampleSizes <- list(100) #20, 100. 
 pop_types <- list("Tess") #"Bo", "Mave", "Tess", "All"
