@@ -30,10 +30,10 @@ ABM_PT <- function(replications, turns, models, k,
     # Sampling / randomizing stuff. 
     
     if(net_type == "Small"){
-      g <- sample_smallworld(1, 413, 2, 0.05)
+      g <- sample_smallworld(1, net_size, 2, 0.05)
     }
     else if(net_type == "Lattice"){
-      g <- make_lattice(length = 413, dim = 1, 
+      g <- make_lattice(length = net_size, dim = 1, 
                         nei = 2, circular = T, directed = F)
     }
     else if(net_type == "PT"){
@@ -44,13 +44,16 @@ ABM_PT <- function(replications, turns, models, k,
       V(g)$type <- sample(c("Bo", "Mave", "Tess"))
     }
     else if(pop_type == "Bo"){ #bo --> Bo 
-      V(g)$type <- rep(c("Bo", "Mave", "Tess"), c(405,4,4))
+      V(g)$type <- rep(c("Bo", "Mave", "Tess"), 
+                       round(c(net_size*0.98, net_size*0.01, net_size*0.01)))
     }
     else if(pop_type == "Tess"){ #tess --> Tess
-      V(g)$type <- rep(c("Tess", "Bo", "Mave"), c(405,4,4))
+      V(g)$type <- rep(c("Tess", "Bo", "Mave"), 
+                       round(c(net_size*0.98, net_size*0.01, net_size*0.01)))
     }
     else if(pop_type == "Mave"){ #mave --> Mave
-      V(g)$type <- rep(c("Mave", "Bo", "Tess"), c(405,4,4))
+      V(g)$type <- rep(c("Mave", "Bo", "Tess"), 
+                       round(c(net_size*0.98, net_size*0.01, net_size*0.01)))
     }
     
     # Sampling agents 

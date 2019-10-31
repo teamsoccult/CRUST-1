@@ -120,8 +120,7 @@ For output.
 These are the parameters we don't vary. 
 
 ```{r}
-
-net_size <- 413 #changed for citation 
+ #changed for citation 
 
 ```
 
@@ -136,6 +135,8 @@ FULL RUN:
 defining parameters
 
 ```{r}
+
+net_size <- 413 
 net_types <- list("Lattice", "Small", "PT")
 sigmas <- list(0.2, 0.5, 0.8) #0.2 & 0.8 deleted. 
 base_sampleSizes <- list(20, 100) #20 deleted. 
