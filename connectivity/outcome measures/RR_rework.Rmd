@@ -30,6 +30,7 @@ mycols <- c("replica",
             "net_size",
             "base_SS",
             "true_model",
+            "colab_cond",
             "switch_rep_study",
             "switch_rep",
             "init_g_true",
@@ -52,7 +53,8 @@ replication overall
 
 #replication overall 
 df_overall <- df %>%
-  group_by(replica, network, population, sigma, net_size, base_SS, true_model) %>%
+  group_by(replica, network, population, sigma, net_size, colab_cond, 
+           base_SS, true_model) %>%
   summarize(replicated = sum(switch_rep) / sum(switch_rep_study),
             number = sum(switch_rep_study)) #just to check. 
 

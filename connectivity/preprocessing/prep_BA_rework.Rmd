@@ -129,7 +129,7 @@ new working directory & writing files.
 setwd("~/CRUST-1/data/tests")
 
 getwd()
-write.csv(data, "tests.csv", row.names = FALSE)
+write.csv(data, "colabtest.csv", row.names = FALSE)
 
 ```
 
