@@ -1,21 +1,5 @@
-################
-##
-## @description Define constants
-##
-## @param None
-##
-## @return None
-##
-## @lastChange 2018-03-22
-##
-## @changes
-##   Change CARA to BO, NELL to MAVE, ROB to TESS [2018-03-22]
-##   Included BIC output parameter [2018-03-22]
-##   Included parameters output constants [2017-06-17]
-##   Included the O_BETA1_TRUE output field constant [2017-06-08]
-##   Change BOB to CARA, NEL to NELL, RAY to REY [2017-10-16]
-##
-################
+#Set-up for new version w. citation networks & meta-studies.
+#Last changed 31-10-2019
 
 ## Types of agents
 #REY <- 1
@@ -31,126 +15,108 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 52 #SUPER NEW
+O_NUM_FIELDS <- 38 
+
+#GLOBAL ID VARIABLES#
 O_STUDIES <- 1
 O_NETWORK <- 2
 O_POPULATION <- 3
 O_SIGMA <- 4
-O_NET_SIZE <- 5
-O_SAMPLE_SIZE <- 6
+O_NET_SIZE <- 5 #shows whether it is PT condition or TOM condition. 
+O_BASE_SAMPLE_SIZE <- 6 
 O_TRUE_MODEL <- 7
-O_STRATEGY <- 8
-O_AGENT_INDEX <- 9
+
+#LOCAL ID VARIABLES#
+O_TYPE <- 8
+O_STRATEGY <- 9 #colab, neighbor, research. 
 O_SELECTED_MODEL <- 10
-O_SELECTED_TRUE_MODEL <- 11
-O_SELECTED_MODEL_DISTANCE <- 12
-O_INITIAL_GLOBAL_MODEL <- 13
-O_INITIAL_GLOBAL_TRUE_MODEL <- 14
-O_INITIAL_GLOBAL_MODEL_DISTANCE <- 15 
-O_FINAL_GLOBAL_MODEL <- 16
-O_FINAL_GLOBAL_TRUE_MODEL <- 17
-O_FINAL_GLOBAL_MODEL_DISTANCE <- 18
-O_BETA1_TRUE <- 19
-O_BETA1_ESTIMATE <- 20
-O_BETA1_ERROR <- 21
-O_TSTATISTICS <- 22
-O_RSQ <- 23
-O_ARSQ <- 24
-O_AIC <- 25
-O_BIC <- 26
-O_EDGES_TESTING <- 27
-O_EDGES_CHANGING <- 28
-O_EDGES_ALREADY_TRUE <-29
-O_EDGES_ALREADY_TRUE_CHANGING <- 30
-O_EDGES_ALREADY_TRUE_REJECTING <- 31
-O_EDGES_REPLICATION_STUDY <- 32
-O_EDGES_REPLICATED <- 33
-O_EDGES_NOT_REPLICATED <- 34
-O_PROPORTION_1 <- 35
-O_PROPORTION_2 <- 36
-O_PROPORTION_3 <- 37
-O_PROPORTION_4 <- 38
-O_PROPORTION_5 <- 39
-O_PROPORTION_6 <- 40
-O_PROPORTION_7 <- 41
-O_PROPORTION_8 <- 42
-O_PROPORTION_9 <- 43
-O_PROPORTION_10 <- 44
-O_PROPORTION_11 <- 45
-O_PROPORTION_12 <- 46
-O_PROPORTION_13 <- 47
-O_PROPORTION_14 <- 48
-O_PROPORTION_TRUE <- 49
-O_EDGES_TOTAL <- 50
-O_EDGES_SAME_GLOBAL <- 51
-O_EDGES_NOT_SAME_GLOBAL <- 52 
+ 
+
+#META CATEGORY
+O_SAMPLE_SIZE <- 11
+O_NUM_AGENTS <- 12 #how many in the study. 
+
+#STICKINESS
+O_INITIAL_GLOBAL_TRUE_MODEL <- 13
+O_FINAL_GLOBAL_TRUE_MODEL <- 14 
+
+#REPLICATION
+O_PROPOSED_TRUE_MODEL <- 15
+O_SWITCH_TESTING <- 16
+O_SWITCH_CHANGING <- 17
+O_SWITCH_ALREADY_TRUE <-18
+O_SWITCH_ALREADY_TRUE_CHANGING <- 19
+O_SWITCH_ALREADY_TRUE_REJECTING <- 20
+O_SWITCH_REPLICATION_STUDY <- 21
+O_SWITCH_REPLICATED <- 22
+O_SWITCH_NOT_REPLICATED <- 23
+
+#PROPORTIONS 
+O_PROPORTION_1 <- 24
+O_PROPORTION_2 <- 25
+O_PROPORTION_3 <- 26
+O_PROPORTION_4 <- 27
+O_PROPORTION_5 <- 28
+O_PROPORTION_6 <- 29
+O_PROPORTION_7 <- 30
+O_PROPORTION_8 <- 31
+O_PROPORTION_9 <- 32
+O_PROPORTION_10 <- 33
+O_PROPORTION_11 <- 34
+O_PROPORTION_12 <- 35
+O_PROPORTION_13 <- 36
+O_PROPORTION_14 <- 37
+O_PROPORTION_TRUE <- 38
+
 
 ## File output headers
 OUTPUT_HEADER <- c("replica",
                    "turn",
                    "studies",
-                    "network", #lattice or small
-                   "population", #Bo, Tess, Mave or All
-                   "sigma", #0.2, 0.5 or 0.8
+                    "network", #lattice, small, PT or TOM. 
+                   "population", #Bo, Tess, Mave or All. 
+                   "sigma", #0.2, 0.5 or 0.8.
                    "net_size", #from net_size
-                   "sample_size", #from sampleSize
-                   "true_model", #either 2, 7 or 13 (from "tm")
-                   "strategy", #type of agent on turn.
-                   "agent_index", #index of agent on turn. 
+                   "base_SS", #base sample size 
+                   "true_model", 
+                   "orig_type", #type of agent on turn 
+                   "strategy", #colab, neighbor, research. 
                    "selected_model",#sampled model 
-                   "selected_true_model",#0 (FALSE) or 1 (TRUE)
-                   "selected_model_distance", 
-                   "initial_global_model",
-                   "initial_global_true_model",
-                   "initial_global_model_distance",
-                   "final_global_model",
-                   "final_global_true_model",
-                   "final_global_model_distance",
-                   "beta1_true",
-                   "beta1_estimate",
-                   "beta1_error",
-                   "tStatistics",
-                   "RSQ",
-                   "ARSQ",
-                   "AIC",
-                   "BIC",
-                   "edges_testing", #new
-                   "edges_changing", #new
-                   "edges_already_true", #new
-                   "edges_already_true_changing",
-                   "edges_already_true_rejecting", #new
-                   "edges_replication_study", #new!!!
-                   "edges_replicated", #new
-                   "edges_not_replicated", #new, 
-                   "proportion_1", #new
-                   "proportion_2", #new
-                   "proportion_3", #new
-                   "proportion_4", #new
-                   "proportion_5", #new
-                   "proportion_6", #new
-                   "proportion_7", #new
-                   "proportion_8", #new
-                   "proportion_9", #new
-                   "proportion_10", #new
-                   "proportion_11", #new
-                   "proportion_12", #new
-                   "proportion_13", #new
-                   "proportion_14", #new
-                   "proportion_true", #new
-                   "edges_total", #new!!
-                   "edges_same_global", #new!!
-                   "edges_not_same_global") #new!!
+                   "SS", #sample size (which can change on turns). 
+                   "num_agents", #agents conducting orig. study 
+                   "init_g_true", #count for agents on turn (cond. orig. stud.)
+                   "final_g_true", #count for agents on turn (cond. orig. stud.)
+                   "prop_t_mod", #proposed model true?
+                   "switch_testing", #count: how many tested. 
+                   "switch_changing", #count: how many changed. 
+                   "switch_true", #count: how many true?
+                   "switch_true_changing", #count: true changing 
+                   "switch_true_rejecting", #count: true rejecting
+                   "switch_rep_study", #count: rep studies cond. 
+                   "switch_rep", #count: succesful rep. 
+                   "switch_not_rep", #count: unsuccesful rep. 
+                   "proportion_1", 
+                   "proportion_2", 
+                   "proportion_3", 
+                   "proportion_4", 
+                   "proportion_5", 
+                   "proportion_6", 
+                   "proportion_7", 
+                   "proportion_8", 
+                   "proportion_9", 
+                   "proportion_10", 
+                   "proportion_11", 
+                   "proportion_12", 
+                   "proportion_13", 
+                   "proportion_14", 
+                   "proportion_true")
 
 ## Parameter output
 P_TMODEL <- 1
-P_SAMPLE_SIZE <- 2
+P_BASE_SAMPLE_SIZE <- 2
 P_SIGMA <- 3
-P_NETNAME <- 4
-P_POP <- 5
-P_K <- 6
-P_CORRELATION <- 7
-P_TRUE_BETAS <- 8
-P_NETWORK <- 9
-P_XSET <- 10
-P_AVG_PATH_LENGTH <- 11
-P_CLUSTER_COEF <- 12
+P_NET_TYPE <- 4 #small, lattice, PT or TOM
+P_NET_SIZE <- 5 #size..
+P_POP <- 6 
+P_NETWORK <- 7
+
