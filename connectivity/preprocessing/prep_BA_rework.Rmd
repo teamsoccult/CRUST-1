@@ -42,15 +42,20 @@ rm(list=setdiff(ls(), "data"))
 Naive tests in sequential order. 
 Just testing whether we have the right data. 
 
-Notes: 
-- network: currently a character (it this what we want?)
-- population: currently a character (is this what we want?)
 
 ```{r}
 
+#factorizing 
+data <- data %>%
+  mutate(network = as.factor(network),
+         population = as.factor(population),
+         colab_cond = as.factor(colab_cond),
+         strategy = as.factor(strategy))
+
+#summary tests
 summary(data$turn) #max should be whatever max is set to (check ABM2 for input)
-unique(data$network) #Lattice, Small 
-unique(data$population) #All, Bo, Mave, Tess
+summary(data$network) #Lattice, Small 
+summary(data$population) #All, Bo, Mave, Tess
 summary(data$sigma) #min: 0.2, mean: 0.5, max: 0.8
 summary(data$base_SS) #min: 20, mean: 60, max: 100
 summary(data$true_model) #min: 2, mean: 7.33!!, max: 13. 
@@ -63,7 +68,7 @@ Comments reflect expected output (if code is working as it should).
 
 ```{r}
 
-#check 1: 
+#check 1: true model = the true model 
 data2 <- data %>%
   filter(true_model == 2)
 
@@ -77,23 +82,23 @@ all(data2$proportion_2 == data2$proportion_true) #TRUE
 all(data7$proportion_7 == data7$proportion_true) #TRUE
 all(data13$proportion_13 == data13$proportion_true) #TRUE
 
-#check 2:
+#check 2: sum of proportions
 sum(data[27:40]) #same as number of rows. 
 
-#check 3: 
+#check 3: more than or equal to should test than change
 all(data$switch_testing >= data$switch_changing) #TRUE 
 
-#check 4: 
+#check 4: replication and not replication = all replication. 
 data_check <- data %>%
   mutate(rep_stud = switch_rep + switch_not_rep)
 
 all(data_check$switch_rep_study == data_check$rep_stud) #TRUE 
 
-#check 5:
+#check 5: true changing and true rejecting = all true. 
 data_check <- data_check %>%
-  mutate(switch_test = switch_true_changing + switch_true_rejecting)
+  mutate(all_true = switch_true_changing + switch_true_rejecting)
   
-all(data_check$switch_test == data_check$switch_true) #TRUE 
+all(data_check$all_true == data_check$switch_true) #TRUE 
 
 ```
 
