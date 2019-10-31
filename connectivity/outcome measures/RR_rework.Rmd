@@ -81,7 +81,7 @@ by global
 #replication if true & if not
 df_byglobal <- df %>%
   group_by(prop_t_mod, network, population, sigma, net_size, base_SS, 
-           true_model, net_size) %>%
+           true_model) %>%
   summarize(replicated = sum(switch_rep) / sum(switch_rep_study),
             number = sum(switch_rep_study)) 
 
