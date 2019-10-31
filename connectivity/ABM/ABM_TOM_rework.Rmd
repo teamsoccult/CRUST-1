@@ -129,6 +129,7 @@ base_sampleSizes <- list(20, 100) #20 deleted.
 pop_types <- list("Bo", "Tess", "Mave", "All")
 tMods <- list(2, 7, 13)
 modelCompares <- list(BIC, AIC)
+colab_probs <- list(0, 0.02) #no colab vs. colab. 
 
 ```
 
@@ -146,11 +147,13 @@ for(net_type in net_types){
       for(pop_type in pop_types){
         for(tMod in tMods){ #not sure this works. 
           for(modelCompare in modelCompares){
+            for(colab_prob in colab_probs){
         
 ABM_TOM(replications, turns, models, k, 
     weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
+            }
           }
         }
       }
@@ -173,6 +176,7 @@ base_sampleSizes <- list(100) #20, 100.
 pop_types <- list("Tess") #"Bo", "Mave", "Tess", "All"
 tMods <- list(13) #2, 7, 13. 
 modelCompares <- list(BIC) #AIC, BIC 
+colab_probs <- list(0, 0.02) #no colab vs. colab. 
 ```
 
 ```{r}
@@ -186,12 +190,14 @@ for(net_type in net_types){
     for(base_sampleSize in base_sampleSizes){
       for(pop_type in pop_types){
         for(tMod in tMods){ #not sure this works. 
-          for(modelCompare in modelCompares){ #should be 
+          for(modelCompare in modelCompares){ #should be
+            for(colab_prob in colab_probs){
         
 ABM_TOM(replications, turns, models, k, 
     weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
+            }
           }
         }
       }

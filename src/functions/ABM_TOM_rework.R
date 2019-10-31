@@ -88,7 +88,7 @@ ABM_TOM <- function(replications, turns, models, k,
       
       ####### SECTION 1 #######
       ## Colab study ##
-      colab <- sample(c('yes', 'no'), size = 1, prob = c(.02, .98))
+      colab <- sample(c('yes', 'no'), size = 1, prob = c(colab_prob, 1-colab_prob))
       
       ## midlertidig test variabel ##
       test_models <- list() 
@@ -491,16 +491,18 @@ ABM_TOM <- function(replications, turns, models, k,
     
     ## Write output data table into a file ##
     write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
-                                    sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), "_", net_size, "_", 
-                                    modelSelection, "_", base_sampleSize, "_", 
-                                    tMod, outputFile),
+                                    sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
+                                    "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
+                                    tMod, "-", paste(ifelse(colab_prob == 0.02, "COLAB", "NOLAB")), 
+                                    outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=";", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
   
   saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
-                                  sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), "_", net_size, "_", 
-                                  modelSelection, "_", sampleSize, "_", tMod, 
+                                  sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
+                                  "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
+                                  tMod, "-", paste(ifelse(colab_prob == 0.02, "COLAB", "NOLAB")),
                                   paramFile))
 }
