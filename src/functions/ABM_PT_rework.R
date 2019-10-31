@@ -94,7 +94,6 @@ ABM_PT <- function(replications, turns, models, k,
       ####### SECTION 1 #######
       ## Colab study ##
       colab <- sample(c('yes', 'no'), size = 1, prob = c(.02, .98))
-      colab <- 'yes'
       
       ## midlertidig test variabel ##
       test_models <- list() 
