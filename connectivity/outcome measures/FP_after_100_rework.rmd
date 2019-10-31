@@ -1,0 +1,105 @@
+---
+title: "over 100 sketch"
+author: "Mikkel Werling"
+date: "5/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#set working directory
+setwd("~/CRUST-1/data/new_data")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+loading data. 
+
+```{r}
+#reading 
+path <- "~/CRUST-1/data/tests/"
+
+files <- list.files(path = path, pattern="*.csv") #if possible. 
+
+mycols <- c("replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "true_model",
+            "turn",
+            "net_size",
+            "base_SS",
+            "prop_1",
+            "prop_2",
+            "prop_3",
+            "prop_4",
+            "prop_5",
+            "prop_6",
+            "prop_7",
+            "prop_8",
+            "prop_9",
+            "prop_10",
+            "prop_11",
+            "prop_12",
+            "prop_13",
+            "prop_14",
+            "prop_true")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
+```
+
+
+OVER TURN 100
+```{r}
+
+#colnames(small_100_m7)
+
+#Which rows have the true model as the most adhered to?
+
+small_100_fttma <- df %>%
+  mutate(most_adhered = ifelse(15 == max.col(.[,c(9:23)], ties.method = "last"), 1, 0)) 
+
+#Figuring out which of the conditions have the model as the most adhered at any point
+small_100_fttma_test <- small_100_fttma %>%
+  mutate(most_adhered = ifelse(15 == max.col(.[,c(9:23)], ties.method = "last"), 1, 0)) %>%
+  group_by(replica, population, network, sigma, true_model, net_size, base_SS) %>%
+  summarize(mean = mean(most_adhered))
+
+#COMMENT ON THE RESULTS FROM ABOVE:
+#You can see that many of the runs (here's looking at you Bo) does only occasionally get the true model as the most adhered to. But as it does it sometimes (by chance), there will still be accounts of it in the statistics. 
+
+#Filtering so only those runs that have the true model as the most adhered to are included 
+small_100_filter_100 <- small_100_fttma %>%
+  group_by(replica, population, network, sigma, true_model, net_size, base_SS) %>%
+  filter(mean(most_adhered) > 0, turn >= 100)
+
+#new col for which model is the most adhered to at the time
+small_100_filter_100$max_col <- max.col(small_100_filter_100[, c(9:23)], "last")
+
+#when is the true model first most adhered to
+small_100_filter_final <- small_100_filter_100 %>%
+  group_by(replica, population, network, sigma, true_model, net_size, base_SS) %>%
+  summarize(fpttt1 = 99 + min(which(max_col == 15))) %>%
+  filter(fpttt1 != Inf)
+
+#summarizing the above
+small_100_filter_final_sum <- small_100_filter_final %>%
+  group_by(population, network) %>%
+  summarize(FPMA_median = median(fpttt1), 
+            FPMA_mean = mean(fpttt1),
+            FPMA_IQR = IQR(fpttt1),
+            FPMA_misses = 450 - n()) #WHAT
+```
+
