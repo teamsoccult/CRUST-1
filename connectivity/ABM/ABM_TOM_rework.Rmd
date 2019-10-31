@@ -73,7 +73,7 @@ input parameters
 replications <- 2 #100 originally, now 2. 
 
 ## Length of the simulation
-turns <- 2000
+turns <- 10000
 
 ## Number of factors
 k <- 3
@@ -170,10 +170,10 @@ SPECIFIC PARAMETERS:
 Just change the hell out of this so that it suits your needs. 
 
 ```{r}
-net_types <- list("TOM") #"Lattice", "Small", "TOM"
+net_types <- list("TOM", "Small", "Lattice") #"Lattice", "Small", "TOM"
 sigmas <- list(0.5) #0.2, 0.5, 0.8 
-base_sampleSizes <- list(100) #20, 100. 
-pop_types <- list("Tess") #"Bo", "Mave", "Tess", "All"
+base_sampleSizes <- list(20) #20, 100. 
+pop_types <- list("All") #"Bo", "Mave", "Tess", "All"
 tMods <- list(13) #2, 7, 13. 
 modelCompares <- list(BIC) #AIC, BIC 
 colab_probs <- list(0, 0.02) #no colab vs. colab. 
