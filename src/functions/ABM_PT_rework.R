@@ -8,9 +8,9 @@ but we should still go over it together.
 
 # should anything change here - do we use all of it? 
 ABM_PT <- function(replications, turns, models, k, 
-                weights, base_sampleSize, correlation, sigma,
-                modelCompare, modelSelection, inputDir, outputDir, 
-                outputFile, paramFile, verbose, ndec, seeds, some_models){
+                   weights, base_sampleSize, correlation, sigma,
+                   modelCompare, modelSelection, inputDir, outputDir, 
+                   outputFile, paramFile, verbose, ndec, seeds, some_models){
   
   ## REPLICA SIMULATION
   ###################
@@ -435,9 +435,11 @@ ABM_PT <- function(replications, turns, models, k,
       output[turn, O_NET_SIZE] <- net_size 
       output[turn, O_BASE_SAMPLE_SIZE] <- base_sampleSize 
       output[turn, O_TRUE_MODEL] <- tMod #this edition. 
+      
+      #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
-      output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       output[turn, O_STRATEGY] <- ifelse(colab == "yes", "colab", strategy)
+      output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       
       ## META ## 
       output[turn, O_SAMPLE_SIZE] <- sampleSize 
@@ -478,17 +480,16 @@ ABM_PT <- function(replications, turns, models, k,
       output[turn, O_PROPORTION_14] <- mean(as.numeric(V(g)$model == some_models[14]))
       output[turn, O_PROPORTION_TRUE] <- mean(as.numeric(V(g)$model == trueModel)) 
     }
-
+    
     ### Parameter output ###
     param <- list()
     param[[P_TMODEL]] <- tMod #BA 
-    param[[P_SAMPLE_SIZE]] <- base_sampleSize
+    param[[P_BASE_SAMPLE_SIZE]] <- base_sampleSize
     param[[P_SIGMA]] <- sigma
-    param[[P_NETNAME]] <- net_type #BA
+    param[[P_NET_TYPE]] <- net_type #BA
+    param[[P_NET_SIZE]] <- net_size #BA
     param[[P_POP]] <- pop_type #BA
     param[[P_NETWORK]] <- matrix_g
-    param[[P_AVG_PATH_LENGTH]] <- average.path.length(g)
-    param[[P_CLUSTER_COEF]] <- transitivity(g)
     parameters[[replica]] <- param
     
     ## Convert output matrix into data table ##
