@@ -5,14 +5,9 @@ date: "5/16/2019"
 output: html_document
 ---
 
-Updated on 14-09-2019
-This now runs all combinations of parameters. 
-Some stuff have been deleted & added to accomodate this change. 
-Set to Victors working directory at the moment. 
-NB: the document outputs to the folder "new_data" (which is only supposed to
-hold data directly generated). The should be moved to "tests" or something else
-after preprocessing.
-Since we are running tests right now it only does 1 iteration & 3000 turns.  
+Updated on 31-10-2019.
+Now running with updated constants, new function.
+Ready for citation network & colab-studies. 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -43,7 +38,7 @@ source(paste0(scriptDir, "/analysis.R"))
 source(paste0(scriptDir, "/calculateDet.R"))
 source(paste0(scriptDir, "/calculateDistance.R"))
 source(paste0(scriptDir, "/compareModels.R"))
-source(paste0(scriptDir, "/constants_3.R")) #new constants baby
+source(paste0(scriptDir, "/constants_4_rework.R")) #new constants baby.
 source(paste0(scriptDir, "/convertBinary.R"))
 source(paste0(scriptDir, "/generateBetas.R"))
 source(paste0(scriptDir, "/generateModels.R"))
@@ -58,13 +53,7 @@ source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
 source(paste0(scriptDir, "/simulator.R"))
 source(paste0(scriptDir, "/strToModel.R"))
-#source(paste0(scriptDir, "/ABM.R")) #the ABM
-#source(paste0(scriptDir, "/ABM1.R")) #old
-#source(paste0(scriptDir, "/ABM2.R")) #old.
-#source(paste0(scriptDir, "/ABM3.R")) #The final SocKult version. 
-#source(paste0(scriptDir, "/ABM4.R")) #w. neighbor-strategy.
-#source(paste0(scriptDir, "/ABM5.R")) #w. modified neighbor strategy. 
-source(paste0(scriptDir, "/ABM_PT.R")) #w. citation networks
+source(paste0(scriptDir, "/ABM_PT_rework.R")) #PT cit. network. 
 source(paste0(scriptDir, "/ABM_TOM.R")) #w. citation networks
 ```
 
@@ -82,7 +71,7 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 10 #100 originally, now 2. 
+replications <- 2 #100 originally, now 2. 
 
 ## Length of the simulation
 turns <- 10000
@@ -120,7 +109,7 @@ For output.
 These are the parameters we don't vary. 
 
 ```{r}
- #changed for citation 
+net_size <- 413 
 
 ```
 
