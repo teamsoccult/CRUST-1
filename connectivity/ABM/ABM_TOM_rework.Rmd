@@ -6,8 +6,8 @@ output: html_document
 ---
 
 Updated on 31-10-2019.
-Now running with updated constants, new function.
-Ready for citation network & colab-studies. 
+Now up to the changes made in the rework-session. New constants, fewer variables. This is the document for the TOM-networks and 484-sized networks in general. 
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -53,7 +53,7 @@ source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
 source(paste0(scriptDir, "/simulator.R"))
 source(paste0(scriptDir, "/strToModel.R"))
-source(paste0(scriptDir, "/ABM_PT_rework.R")) #PT cit. network. 
+source(paste0(scriptDir, "/ABM_TOM_rework.R")) #TOM cit. network. 
 ```
 
 some_models, g & agentTurn
@@ -108,7 +108,7 @@ For output.
 These are the parameters we don't vary. 
 
 ```{r}
-net_size <- 413 
+net_size <- 484
 
 ```
 
@@ -123,7 +123,7 @@ FULL RUN:
 defining parameters
 
 ```{r}
-net_types <- list("Lattice", "Small", "PT")
+net_types <- list("Lattice", "Small", "TOM")
 sigmas <- list(0.2, 0.5, 0.8) #0.2 & 0.8 deleted. 
 base_sampleSizes <- list(20, 100) #20 deleted. 
 pop_types <- list("Bo", "Tess", "Mave", "All")
@@ -147,7 +147,7 @@ for(net_type in net_types){
         for(tMod in tMods){ #not sure this works. 
           for(modelCompare in modelCompares){
         
-ABM7(replications, turns, models, k, 
+ABM_TOM(replications, turns, models, k, 
     weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
@@ -167,7 +167,7 @@ SPECIFIC PARAMETERS:
 Just change the hell out of this so that it suits your needs. 
 
 ```{r}
-net_types <- list("Small") #"Lattice", "Small", "Citation"
+net_types <- list("Small") #"Lattice", "Small", "TOM"
 sigmas <- list(0.5) #0.2, 0.5, 0.8 
 base_sampleSizes <- list(100) #20, 100. 
 pop_types <- list("Mave", "Tess") #"Bo", "Mave", "Tess", "All"
@@ -188,7 +188,7 @@ for(net_type in net_types){
         for(tMod in tMods){ #not sure this works. 
           for(modelCompare in modelCompares){ #should be 
         
-ABM_PT(replications, turns, models, k, 
+ABM_TOM(replications, turns, models, k, 
     weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
