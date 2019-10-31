@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r setup, include=FALSE}
 
 library(pacman)
-p_load(caTools, data.table, permute, matrixStats, MCMCpack, stringr)
+p_load(caTools, data.table, permute, matrixStats, MCMCpack, stringr, pracma)
 
 ```
 
