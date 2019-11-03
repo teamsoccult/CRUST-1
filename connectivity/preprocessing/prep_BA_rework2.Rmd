@@ -37,6 +37,10 @@ data <- mget(ls(pattern="*csv")) %>%
 #remove all the old shit 
 rm(list=setdiff(ls(), "data")) 
 
+#remove NA: 
+data <- na.omit(data)
+
+
 ```
 
 Naive tests in sequential order. 
@@ -111,13 +115,10 @@ colab <- data %>%
   group_by(colab_cond, strategy) %>%
   summarize(count = n())
 
-#check 7: more turns in no-colab than in colab. 
+#check 7: all above 10,000 studies (but not too much). 
 colab <- data %>%
-  group_by(colab_cond) %>%
+  group_by(colab_cond, network) %>%
   summarize(study_max = max(studies))
-
-colab <- data %>%
-  filter(colab_cond == "yes")
 
 rm(list=setdiff(ls(), "data")) 
 
@@ -157,8 +158,8 @@ Filtering columns
   #dplyr::select(-one_of(cols)) 
 
 #BE CAREFUL, YOU ARE DELETING DATA!!
-data <- data %>%
-  subset(studies <= 11000)
+#data <- data %>%
+  #subset(studies <= 11000)
 
 #checking whether it worked
 data_check <- data %>%

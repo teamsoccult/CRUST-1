@@ -74,7 +74,7 @@ replications <- 1 #100 originally, now 2.
 
 ## Length of the simulation
 turns <- 10000
-study_cap <- 5000
+study_cap <- 10000
 
 ## Number of factors
 k <- 3
