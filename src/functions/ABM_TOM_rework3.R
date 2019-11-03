@@ -67,13 +67,11 @@ ABM_TOM <- function(replications, turns, models, k,
     #######################
     ## SIMULATION EXECUTION
     #######################
-    turn <- 1 
+    turn <- 0
     study <- 0
-    
-    for(turn in 1:turns){ #11000 time-turns
       
-      while(study <= 10000){ #new condition. 
-      
+    while(study <= 5000){ #new condition. 
+      turn <- turn + 1 
         
       #INITIALIZING PARAMETERS:
       propModel <- list() #CHANGE IN NAME: from prop_m to propModel
@@ -182,17 +180,6 @@ ABM_TOM <- function(replications, turns, models, k,
       ### modelselection - random for now ###
       model <- sample(propModel, size = 1) 
       model <- model[[1]]
-      
-      ##### NB!!! PLAYING AROUND WITH SELECTION ######
-      #great <- sapply(propModel, modelToStr)
-      #great1 <- sort(table(great), decreasing=TRUE)[1:5]
-      
-      #mode(great)
-      
-      #count(propModel)
-      #lengths(propModel)
-      
-      #sort(table(great), decreasing=TRUE)
       
       ## generate statistics ##
       sampleSize <- length(agentIndex) * base_sampleSize
@@ -423,7 +410,8 @@ ABM_TOM <- function(replications, turns, models, k,
             }
           }
         }
-      } #ending the for loop. 
+      } 
+      
       study <- study + (length(agentIndex) + switch_testing)
       
       ### Record output data ###
@@ -485,7 +473,6 @@ ABM_TOM <- function(replications, turns, models, k,
       output[turn, O_PROPORTION_14] <- mean(as.numeric(V(g)$model == some_models[14]))
       output[turn, O_PROPORTION_TRUE] <- mean(as.numeric(V(g)$model == trueModel)) 
     } #ending while
-    } #ending for. 
     
     ### Parameter output ###
     param <- list()

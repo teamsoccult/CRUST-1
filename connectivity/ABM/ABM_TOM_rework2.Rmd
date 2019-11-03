@@ -53,7 +53,7 @@ source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
 source(paste0(scriptDir, "/simulator.R"))
 source(paste0(scriptDir, "/strToModel.R"))
-source(paste0(scriptDir, "/ABM_TOM_rework2.R")) #TOM cit. network. 
+source(paste0(scriptDir, "/ABM_TOM_rework3.R")) #TOM cit. network. 
 ```
 
 some_models, g & agentTurn
@@ -70,10 +70,10 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 2 #100 originally, now 2. 
+replications <- 1 #100 originally, now 2. 
 
 ## Length of the simulation
-turns <- 5000
+turns <- 10000
 
 ## Number of factors
 k <- 3
@@ -176,7 +176,7 @@ base_sampleSizes <- list(20) #20, 100.
 pop_types <- list("Mave") #"Bo", "Mave", "Tess", "All"
 tMods <- list(13) #2, 7, 13. 
 modelCompares <- list(BIC) #AIC, BIC 
-colab_probs <- list(0, 0.02) #no colab vs. colab. 
+colab_probs <- list(0.02) #no colab vs. colab. 
 ```
 
 ```{r}
