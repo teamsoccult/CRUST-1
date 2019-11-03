@@ -128,6 +128,19 @@ ss_spread <- data %>%
 
 rm(list=setdiff(ls(), "data")) 
 
+#check 9: should be something in all variations. 
+no_lab <- data %>%
+  group_by(network, population, sigma, net_size, base_SS, true_model,
+           colab_cond) %>%
+  summarize(testing = sum(switch_testing),
+            changing = sum(switch_changing),
+            true = sum(switch_true),
+            true_changing = sum(switch_true_changing),
+            true_rejectiing = sum(switch_true_rejecting),
+            rep_stud = sum(switch_rep_study),
+            rep = sum(switch_rep),
+            no_rep = sum(switch_not_rep))
+
 ```
 
 Filtering columns
