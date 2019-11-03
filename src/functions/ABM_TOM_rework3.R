@@ -70,7 +70,7 @@ ABM_TOM <- function(replications, turns, models, k,
     turn <- 0
     study <- 0
       
-    while(study <= 5000){ #new condition. 
+    while(study <= study_cap){ #new condition. 
       turn <- turn + 1 
         
       #INITIALIZING PARAMETERS:
