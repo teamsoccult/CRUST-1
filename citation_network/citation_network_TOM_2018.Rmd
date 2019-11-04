@@ -180,6 +180,7 @@ Check up on these generally.
 ```{r}
 average.path.length(g) #getting the average path length 
 transitivity(g) #clustering coefficient 
+
 closeness(g) #unsure what this really means - what kind of closeness measure is this?
 assortativity_degree(g, directed = F) 
 
@@ -188,4 +189,3 @@ deg.dist <- degree_distribution(g, cumulative=T, mode="all")
 plot( x=0:max(degree(g)), y=1-deg.dist, pch=19, cex=1.2, col="orange", 
       xlab="Degree", ylab="Cumulative Frequency")
 ```
-

@@ -31,7 +31,7 @@ ABM_PT <- function(replications, turns, models, k,
       g <- make_lattice(length = net_size, dim = 1, 
                         nei = 2, circular = T, directed = F)
     }
-    else if(net_type == "TOM"){
+    else if(net_type == "PT"){
       g <- readRDS("~/CRUST-1/citation_network/prospect_theory.rds")
     }
     
