@@ -182,9 +182,20 @@ ABM_TOM <- function(replications, turns, models, k,
         }
       }
       
-      ### modelselection - random for now ###
-      model <- sample(propModel, size = 1) 
-      model <- model[[1]]
+      ##MODEL SELECTION BY MOST FREQUENT ## 
+      
+      modelstrings <- NULL
+      
+      for (models in seq_len(length(propModel))){
+        modelstrings[models] <- modelToStr(propModel[[models]])
+      }
+      
+      max_model <- modelstrings[which.is.max(table(modelstrings))]
+      
+      max_model <- str_replace(max_model, "Y ~", "")
+      max_model <- str_replace_all(max_model, ":", "")
+      
+      model <- strToModel(max_model, k)
       
       ## generate statistics ##
       sampleSize <- length(agentIndex) * base_sampleSize
