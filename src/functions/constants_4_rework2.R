@@ -16,7 +16,7 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 42
+O_NUM_FIELDS <- 44
 
 #GLOBAL ID VARIABLES#
 O_STUDIES <- 1
@@ -34,43 +34,45 @@ O_STRATEGY <- 10 #colab, neighbor, research.
 O_SELECTED_MODEL <- 11
 
 #META CATEGORY
-O_SWITCH_TOTAL <- 12
-O_ORIG_AGENTS <- 13
-O_SWITCH_AGENTS <- 14
-O_SAMPLE_SIZE <- 15
-O_NUM_AGENTS <- 16 #how many in the study. 
+O_ORIG_AGENTS <- 12
+O_SWITCH_AGENTS <- 13
+O_SAMPLE_SIZE <- 14
+O_NUM_AGENTS <- 15 #how many in the study. 
 
 #STICKINESS
-O_INITIAL_GLOBAL_TRUE_MODEL <- 17
-O_FINAL_GLOBAL_TRUE_MODEL <- 18
+O_INITIAL_GLOBAL_TRUE_MODEL <- 16
+O_FINAL_GLOBAL_TRUE_MODEL <- 17
 
 #REPLICATION
-O_PROPOSED_TRUE_MODEL <- 19
-O_SWITCH_TESTING <- 20
-O_SWITCH_CHANGING <- 21
-O_SWITCH_ALREADY_TRUE <-22
-O_SWITCH_ALREADY_TRUE_CHANGING <- 23
-O_SWITCH_ALREADY_TRUE_REJECTING <- 24
-O_SWITCH_REPLICATION_STUDY <- 25
-O_SWITCH_REPLICATED <- 26
-O_SWITCH_NOT_REPLICATED <- 27
+O_PROPOSED_TRUE_MODEL <- 18
+O_SWITCH_TESTING <- 19
+O_SWITCH_CHANGING <- 20
+O_SWITCH_ALREADY_TRUE <-21
+O_SWITCH_ALREADY_TRUE_CHANGING <- 22
+O_SWITCH_ALREADY_TRUE_REJECTING <- 23
+O_SWITCH_REPLICATION_STUDY <- 24
+O_SWITCH_REPLICATED <- 25
+O_SWITCH_NOT_REPLICATED <- 26
+O_SWITCH_ALL <- 27
+O_SWITCH_GLOBAL <- 28
+O_SWITCH_NOT_GLOBAL <- 29
 
 #PROPORTIONS 
-O_PROPORTION_1 <- 28
-O_PROPORTION_2 <- 29
-O_PROPORTION_3 <- 30
-O_PROPORTION_4 <- 31
-O_PROPORTION_5 <- 32
-O_PROPORTION_6 <- 33
-O_PROPORTION_7 <- 34
-O_PROPORTION_8 <- 35
-O_PROPORTION_9 <- 36
-O_PROPORTION_10 <- 37
-O_PROPORTION_11 <- 38
-O_PROPORTION_12 <- 39
-O_PROPORTION_13 <- 40
-O_PROPORTION_14 <- 41
-O_PROPORTION_TRUE <- 42
+O_PROPORTION_1 <- 30
+O_PROPORTION_2 <- 31
+O_PROPORTION_3 <- 32
+O_PROPORTION_4 <- 33
+O_PROPORTION_5 <- 34
+O_PROPORTION_6 <- 35
+O_PROPORTION_7 <- 36
+O_PROPORTION_8 <- 37
+O_PROPORTION_9 <- 38
+O_PROPORTION_10 <- 39
+O_PROPORTION_11 <- 40
+O_PROPORTION_12 <- 41
+O_PROPORTION_13 <- 42
+O_PROPORTION_14 <- 43
+O_PROPORTION_TRUE <- 44
 
 
 ## File output headers
@@ -87,7 +89,6 @@ OUTPUT_HEADER <- c("replica",
                    "orig_type", #type of agent on turn 
                    "strategy", #colab, neighbor, research. 
                    "selected_model",#sampled model 
-                   "switch_total", #new: for sanity.
                    "orig_agents", #new: for sanity.
                    "switch_agents", #new: for sanity. 
                    "SS", #sample size (which can change on turns). 
@@ -103,6 +104,9 @@ OUTPUT_HEADER <- c("replica",
                    "switch_rep_study", #count: rep studies cond. 
                    "switch_rep", #count: succesful rep. 
                    "switch_not_rep", #count: unsuccesful rep. 
+                   "switch_all",
+                   "switch_global",
+                   "switch_not_global",
                    "prop_1", 
                    "prop_2", 
                    "prop_3", 

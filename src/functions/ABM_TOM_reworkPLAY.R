@@ -70,7 +70,7 @@ ABM_TOM <- function(replications, turns, models, k,
     turn <- 0
     study <- 0
       
-    while(study <= study_cap){ #new condition. 
+    while(study < study_cap){ #new condition. 
       turn <- turn + 1 
         
       #INITIALIZING PARAMETERS:
@@ -96,6 +96,11 @@ ABM_TOM <- function(replications, turns, models, k,
       
       ## Makes a list of the agents indexes ##
       agents_testing <- names(which(matrix_g[, agentIndex] == 1)) #new variable.
+      
+      if(length(agents_testing) >= (study_cap - study)){
+      agents_testing <- sample(agents_testing, study_cap - study - 1)
+      }
+
       agents_testing <- append(agents_testing, 
                                agentToken, after = length(agents_testing))
       
@@ -270,11 +275,11 @@ ABM_TOM <- function(replications, turns, models, k,
       switch_replication_study <- 0 #USED (for logging)
       switch_replicated <- 0 #USED (for logging)
       switch_not_replicated <- 0 #USED (for logging)
-      switch_not_same_global <- NULL #USED 
-      switch_same_global <- NULL #USED 
       
-      #more stuff for logging/trouble shooting
-      switch_total <- NULL
+      ## more params for SWITCH logging ##
+      switch_all <- 0
+      switch_global <- 0
+      switch_not_global <- 0
       
       ## If any original agents switched model ##
       if(length(agentsSwitch) != 0){ 
@@ -284,6 +289,12 @@ ABM_TOM <- function(replications, turns, models, k,
         
         ## Finding relevant edges of those agents ## 
         for(i in seq_len(length(agentsSwitch))){
+          
+          #has to be reset for every i (not redundant).  
+          switch_not_same_global <- NULL 
+          switch_same_global <- NULL  
+          
+          #total edges of the agent switching. 
           switch_total <- names(which(matrix_g[, agentsSwitch[[i]]] == 1)) 
           
           if(colab == "yes"){ #only if colab cond. 
@@ -292,6 +303,11 @@ ABM_TOM <- function(replications, turns, models, k,
           
           ## Is edges' gModel = model (the proposed & global of orig. agents) ##
           for(j in switch_total){
+            
+            #logging total count of legible switch agents. 
+            switch_all <- switch_all + 1
+            
+            #generating models of the switch agent. 
             switch_agentToken <- j
             switch_agentIndex <- which((V(g)$name) == switch_agentToken)
             switch_gModel <- strToModel(V(g)$model[switch_agentIndex],k)
@@ -299,8 +315,16 @@ ABM_TOM <- function(replications, turns, models, k,
             ## used for gatekeeping & checks ##
             if(compareModels(switch_gModel, model)){ 
               switch_same_global <- c(switch_same_global, switch_agentToken)
+              
+              #logging 
+              switch_global <- switch_global + 1
+              
             } else {
-              switch_not_same_global <- c(switch_not_same_global, switch_agentToken)
+              switch_not_same_global <- c(switch_not_same_global, 
+                                          switch_agentToken)
+              
+              #logging 
+              switch_not_global <- switch_not_global + 1
             }
           }
           
@@ -315,6 +339,12 @@ ABM_TOM <- function(replications, turns, models, k,
           
           ### THE EDGES WITH DIFF. GLOBAL MOD. NOW TEST ### 
           for(y in switch_not_same_global){ 
+            
+            #break. 
+            if(study >= study_cap){
+              break
+            }
+            
             switch_testing <- switch_testing + 1 
             switch_agentToken <- y
             
@@ -415,6 +445,10 @@ ABM_TOM <- function(replications, turns, models, k,
                 as.numeric(compareModels(switch_gModel, old_gModel[[i]]))
             }
           }
+          #hyper-test
+          if(study >= study_cap){
+            break
+          }
         }
       } 
       
@@ -436,7 +470,6 @@ ABM_TOM <- function(replications, turns, models, k,
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       
       ## META ## 
-      output[turn, O_SWITCH_TOTAL] <- length(switch_total) #new: for sanity
       output[turn, O_ORIG_AGENTS] <- length(agentIndex) #new: for sanity.
       output[turn, O_SWITCH_AGENTS] <- length(agentsSwitch) #new: for sanity.
       output[turn, O_SAMPLE_SIZE] <- sampleSize 
@@ -456,9 +489,9 @@ ABM_TOM <- function(replications, turns, models, k,
       output[turn, O_SWITCH_REPLICATION_STUDY] <- switch_replication_study 
       output[turn, O_SWITCH_REPLICATED] <- switch_replicated 
       output[turn, O_SWITCH_NOT_REPLICATED] <- switch_not_replicated 
-      #output[turn, O_EDGES_TOTAL] <- length(edges_total) 
-      #output[turn, O_EDGES_SAME_GLOBAL] <- length(edges_same_global) 
-      #output[turn, O_EDGES_NOT_SAME_GLOBAL] <- length(edges_not_same_global) 
+      output[turn, O_SWITCH_ALL] <- switch_all #all legible
+      output[turn, O_SWITCH_GLOBAL] <- switch_global #all with same global
+      output[turn, O_SWITCH_NOT_GLOBAL] <- switch_not_global #all not same global. 
       
       ## PROPORTION ## 
       output[turn, O_PROPORTION_1] <- mean(as.numeric(V(g)$model == some_models[1])) 
