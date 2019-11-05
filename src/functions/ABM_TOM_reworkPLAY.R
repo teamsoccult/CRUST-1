@@ -186,8 +186,8 @@ ABM_TOM <- function(replications, turns, models, k,
       
       modelstrings <- NULL
       
-      for (models in seq_len(length(propModel))){
-        modelstrings[models] <- modelToStr(propModel[[models]])
+      for (p in seq_len(length(propModel))){
+        modelstrings[p] <- modelToStr(propModel[[p]])
       }
       
       max_model <- modelstrings[which.is.max(table(modelstrings))]
