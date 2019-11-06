@@ -125,25 +125,36 @@ TAT_C_network <- df %>%
   group_by(network) %>%
   summarise(TAT_C = round(mean(TAT_C),2)) 
 
+TAT_C_network
+
 #Population
 TAT_C_pop <- df %>%
   group_by(population) %>%
   summarise(TAT_C = round(mean(TAT_C),2)) 
+
+TAT_C_pop
 
 #Sigma
 TAT_C_sigma <- df %>%
   group_by(sigma) %>%
   summarise(TAT_C = round(mean(TAT_C),2)) 
 
+TAT_C_sigma
+
 #Colab
 TAT_C_colab <- df %>%
   group_by(colab_cond) %>%
   summarise(TAT_C = round(mean(TAT_C),2)) 
 
+TAT_C_colab
+
 #True model
 TAT_C_mod <- df %>%
   group_by(true_model) %>%
   summarise(TAT_C = round(mean(TAT_C),2)) 
+
+TAT_C_mod
+
 ```
 
 Above chunk:
@@ -163,12 +174,14 @@ Next chunk:
 Averaged over some parameters. 
 
 ```{r}
+
 #summary stats
 TAT_C_table_inc <- TAT_C_table %>%
   group_by(population, network, net_size) %>%
   summarize(TAT_C_median = median(TAT_C),
             TAT_C_mean = mean(TAT_C),
           TAT_C_IQR = IQR(TAT_C))
+
 ```
 
 Above chunk: 

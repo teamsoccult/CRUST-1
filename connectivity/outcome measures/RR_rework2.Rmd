@@ -78,10 +78,6 @@ Which conditions, do we have enough & is it interesting?
 
 ```{r}
 
-min_number <- df_byglobal[order(df_byglobal$number),]
-min_number <- min_number[,-c(1,10)]
-head(min_number)
-
 #checking for low number of rep. studies
 low <- df_overall[order(df_overall$number),]
 low <- low[,-c(1)]
@@ -137,7 +133,7 @@ rm(low)
 ```
 
 Above chunk: 
-Some replicas without any replication studies of TRUE model.
+Some replicas without any replication studies of TRUE model (especially sig. 0.8)
 Still some with very few when combining 5 reps. 
 Should be OK though. 
 
@@ -187,6 +183,8 @@ byglobal_network <- df_byglobal %>%
             RR_SD = sd(replicated, na.rm = TRUE)) %>%
   ungroup()
 
+byglobal_network
+
 #replication based on TRUE/FALSE & POPULATIONS
 byglobal_pop <- df_byglobal %>%
   group_by(prop_t_mod, population) %>%
@@ -195,6 +193,8 @@ byglobal_pop <- df_byglobal %>%
             RR_IQR = IQR(replicated, na.rm = TRUE),
             RR_SD = sd(replicated, na.rm = TRUE)) %>%
   ungroup()
+
+byglobal_pop
 
 #replication based on TRUE/FALSE & SIGMA
 byglobal_sigma <- df_byglobal %>%
@@ -205,6 +205,8 @@ byglobal_sigma <- df_byglobal %>%
             RR_SD = sd(replicated, na.rm = TRUE)) %>%
   ungroup()
 
+byglobal_sigma
+
 #replication based on TRUE/FALSE & T_MOD
 byglobal_tmod <- df_byglobal %>%
   group_by(prop_t_mod, true_model) %>%
@@ -213,6 +215,8 @@ byglobal_tmod <- df_byglobal %>%
             RR_IQR = IQR(replicated, na.rm = TRUE),
             RR_SD = sd(replicated, na.rm = TRUE)) %>%
   ungroup()
+
+byglobal_tmod
 
 #replication based on TRUE/FALSE & COLAB
 byglobal_colab <- df_byglobal %>%
@@ -223,6 +227,8 @@ byglobal_colab <- df_byglobal %>%
             RR_SD = sd(replicated, na.rm = TRUE)) %>%
   ungroup()
 
+byglobal_colab
+
 #replication based on TRUE/FALSE & base_SS
 byglobal_SS <- df_byglobal %>%
   group_by(prop_t_mod, base_SS) %>%
@@ -232,11 +238,14 @@ byglobal_SS <- df_byglobal %>%
             RR_SD = sd(replicated, na.rm = TRUE)) %>%
   ungroup()
 
+byglobal_SS
+
 ```
 
 Above chunk: 
 (1) byglobal_network: consistently higher RR for TRUE (~50%) than false (~30%).
 TOM generally has somewhat lower rep. rate (mean, median) than SMALL/LAT. 
+However, This also means that he is as good at distinguishing..
 SMALL has quite a high RR median & TOM has quite a low RR median (for TRUE). 
 
 (2) byglobal_pop: consistently higher RR for true (~35-50%) than false (~30%).
@@ -258,11 +267,22 @@ Next chunk:
 Investigating TRUE replications only 
 
 ```{r}
+
+#sum over some parameters. 
+df_byglobal_sum <- df_byglobal %>%
+  group_by(prop_t_mod, network, population, net_size) %>%
+  summarize(RR_true_median = median(replicated, na.rm = TRUE),
+            RR_true_mean = mean(replicated, na.rm = TRUE),
+            RR_true_IQR = IQR(replicated, na.rm = TRUE),
+            RR_true_SD = sd(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
 #only true 
 df_true_sum <- df_byglobal_sum %>%
   filter(prop_t_mod == 1) %>%
   dplyr::select(network, population, RR_true_median, RR_true_IQR, 
          RR_true_mean, RR_true_SD)
+
 ```
 
 

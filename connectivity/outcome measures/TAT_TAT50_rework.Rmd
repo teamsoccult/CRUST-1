@@ -34,9 +34,10 @@ mycols <- c("replica",
             "network", 
             "population", 
             "sigma",
+            "net_size",
+            "colab_cond",
             "true_model",
             "base_SS",
-            "net_size",
             "prop_true")
 
 #loading them 
@@ -55,16 +56,33 @@ NB: proportion needs to be set to the true model (in this case 7).
 
 ```{r}
 
-#TAT
-TAT <- df %>%  #set the true model
+#TAT PER REPLICA
+TAT <- df %>%  
   mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-  group_by(replica, network, population, true_model, sigma, net_size, base_SS) %>% 
+  group_by(replica, network, population, true_model, sigma, net_size, 
+           base_SS, colab_cond) %>% 
   summarise(TAT = mean(prop_true),
             TAT50 = mean(TAT_50)) 
 
-#TAT summarizized
+#TAT AVG. OVER REP. 
+TAT <- df %>%  
+  mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
+  group_by(network, population, true_model, sigma, net_size, 
+           base_SS, colab_cond) %>% 
+  summarise(TAT = mean(prop_true),
+            TAT50 = mean(TAT_50)) 
+
+
+
+```
+
+relevant subsets 
+
+```{r}
+
+#NETWORK & POP
 TAT_sum <- TAT %>%
-  group_by(network, population, net_size) %>%
+  group_by(network, population) %>%
   summarize(TAT_median = median(TAT),
             TAT_mean = mean(TAT),
             TAT_IQR = IQR(TAT),
@@ -72,26 +90,16 @@ TAT_sum <- TAT %>%
             TAT50_mean = mean(TAT50),
             TAT50_IQR = IQR(TAT50))
 
-```
+#SIGMA
+TAT_sum1 <- TAT %>%
+  group_by(sigma) %>%
+  summarize(TAT_median = median(TAT),
+            TAT_mean = mean(TAT),
+            TAT_IQR = IQR(TAT),
+            TAT50_median = median(TAT50),
+            TAT50_mean = round(mean(TAT50),2),
+            TAT50_IQR = IQR(TAT50))
 
-relevant subsets 
-
-```{r}
-TAT_lattice_100 <- TAT_sum %>%
-  filter(network == "Lattice") %>%
-  select(network, population, TAT_median, TAT_mean, TAT_IQR)
-  
-TAT_small_100 <- TAT_sum %>%
-  filter(network == "Small") %>%
-  select(network, population, TAT_median, TAT_mean, TAT_IQR)
-
-TAT50_lattice_100 <- TAT_sum %>%
-  filter(network == "Lattice") %>%
-  select(network, population, TAT50_median, TAT50_mean, TAT50_IQR)
-
-TAT50_small_100 <- TAT_sum %>%
-  filter(network == "Small") %>%
-  select(network, population, TAT50_median, TAT50_mean, TAT50_IQR)
 
 ```
 
