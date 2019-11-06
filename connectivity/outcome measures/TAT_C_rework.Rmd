@@ -30,6 +30,7 @@ files <- list.files(path = path, pattern="*.csv") #if possible.
 
 #taken from the scatter-plot file (reconsider what is needed)
 mycols <- c("replica", 
+            "colab_cond",
             "network", 
             "population", 
             "sigma",
@@ -58,7 +59,7 @@ dfList <- lapply(files, function(f) {
 })
 
 #subsetting (because of computational demands)
-small <- do.call(rbind, dfList) 
+df <- do.call(rbind, dfList) 
 rm(dfList)
 ```
 
@@ -67,48 +68,111 @@ calculating TAT_C for small world.
 ```{r}
 
 #subsets because of runtime. 
-small_2 <- small %>%
+df_2 <- df %>%
   filter(true_model == 2) 
 
-small_7 <- small %>%
+df_7 <- df %>%
   filter(true_model == 7)
 
-small_13 <- small %>%
+df_13 <- df %>%
   filter(true_model == 13)
 
-rm(list=setdiff(ls(), c("small_2", "small_7", "small_13")))
+rm(list=setdiff(ls(), c("df_2", "df_7", "df_13")))
 
-#computing.
 #the indexing is done to make sure that we only get the true model when it is the 
-#biggest and not a tie. which.max uses ties method = "first" meaning that the first 
-#column with a tied highest value is the maxprop. Here we place the true_model as the
-#last column for each true model. 
-small_2$maxprop = names(small_2[,c(8, 10:22)])[apply(small_2[,c(8, 10:22)], 1, which.max)]
+#biggest and not a tie. which.max uses ties method = "first" meaning that the first #column with a tied highest value is the maxprop. Here we place the true_model as #the last column for each true model. 
 
-small_7$maxprop = names(small_7[,c(8:13, 15:22)])[apply(small_7[,c(8:13, 15:22)], 1, which.max)]
+df_2$maxprop = names(df_2[,c(9, 11:23)])[apply(df_2[,c(9, 11:23)], 1, which.max)]
 
-small_13$maxprop = names(small_13[,c(8:19, 21:22)])[apply(small_13[,c(8:19, 21:22)], 1, which.max)]
+df_7$maxprop = names(df_7[,c(9:14, 16:23)])[apply(df_7[,c(9:14, 16:23)], 
+                                                  1, which.max)]
+
+df_13$maxprop = names(df_13[,c(9:20, 22:23)])[apply(df_13[,c(9:20, 22:23)], 
+                                                    1, which.max)]
   
 #binding 
-small <- rbind(small_2, small_7, small_13)
+df <- rbind(df_2, df_7, df_13)
 
 #mutating 1 for TAT_c & 0 for not TAT_c
-small <- small %>%
+df <- df %>%
   mutate(TAT_C = ifelse(maxprop == "prop_true", 1, 0))
   
-#per pop, network & replica
-TAT_C_table <- small %>%
-  group_by(replica, population, network, sigma, true_model, net_size, base_SS) %>%
-  summarise(TAT_C = mean(TAT_C)) 
 
+```
+
+For all variations of parameters: 
+
+```{r}
+#All parameters 
+TAT_C_table <- df %>%
+  group_by(network, population, sigma, net_size, colab_cond, 
+           base_SS, true_model) %>%
+  summarise(TAT_C = round(mean(TAT_C),2)) 
+
+```
+
+Above chunk: 
+Seems that the only thing that matters is sigma. 
+When sigma = 0.2 they spend all their time with true consensus.
+When sigma = 0.8 they spend no time with true consensus. 
+
+Next chunk: 
+
+```{r}
+
+#Network
+TAT_C_network <- df %>%
+  group_by(network) %>%
+  summarise(TAT_C = round(mean(TAT_C),2)) 
+
+#Population
+TAT_C_pop <- df %>%
+  group_by(population) %>%
+  summarise(TAT_C = round(mean(TAT_C),2)) 
+
+#Sigma
+TAT_C_sigma <- df %>%
+  group_by(sigma) %>%
+  summarise(TAT_C = round(mean(TAT_C),2)) 
+
+#Colab
+TAT_C_colab <- df %>%
+  group_by(colab_cond) %>%
+  summarise(TAT_C = round(mean(TAT_C),2)) 
+
+#True model
+TAT_C_mod <- df %>%
+  group_by(true_model) %>%
+  summarise(TAT_C = round(mean(TAT_C),2)) 
+```
+
+Above chunk:
+Network: Somewhat higher for SMALL, somewhat lower for TOM. 
+Population: No big effect. 
+Sigma: Almost 0/1 - this carries all the effect here. 
+Colab: No effect. 
+Model: Somewhat higher for 2 (.55) than for 13 (.47)
+
+In conclusion sigma carries all the signal. 
+We should investigate why the TAT_C = 0 for high sigma.
+They shouldn't actively select against the true model.
+Perhaps it is because they simply converge to the models 
+that their research strategies dictate. 
+
+Next chunk: 
+Averaged over some parameters. 
+
+```{r}
 #summary stats
 TAT_C_table_inc <- TAT_C_table %>%
   group_by(population, network, net_size) %>%
   summarize(TAT_C_median = median(TAT_C),
             TAT_C_mean = mean(TAT_C),
           TAT_C_IQR = IQR(TAT_C))
-
 ```
+
+Above chunk: 
+waiting for more data from Mikkel to interpret. 
 
 write csv. 
 
