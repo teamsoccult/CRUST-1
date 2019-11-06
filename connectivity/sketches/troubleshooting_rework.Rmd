@@ -1,0 +1,166 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "November 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+parameters <- list()
+  
+#Has to be done to run all true models in one go. 
+trueModel <- some_models[tMod] #tMod er en liste med 2, 7, 13. 
+tModel <- strToModel(trueModel, k) #conversion. 
+
+#BETAS#
+tModelBetas <- getBetas(tModel, weights, sigma)
+  
+#TOM
+g <- readRDS("~/CRUST-1/citation_network/theory_of_mind.rds")
+
+#ALL
+V(g)$type <- sample(c("Bo", "Mave", "Tess"))
+    
+    
+# Sampling agents 
+V(g)$type <- sample(V(g)$type)
+V(g)$name <- make.unique(V(g)$type) 
+V(g)$model <- sample(some_models)
+V(g)$model <- sample(V(g)$model)
+matrix_g <- as_adjacency_matrix(g, sparse = F) 
+agentTurn <- sample(V(g)$name, size = turns, replace = T) 
+    
+turn <- 1
+study <- 0
+        
+#INITIALIZING PARAMETERS:
+propModel <- list() #CHANGE IN NAME: from prop_m to propModel
+agentsSwitch <- list() #original agents switching model. 
+old_gModel <- list() #now a list in order to check replications for colabs. 
+init_gModel <- 0
+final_gModel <- 0
+
+## Select the token of agent
+agentToken <- agentTurn[turn] 
+
+## Agents 
+agentIndex <- which((V(g)$name) == agentToken)
+agentOriginal <- agentIndex #do we need this information for logging, come back?
+      
+####### SECTION 1 #######
+## Colab study ##
+colab <- sample(c('yes', 'no'), size = 1, prob = c(colab_prob, 1-colab_prob))
+colab <- "yes"
+
+## midlertidig test variabel ##
+test_models <- list() 
+
+## Makes a list of the agents indexes ##
+agents_testing <- names(which(matrix_g[, agentIndex] == 1)) #new variable.
+
+if(length(agents_testing) >= (study_cap - study)){
+  agents_testing <- sample(agents_testing, study_cap - study - 1)
+}
+
+agents_testing <- append(agents_testing, 
+                         agentToken, after = length(agents_testing))
+      
+## Finding agents conducting study ##
+if(colab == 'yes'){
+  #empty list holding agents in original study if meta. 
+  agentIndex <- list()  
+        
+  for(i in agents_testing){
+    agentIndex[i] <- which((V(g)$name) == i)
+    
+    ## midlertidig test variabel ##
+    test_models[[i]] <- strToModel(V(g)$model[agentIndex[[i]]],k)
+  }
+}
+      
+## Finding proposed models ##
+for(i in seq_len(length(agentIndex))){ 
+  
+  #how many agents are at the true model?
+  init_gModel <- init_gModel + as.numeric(compareModels(tModel,                                          strToModel(V(g)$model[agentIndex[[i]]],k)))
+        
+  #initializing lists 
+  edges_legible <- list() 
+  edges_total <- list() 
+  
+  #edges of the i'th agent 
+  edges_total <- names(which(matrix_g[, agentIndex[[i]]] == 1)) 
+  gModel <- strToModel(V(g)$model[agentIndex[[i]]], k)
+        
+  ## continuing ##
+  for(j in edges_total){ #looping over those edges. 
+    
+    #token for the i'th edge.  
+    edgeToken <- j 
+    
+    #index for the i'th edge
+    edge_agentIndex <- which((V(g)$name) == edgeToken)
+    
+    #checking their model against agent on turn. 
+    #if same then nothing happens. 
+    #if not the same then their token is put into edges_legible
+    if(identical(strToModel(V(g)$model[agentIndex[[i]]],k),
+                 strToModel(V(g)$model[edge_agentIndex],k))){ 
+    } else {  
+      edges_legible[j] <- edgeToken
+    }
+  }
+  #determining reserach strategy. 
+  if(length(edges_legible) == 0){ #if no edges in the list then research. 
+    strategy <- 'research'
+  } else { #if there are edges in the list, then research strat. is probabilistic. 
+    strategy <- sample(c('research', 'neighbor'), size = 1, prob = c(.50, .50))
+  }
+        
+  #what happens on RESEARCH (the old system copied)
+  if(strategy == "research"){ 
+  if(V(g)$type[agentIndex[[i]]] == "Tess"){ 
+    propModel[[i]] <- modelSimilarByTerm(gModel, models, mode="random",
+                                         modelSelection=modelSelection)
+    
+    ## Mave
+  } else if(V(g)$type[agentIndex[[i]]] == "Mave"){
+    propModel[[i]]  <- models[[as.integer(
+      runif(1, min=1,max=length(models)+1))]]
+    #the change here might not be necessary if it can be changed in models.
+    
+    ## Bo 
+  } else if(V(g)$type[agentIndex[[i]]] == "Bo"){
+    propModel[[i]] <- modelSimilarByInteraction(gModel, 
+                                                models, mode="random",
+                                        modelSelection=modelSelection)
+  }
+        
+  } else { 
+    chosen_edge <- sample(edges_legible, size = 1) 
+    edge_agentIndex <- which((V(g)$name) == chosen_edge) 
+    propModel[[i]] <- strToModel(V(g)$model[edge_agentIndex],k) 
+  }
+}
+      
+##MODEL SELECTION BY MOST FREQUENT ## 
+
+modelstrings <- NULL
+
+for (p in seq_len(length(propModel))){
+  modelstrings[p] <- modelToStr(propModel[[p]])
+}
+
+max_model <- modelstrings[which.is.max(table(modelstrings))]
+
+max_model <- str_replace(max_model, "Y ~", "")
+max_model <- str_replace_all(max_model, ":", "")
+      
+model <- strToModel(max_model, k)
+
+modelToStr(model)
+
+
+```
+

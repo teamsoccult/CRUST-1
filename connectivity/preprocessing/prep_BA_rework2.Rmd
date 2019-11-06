@@ -38,7 +38,7 @@ data <- mget(ls(pattern="*csv")) %>%
 rm(list=setdiff(ls(), "data")) 
 
 #remove NA: 
-data <- na.omit(data)
+data <- na.omit(data) 
 
 
 ```
@@ -63,7 +63,7 @@ summary(data$population) #All, Bo, Mave, Tess
 summary(data$sigma) #min: 0.2, mean: 0.5, max: 0.8
 summary(data$base_SS) #min: 20, mean: 60, max: 100
 summary(data$true_model) #min: 2, mean: 7.33!!, max: 13. 
-summary(data$strategy) #Bo, Mave, Tess (should be more or less equal). 
+summary(data$strategy) #VERY SKEWED!
 
 ```
 
@@ -73,6 +73,8 @@ Comments reflect expected output (if code is working as it should).
 ```{r}
 
 #check 0: all stud. max should be what you set stud. max to. 
+summary(data$studies) 
+
 check <- data %>%
   group_by(colab_cond, replica, network, base_SS, population) %>%
   summarize(stud = max(studies))
@@ -191,7 +193,7 @@ new working directory & writing files.
 setwd("~/CRUST-1/data/tests")
 
 getwd()
-write.csv(data, "test.csv", row.names = FALSE)
+write.csv(data, "victorBash.csv", row.names = FALSE)
 
 ```
 
