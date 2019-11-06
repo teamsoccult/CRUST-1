@@ -54,7 +54,8 @@ data <- data %>%
   mutate(network = as.factor(network),
          population = as.factor(population),
          colab_cond = as.factor(colab_cond),
-         strategy = as.factor(strategy))
+         strategy = as.factor(strategy),
+         net_size = as.factor(net_size))
 
 #summary tests
 summary(data$turn) #max should be whatever max is set to (check ABM2 for input)
@@ -193,7 +194,7 @@ new working directory & writing files.
 setwd("~/CRUST-1/data/tests")
 
 getwd()
-write.csv(data, "victorBash.csv", row.names = FALSE)
+write.csv(data, "mikkelBash.csv", row.names = FALSE)
 
 ```
 
