@@ -80,9 +80,6 @@ Playing with math:
 math <- df %>%
   mutate(most_adhered = ifelse(15 == max.col(.[,c(11:25)], ties.method = "last") & studies >= 100, 1, 0))
 
-#more <- math %>%
-  #mutate(identifier = str_glue_data("{network} {population} {sigma} {net_size} {colab_cond} {base_SS} {true_model}"))
-
 #math$identifier <- math %>%
   #str_glue_data("{network} {population} {sigma} {net_size} {colab_cond} {base_SS} {true_model}")
 
