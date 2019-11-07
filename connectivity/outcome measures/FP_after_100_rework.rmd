@@ -74,6 +74,17 @@ rm(var)
 
 ```
 
+Playing with math:
+
+```{r}
+math <- df %>%
+  mutate(most_adhered = ifelse(15 == max.col(.[,c(11:25)], ties.method = "last"), 1, 0))
+
+##
+```
+
+
+
 Hit/Miss 50
 
 ```{r}
