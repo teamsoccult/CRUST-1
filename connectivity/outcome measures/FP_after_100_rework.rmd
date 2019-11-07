@@ -78,9 +78,21 @@ Playing with math:
 
 ```{r}
 math <- df %>%
-  mutate(most_adhered = ifelse(15 == max.col(.[,c(11:25)], ties.method = "last"), 1, 0))
+  mutate(most_adhered = ifelse(15 == max.col(.[,c(11:25)], ties.method = "last") & studies >= 100, 1, 0))
 
-##
+#math$identifier <- math %>%
+  #str_glue_data("{network} {population} {sigma} {net_size} {colab_cond} {base_SS} {true_model}")
+
+mathing <- math %>% 
+  group_by(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond) %>% 
+  arrange(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond, studies) %>%
+  mutate(hit_studies = studies[min(which(most_adhered == 1))], 
+         before_studies = studies[min(which(most_adhered == 1)-1)],
+         hit_prop = prop_true[min(which(most_adhered == 1))],
+         before_prop = prop_true[min(which(most_adhered == 1)-1)],
+         first_passage = round((hit_studies+before_studies)/2)) %>%
+  ungroup()
+
 ```
 
 
