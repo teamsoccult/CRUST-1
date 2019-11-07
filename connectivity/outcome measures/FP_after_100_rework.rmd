@@ -89,10 +89,6 @@ Hit/Miss 50
 df$net_size <- as.factor(df$net_size)
 df$true_model <- as.factor(df$true_model)
 
-#SETTING A CONSTANT REPLICA - SEE IF THAT WORKS
-replica_con <- max(df$replica)
-true_model_con <- length(levels(df$true_model))
-
 #how many of them got there
 hit_miss_50 <- df %>%
   group_by(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond) %>%
@@ -121,7 +117,7 @@ df_100_fftm_summary_averaged <- df_100_fftm %>%
   summarise(FP50_median = median(first_hit50),
             FP50_mean = mean(first_hit50),
             FP50_IQR = IQR(first_hit50),
-            FP50_misses = (replica_con * true_model_con) - n())
+            FP50_misses = n())
 
 #MISSES DOESN'T WORK - MAYBE SOMETHING TO DO WITH BO MAN
 
