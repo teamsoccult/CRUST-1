@@ -69,6 +69,9 @@ var <- df %>%
   group_by(network, population, sigma, net_size, colab_cond,
            base_SS, true_model) %>%
   summarize(n())
+
+rm(var)
+
 ```
 
 Hit/Miss 50
