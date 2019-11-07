@@ -71,15 +71,6 @@ var <- df %>%
   summarize(n())
 ```
 
-```{r}
-what_bo <- df %>%
-  filter(network == "TOM", colab_cond == "yes", population == "Bo")
-
-summary(what_bo)
-```
-
-
-
 Hit/Miss 50
 
 ```{r}
