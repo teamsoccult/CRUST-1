@@ -171,13 +171,14 @@ SPECIFIC PARAMETERS:
 Just change the hell out of this so that it suits your needs. 
 
 ```{r}
-net_types <- list("TOM", "Lattice", "Small") #"Lattice", "Small", "TOM"
+net_types <- list("Small") #"Lattice", "Small", "TOM"
 sigmas <- list(0.2, 0.8) #0.2, 0.5, 0.8 
 base_sampleSizes <- list(20) #20, 100. 
-pop_types <- list("Tess", "Mave") #"Bo", "Mave", "Tess", "All"
+pop_types <- list("Bo") #"Bo", "Mave", "Tess", "All"
 tMods <- list(2, 13) #2, 7, 13. 
 modelCompares <- list(BIC) #AIC, BIC 
 colab_probs <- list(0, 0.02) #no colab vs. colab. 
+
 ```
 
 ```{r}
