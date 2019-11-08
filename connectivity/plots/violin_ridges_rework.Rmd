@@ -8,9 +8,11 @@ output: html_document
 packages & working directory. 
 
 ```{r}
+
 library(pacman)
 p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
        viridis, ggridges, ggunchained)
+
 
 
 ```
@@ -21,11 +23,7 @@ loading data (come back)
 
 #working directory. 
 setwd("~/CRUST-1/data/tests")
-
 path = "~/CRUST-1/data/tests/"
-
-file <- read.csv("mikkelBash.csv", sep = ",")
-
 files <- list.files(path = path, pattern="*csv")
 
 #taken from the scatter-plot file (reconsider what is needed)
@@ -33,8 +31,10 @@ mycols <- c("replica",
             "turn", 
             "studies", 
             "network", 
+            "colab_cond",
             "population", 
             "sigma",
+            "net_size",
             "base_SS",
             "true_model",
             "strategy",
@@ -44,13 +44,13 @@ mycols <- c("replica",
             "final_g_true")
 
 #loading them 
-dfList <- lapply(files_100, function(f) {  
+dfList <- lapply(files, function(f) {  
    read.csv(paste0(path, f))[mycols]
 })
 
 #subsetting (because of computational demands)
-small_100 <- do.call(rbind, dfList) 
-rm(dfList)
+df <- do.call(rbind, dfList) 
+rm(list=setdiff(ls(), "df"))
 
 ```
 
@@ -83,11 +83,11 @@ by_global <- df %>%
                               "Sample size: 20",
                               "Sample size: 100"))
 
-#adding stuff.  
+#adding stuff (this is overall).
 RR <- RR_TAT %>%
   mutate(final_g_true = "Overall") 
 
-#changing stuff
+#changing stuff (this is true).
 by_global$final_g_true <- "True"
 
 #cbinding 
