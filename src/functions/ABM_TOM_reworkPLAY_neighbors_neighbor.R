@@ -113,19 +113,34 @@ ABM_TOM <- function(replications, turns, models, k,
           agentIndex[i] <- which((V(g)$name) == i)
         }
         
-        while (length(agentIndex) < 10) {
-          for (j in names(agentIndex)) {
-            ## Makes a list of the agents indexes ##
-            additional_agents <- names(which(matrix_g[, j] == 1))
-            for (t in additional_agents){
-              list_additional_agents[[t]] <- which((V(g)$name == t))
+        N = 1
+        
+        agentIndex[1:length(agentIndex)][2] <- N
+          repeat{
+            old_length <- length(agentIndex)
+            if(length(agentIndex) >= 10) {
+              break
             }
+            for (j in names(agentIndex)) {
+              ## Makes a list of the agents indexes ##
+              additional_agents <- names(which(matrix_g[, j] == 1))
+              for (t in additional_agents){
+                list_additional_agents[[t]] <- which((V(g)$name == t))
+              }
             
-            list_additional_agents <- list_additional_agents[!(list_additional_agents %in% agentIndex)]
+              list_additional_agents <- list_additional_agents[!(list_additional_agents %in% agentIndex)]
             
-            agentIndex <- append(agentIndex, list_additional_agents, after = length(agentIndex))
+              agentIndex <- append(agentIndex, list_additional_agents, after = length(agentIndex))
+              
+            if(length(agentIndex) >=10) {
+              break
+              }
+            }
+            N = N+1
+            
+            agentIndex[old_length:length(agentIndex)][2] <- N
           }
-        }
+        
         agentIndex <- agentIndex[1:10]
         
         for(i in names(agentIndex)){
