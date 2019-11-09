@@ -28,7 +28,7 @@ files <- list.files(path = path, pattern="*csv")
 
 #taken from the scatter-plot file (reconsider what is needed)
 mycols <- c("replica", 
-            "turn", 
+            "turn", #need this??
             "studies", 
             "network", 
             "colab_cond",
@@ -41,7 +41,7 @@ mycols <- c("replica",
             "switch_rep_study",
             "switch_rep",
             "prop_true",
-            "final_g_true")
+            "prop_t_mod") #importantly. 
 
 #loading them 
 dfList <- lapply(files, function(f) {  
@@ -57,53 +57,56 @@ rm(list=setdiff(ls(), "df"))
 BELOW: 
 preprocessing. 
 with RR for true model & by global.
+why is net_size loaded as "unknown" instead of integer?
 
 ```{r}
 
-#replication rate
+#replication rate & TAT overall 
 RR_TAT <- df %>%
   group_by(replica, network, population, sigma, true_model,
            base_SS, net_size, colab_cond) %>%
   summarize(RR = sum(switch_rep) / sum(switch_rep_study),
             TAT = mean(prop_true)) %>%
   ungroup %>%
-  mutate(sample_size = ifelse(base_SS == 20, 
+  mutate(base_SS = ifelse(base_SS == 20, 
                               "Sample size: 20",
                               "Sample size: 100"))
 
-#creating the grouped by (3 rows missing)
-by_global <- df %>%
-  group_by(final_g_true, replica, network, population, sigma, true_model,
+#replication rate & TAT (for )
+#legit to compute TAT for the subset?
+RR_TAT_TF <- df %>%
+  group_by(prop_t_mod, replica, network, population, sigma, true_model,
            base_SS, net_size, colab_cond) %>%
   summarize(RR = sum(switch_rep) / sum(switch_rep_study),
             TAT = mean(prop_true)) %>%
-  filter(final_g_true == 1) %>%
   ungroup %>%
-  mutate(sample_size = ifelse(base_SS == 20,
+  mutate(base_SS = ifelse(base_SS == 20,
                               "Sample size: 20",
                               "Sample size: 100"))
 
 #adding stuff (this is overall).
-RR <- RR_TAT %>%
-  mutate(final_g_true = "Overall") 
+RR_TAT <- RR_TAT %>%
+  mutate(prop_t_mod = "Overall") 
 
 #changing stuff (this is true).
-by_global$final_g_true <- "True"
+RR_TAT_TF$prop_t_mod <- ifelse(RR_TAT_TF$prop_t_mod == "1", "True", "False")
 
-#cbinding 
-all_overall <- rbind(by_global, RR)
+#binding 
+RR_TAT_TOTAL <- rbind(RR_TAT, RR_TAT_TF)
 
-#factor. 
-all_overall$final_g_true <- as.factor(all_overall$final_g_true)
-all_overall$sigma <- as.factor(all_overall$sigma)
-all_overall$true_model <- as.factor(all_overall$true_model)
-
-#changing names 
-all_overall <- all_overall %>%
-  rename("Population" = "population", 
+#Factorizing & Renaming 
+RR_TAT_TOTAL <- RR_TAT_TOTAL %>%
+  mutate(prop_t_mod = factor(prop_t_mod), 
+         sigma = factor(sigma), 
+         true_model = factor(true_model)) %>%
+  rename("Population" = "population",
          "Network" = "network",
-         "Sigma" = "sigma")
-
+         "Sigma" = "sigma",
+         "TrueModel" = "true_model",
+         "SampleSize" = "base_SS",
+         "Colaboration" = "colab_cond",
+         "ProposedTrue" = "prop_t_mod",
+         "NetworkSize" = "net_size")
 
 ```
 
@@ -111,11 +114,21 @@ BELOW:
 (overall) Replication rate vs. time at true model. 
 This is what we prep. with our melt. 
 We also create a function that can be used to plot. 
+NB: the text for the plot does note make sense at the moment. 
+It will have to be tailored to our needs later when we know what
+we want to group based on. 
 
 ```{r}
 
-#melting
-melt_RR_TAT <- melt(all_overall, id.vars = c("replica", "Population", "Sigma", "true_model", "sample_size", "final_g_true"), measure.vars = c("RR", "TAT"), variable.name = "variable", value.name = "proportion")
+#melting. 
+melt_RR_TAT <- melt(RR_TAT_TOTAL, 
+                    id.vars = c("replica", "Network", "Population",
+                                "Sigma", "TrueModel", "SampleSize",
+                                "Colaboration", "ProposedTrue",
+                                "NetworkSize"), 
+                    measure.vars = c("RR", "TAT"), 
+                    variable.name = "variable", 
+                    value.name = "proportion")
 
 #for populations: 
 RR_TAT_FUN <- function(melted_frame, group_var){
@@ -123,8 +136,8 @@ RR_TAT_FUN <- function(melted_frame, group_var){
   group_var <- enquo(group_var)
 
   g <- melted_frame %>%
-      filter(final_g_true == "Overall",
-             sample_size == "Sample size: 20") %>%
+      filter(ProposedTrue == "Overall", #meaning full replicas. 
+             SampleSize == "Sample size: 20") %>%
       ggplot(aes(x = proportion, y = UQ(group_var), 
                                color = variable, fill = variable)) +
       geom_density_ridges(jittered_points = TRUE, scale = 0.8, 
@@ -164,20 +177,18 @@ colnames(melt_RR_TAT)
 
 RR_TAT_FUN(melt_RR_TAT, Sigma)
 RR_TAT_FUN(melt_RR_TAT, Population)
-RR_TAT_FUN(melt_RR_TAT, true_model)
-
+RR_TAT_FUN(melt_RR_TAT, TrueModel)
+RR_TAT_FUN(melt_RR_TAT, Network)
+RR_TAT_FUN(melt_RR_TAT, Colaboration)
 
 ```
 
 
 Below: 
-preparation for plotting of RR of TRUE/FALSE
+preparation for plotting of RR of TRUE/FALSE.
+NB: the text for the plot is bogus. 
 
 ```{r}
-
-
-#melting again
-RR_melt <- melt(all_overall, id.vars = c("replica", "Population", "Sigma", "true_model", "sample_size", "final_g_true"), measure.vars = c("RR"), variable.name = "variable", value.name = "proportion")
 
 #ridges plot
 RR_FUN <- function(melted_frame, group_var){
@@ -185,10 +196,12 @@ RR_FUN <- function(melted_frame, group_var){
   group_var <- enquo(group_var)
   
 g1 <- melted_frame %>%
-    filter(sample_size == "Sample size: 20") %>%
+    filter(SampleSize == "Sample size: 20",
+           variable == "RR",
+           ProposedTrue != "False") %>%
     ggplot(aes(x = proportion, y = UQ(group_var),
-               color = final_g_true, 
-               fill = final_g_true)) +
+               color = ProposedTrue, 
+               fill = ProposedTrue)) +
     geom_density_ridges(jittered_points = TRUE, scale = 0.8, rel_min_height = .01,
                         point_shape = "|", point_size = 3, size = 0.25, 
                         position = position_points_jitter(height = 0)) +
@@ -218,24 +231,84 @@ running the plots of RR
 ```{r}
 
 #what you can group over
-colnames(RR_melt)
+colnames(melt_RR_TAT)
 
 #looking at the plots
-RR_FUN(RR_melt, Population)
-RR_FUN(RR_melt, Sigma)
-RR_FUN(RR_melt, true_model)
+RR_FUN(melt_RR_TAT, Network)
+RR_FUN(melt_RR_TAT, Population)
+RR_FUN(melt_RR_TAT, Sigma)
+RR_FUN(melt_RR_TAT, TrueModel)
+RR_FUN(melt_RR_TAT, Colaboration)
 
 ```
 
+ABOVE: 
+We have 13 rows containing non-finite values.
+These are replicas of TESS with high sigma for TRUE (I.e., there were no replication attemts of the true model in those runs). Of course this is somewhat problematic as it will skew the results somewhat. However, on aggregate the picture should still be relatively clear. 
 
-
-Ridges plot w. true vs. overall.
-Grouping by populations & averaged over everything else. 
-At the moment it groups by sample size (not sure whether we keep this). 
+BELOW: 
+Plotting replication rate (1) overall, (2) false & (3) true. 
+This makes some sense (to me) since the overall is what we know from the "outside",
+the true we want to have high & the false we want to have low. 
 
 ```{r}
 
 
+#ridges plot
+RR_FUN_FALSE <- function(melted_frame, group_var){
+  
+  group_var <- enquo(group_var)
+  
+g1 <- melted_frame %>%
+    filter(SampleSize == "Sample size: 20",
+           variable == "RR") %>%
+    ggplot(aes(x = proportion, y = UQ(group_var),
+               color = ProposedTrue, 
+               fill = ProposedTrue)) +
+    geom_density_ridges(jittered_points = TRUE, scale = 0.8, rel_min_height = .01,
+                        point_shape = "|", point_size = 3, size = 0.25, 
+                        position = position_points_jitter(height = 0)) +
+    scale_y_discrete(expand = c(0.01, 0)) +
+    xlim(0,1) + xlab("Replication rate") +
+    scale_fill_manual(values = c("#16AD3C50", "#D55E0050", "#0072B250")) +
+    scale_color_manual(values = c("#16AD3C", "#D55E00", "#0072B2"), 
+                       guide = "none") +
+    scale_discrete_manual("point_color", 
+                          values = c("#16AD3C", "#D55E00", "#0072B2"), 
+                          guide = "none") +
+    guides(fill = guide_legend("",
+      override.aes = list(
+      fill = c("#16AD3C50", "#D55E00A0", "#0072B2A0"),
+      color = NA, point_color = NA))) + 
+    theme_ridges(center = TRUE) +
+      theme_janco_point() 
+    
+  g1 + labs(caption = "Sample size: 20. Density curves are averaged over sigma-levels, true models and replicas. \n Lines at the bottom represent mean values for individual replicas") +
+    theme(plot.caption = element_text(hjust = 0.5))
+
+}
+
 ```
 
+ABOVE:
+consider colours: 
+(1) manually here: https://htmlcolorcodes.com/
+(2) otherwise consider color brewer package. 
+
+Below:
+generating plots. 
+
+```{r}
+
+#what you can group over
+colnames(melt_RR_TAT)
+
+#looking at the plots
+RR_FUN_FALSE(melt_RR_TAT, Network)
+RR_FUN_FALSE(melt_RR_TAT, Population)
+RR_FUN_FALSE(melt_RR_TAT, Sigma)
+RR_FUN_FALSE(melt_RR_TAT, TrueModel)
+RR_FUN_FALSE(melt_RR_TAT, Colaboration)
+
+```
 
