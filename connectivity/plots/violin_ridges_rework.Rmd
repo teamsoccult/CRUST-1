@@ -5,15 +5,14 @@ date: "20 maj 2019"
 output: html_document
 ---
 
-packages & working directory. 
+updated 09-11-2019. 
+plots looking at RR & its connection to TAT. 
 
 ```{r}
 
 library(pacman)
 p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
        viridis, ggridges, ggunchained, rlang)
-
-
 
 ```
 
