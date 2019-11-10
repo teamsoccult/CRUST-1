@@ -576,7 +576,7 @@ ABM_TOM <- function(replications, turns, models, k,
                                     tMod, "-", paste(ifelse(colab_prob == 0.02, "COLAB", "NOLAB")), 
                                     outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
-                quote=FALSE, sep=";", row.names=FALSE,
+                quote=FALSE, sep=",", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
   
