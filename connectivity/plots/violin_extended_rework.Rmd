@@ -32,53 +32,42 @@ mycols <- c("replica",
             "network", 
             "population", 
             "sigma",
-            "sample_size",
+            "base_SS",
+            "colab_cond",
+            "net_size",
             "true_model",
             "strategy",
-            "edges_replication_study",
-            "edges_replicated",
-            "proportion_true",
-            "final_global_true_model")
+            "switch_rep_study",
+            "switch_rep",
+            "prop_true",
+            "prop_t_mod")
 
 #loading them 
-dfList <- lapply(files_100, function(f) {  
+dfList <- lapply(files, function(f) {  
    read.csv(paste0(path, f))[mycols]
 })
 
 #subsetting (because of computational demands)
-small_100 <- do.call(rbind, dfList) 
+df <- do.call(rbind, dfList) 
 rm(dfList)
-```
-
-```{r}
-
-#reading data (read_csv from readr is much faster than read.csv)
-df <- read_csv("mikkelBash.csv")
-
 
 ```
-
-
 
 Preprocessing (should also be adjusted to accommodate better early prep). 
 
 ```{r}
 
 df <- df %>%
-  mutate(network = factor(network), 
-         true_model = factor(true_model), 
-         base_SS = factor(base_SS))
-
-#combining them 
-small$network <- as.factor(small$network)
-small$true_model <- as.factor(small$true_model)
-small$sample_size <- as.factor(small$sample_size)
+  mutate(true_model = factor(true_model),
+         base_SS = factor(base_SS),
+         sigma = factor(sigma))
 
 #replication rate small world 
-small_RR <- small %>%
-  group_by(replica, sample_size, network, population, sigma, true_model) %>%
-  summarize(RR = sum(edges_replicated) / 
-              sum(edges_replication_study)) 
+df_RR <- df %>%
+  group_by(replica, network, population, sigma, true_model,
+           base_SS, net_size, colab_cond) %>%
+  summarize(RR = sum(switch_rep) / 
+              sum(switch_rep_study)) 
 
 ```
 
@@ -109,7 +98,7 @@ axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
 new directory & loading flatViolin
 
 ```{r}
-setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1")
+setwd("~/CRUST-1")
 baseDir <- "."
 scriptDir <- paste0(baseDir, "/src/functions")
 inputDir <- paste0(baseDir, "/data")
@@ -124,12 +113,17 @@ thus with 3 times the number of observations.
 ```{r}
 
 #raincloud plot
-g <- small_RR %>%
-  filter(sample_size == "100") %>%
-  ggplot(aes(x = population, 
-             y = RR, fill = population)) +
+
+RR_FUN <- function(dfobj, xvar){
+  
+  xvar <- enquo(xvar)
+
+g <- dfobj %>%
+  filter(base_SS == "20") %>%
+  ggplot(aes(x = UQ(xvar), 
+             y = RR, fill = UQ(xvar))) +
   geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
-  geom_point(aes(y = RR, color = population), 
+  geom_point(aes(y = RR, color = UQ(xvar)), 
                   position = position_jitter(width = .15), 
                   size = .5, alpha = 0.8) +
   geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
@@ -149,6 +143,15 @@ g <- small_RR %>%
 #call the plot
 g
 
+}
+
+#running the function 
+colnames(df_RR)
+RR_FUN(df_RR, population)
+RR_FUN(df_RR, sigma)
+RR_FUN(df_RR, network)
+RR_FUN(df_RR, true_model)
+
 ```
 
 Raincloud plot by sample size & agent population.
@@ -157,10 +160,10 @@ thus with 3 times the number of observations.
 
 ```{r}
 #raincloud plot
-g <- ggplot(data = small_RR, aes(x = population, 
-                                 y = RR, fill = sample_size)) +
+g <- ggplot(data = df_RR, aes(x = population, 
+                                 y = RR, fill = base_SS)) +
   geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
-  geom_point(aes(y = RR, color = sample_size), 
+  geom_point(aes(y = RR, color = base_SS), 
                   position = position_jitter(width = .15), 
                   size = .5, alpha = 0.8) +
   geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
