@@ -1,5 +1,6 @@
-"Based on the ABM_PT and is compatible with the rework setup. 
-Last edit on 3/11/2019"
+"Now made compatible with the entire framework. 
+Recent additions: a constant of 10 agents in colab studies, with the inclusion of neighbors' neighbors. 
+Last edit on 11/11/2019"
 
 # should anything change here - do we use all of it? 
 ABM_TOM <- function(replications, turns, models, k, 
@@ -25,11 +26,11 @@ ABM_TOM <- function(replications, turns, models, k,
     # Sampling / randomizing stuff. 
     
     if(net_type == "Small"){
-      g <- sample_smallworld(1, net_size, 2, 0.05)
+      g <- sample_smallworld(1, net_size, 4, 0.05)
     }
     else if(net_type == "Lattice"){
       g <- make_lattice(length = net_size, dim = 1, 
-                        nei = 2, circular = T, directed = F)
+                        nei = 4, circular = T, directed = F)
     }
     else if(net_type == "TOM"){
       g <- readRDS("~/CRUST-1/citation_network/theory_of_mind.rds")
