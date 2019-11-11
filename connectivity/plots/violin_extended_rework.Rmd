@@ -114,16 +114,16 @@ thus with 3 times the number of observations.
 
 #raincloud plot
 
-RR_FUN <- function(dfobj, xvar){
+RR_FUN <- function(df, var){
   
-  xvar <- enquo(xvar)
+  var <- enquo(var)
 
-g <- dfobj %>%
+g <- df %>%
   filter(base_SS == "20") %>%
-  ggplot(aes(x = UQ(xvar), 
-             y = RR, fill = UQ(xvar))) +
+  ggplot(aes(x = UQ(var), 
+             y = RR, fill = UQ(var))) +
   geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
-  geom_point(aes(y = RR, color = UQ(xvar)), 
+  geom_point(aes(y = RR, color = UQ(var)), 
                   position = position_jitter(width = .15), 
                   size = .5, alpha = 0.8) +
   geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
@@ -151,70 +151,53 @@ RR_FUN(df_RR, population)
 RR_FUN(df_RR, sigma)
 RR_FUN(df_RR, network)
 RR_FUN(df_RR, true_model)
+RR_FUN(df_RR, colab_cond)
 
-```
-
-Raincloud plot by sample size & agent population.
-By inputting total_RR_sig instead we get a plot grouped by sigma & 
-thus with 3 times the number of observations. 
-
-```{r}
-#raincloud plot
-g <- ggplot(data = df_RR, aes(x = population, 
-                                 y = RR, fill = base_SS)) +
-  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
-  geom_point(aes(y = RR, color = base_SS), 
-                  position = position_jitter(width = .15), 
-                  size = .5, alpha = 0.8) +
-  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
-  expand_limits(x = 2) + #not clear that this changes much. 
-  #guides(fill = FALSE) + #legend can be deleted. 
-  guides(color = FALSE) +
-  scale_fill_tableau() +
-  scale_color_tableau() +
-  #coord_flip() +
-  theme_bw() +
-  labs(title = "Replication rate for populations",
-       subtitle = "Grouped by sample size", 
-       x = "Population", 
-       y = "Replication rate",
-       fill = "Sample size") + #sets the legend title.
-  raincloud_theme
-
-#call the plot
-g
 ```
 
 trying to group by true model. 
 
 ```{r}
 
+MOD_FUN <- function(.df, .var1, .var2){
+  
+  var1 <- enquo(.var1)
+  var2 <- enquo(.var2)
+  print(var1)
+  print(var2)
+  
 #raincloud plot
-g <- small_RR %>%
-  filter(sample_size == "100") %>%
-  ggplot(aes(x = population, 
-                              y = RR, fill = true_model)) +
-  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
-  geom_point(aes(y = RR, color = true_model), 
-                  position = position_jitter(width = .15), 
-                  size = .5, alpha = 0.8) +
-  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
-  expand_limits(x = 2) + #not clear that this changes much. 
-  #guides(fill = FALSE) + #legend can be deleted. 
-  guides(color = FALSE) +
-  scale_fill_tableau() +
-  scale_color_tableau() +
-  #coord_flip() +
-  theme_bw() +
-  labs(title = "Replication rate for populations",
-       subtitle = "Grouped by true model", 
-       x = "Population", 
-       y = "Replication rate",
-       fill = "True model") + #sets the legend title.
-  raincloud_theme
+  g <- .df %>%
+    ggplot(aes(x = UQ(var1), y = RR, fill = UQ(var2))) +
+    geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+    geom_point(aes(y = RR, color = UQ(var2)), 
+                    position = position_jitter(width = .15), 
+                    size = .5, alpha = 0.8) +
+    geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+    expand_limits(x = 2) + #not clear that this changes much. 
+    #guides(fill = FALSE) + #legend can be deleted. 
+    guides(color = FALSE) +
+    scale_fill_tableau() +
+    scale_color_tableau() +
+    #coord_flip() +
+    theme_bw() +
+    labs(title = "Replication rate for populations",
+         subtitle = "Grouped by true model", 
+         x = "Population", 
+         y = "Replication rate",
+         fill = "True model") + #sets the legend title.
+    raincloud_theme
+  
+  #call the plot
+  g
 
-#call the plot
-g
+}
+
+colnames(df_RR)
+MOD_FUN(df_RR, population, true_model)
+MOD_FUN(df_RR, population, sigma)
+MOD_FUN(df_RR, sigma, true_model)
+
 ```
 
 with RR for true model (preprocessing)
