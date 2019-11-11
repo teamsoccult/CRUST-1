@@ -107,43 +107,85 @@ ABM_TOM <- function(replications, turns, models, k,
       ## Finding agents conducting study ##
       if(colab == 'yes'){
         #empty list holding agents in original study if meta. 
-        agentIndex <- list()  
+        agentIndex <- list()
+        list_additional_agents <- list()
         
         for(i in agents_testing){
           agentIndex[i] <- which((V(g)$name) == i)
         }
         
+        #BASE COUNTER OF LAYERS:
         N = 1
         
-        agentIndex[1:length(agentIndex)][2] <- N
-          repeat{
-            old_length <- length(agentIndex)
-            if(length(agentIndex) >= 10) {
+        #GIVING THE ORIGINAL AGENTS THE COUNTER 1:
+        for (i in seq_len(length(agentIndex))){
+          agentIndex[1:length(agentIndex)][[i]] <- N
+        }
+        
+        #IF THERE ARE MORE THAN 10 GUYS, THEN OLD_LENGTH IS 0
+        old_length <- 0
+        
+          repeat{ #REPEATS THE FOLLOWING PART UNTIL length(agentIndex >= 10)
+            
+            if(length(agentIndex) >=10) {
               break
             }
+            
+            #THE LENGTH OF EVERYTHING BUT THE OUTER LAYER
+            old_length <- length(agentIndex)
+            
+            #COUNTER OF LAYERS:
+            N = N+1
+            
+            #FINDING THE NEIGHBORS OF THE NEIGHBORS:
+            
             for (j in names(agentIndex)) {
+              
               ## Makes a list of the agents indexes ##
+              
               additional_agents <- names(which(matrix_g[, j] == 1))
               for (t in additional_agents){
                 list_additional_agents[[t]] <- which((V(g)$name == t))
               }
             
-              list_additional_agents <- list_additional_agents[!(list_additional_agents %in% agentIndex)]
-            
-              agentIndex <- append(agentIndex, list_additional_agents, after = length(agentIndex))
+              #ONLY INCLUDING THOSE WHO ARENT IN AGENT INDEX
+              list_additional_agents <- list_additional_agents[!(names(list_additional_agents) %in% names(agentIndex))]
               
-            if(length(agentIndex) >=10) {
-              break
+              #FIGURING OUT WHAT ITERATION THE AGENTS WHERE FOUND IN
+              for (i in seq_len(length(list_additional_agents))){
+                list_additional_agents[1:length(list_additional_agents)][[i]] <- N
               }
-            }
-            N = N+1
             
-            agentIndex[old_length:length(agentIndex)][2] <- N
-          }
+              #ALL THE AGENTS FOUND DURING THE REPEAT LOOP:
+              agentIndex <- append(agentIndex, list_additional_agents, after = length(agentIndex))
+            }
+          } #END OF REPEAT
         
-        agentIndex <- agentIndex[1:10]
+        ###SAMPLING THE NEW AGENTS
         
-        for(i in names(agentIndex)){
+        #OUTER LAYER:
+        
+        sample_agents <- agentIndex[which(agentIndex == N)]
+        
+        #INNER LAYER:
+        
+        agentIndex <- agentIndex[which(!(agentIndex == N))] 
+        
+        #SAMPLING BASED ON THE OLD LENGTH
+        
+        sample_agents <- sample(sample_agents, size = (10 - old_length))
+        
+        #FINAL APPEND
+        agentIndex <- append(agentIndex, sample_agents, after = length(agentIndex))
+        
+        #GETTING BACK TO THE RIGHT FORMAT
+        for (i in seq_len(length(agentIndex))){
+          agentIndex[1:length(agentIndex)][[i]] <- which((V(g)$name) == names(agentIndex)[i])
+        }
+        
+        #FINDING TEST_MODELS: 
+        
+        for(i in seq_len(length(agentIndex))){
           ## midlertidig test variabel ##
           test_models[[i]] <- strToModel(V(g)$model[agentIndex[[i]]],k)
         }
