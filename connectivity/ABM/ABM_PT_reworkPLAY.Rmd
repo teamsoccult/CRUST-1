@@ -5,8 +5,10 @@ date: "5/16/2019"
 output: html_document
 ---
 
-Updated on 31-10-2019.
-Now up to the changes made in the rework-session. New constants, fewer variables. This is the document for the TOM-networks and 484-sized networks in general. 
+Updated on 11/11/2019.
+Compatible with the TOM rework play document. 
+New constants, fewer variables. 
+This is the document for the PT-networks and 413-sized networks in general. 
 
 
 ```{r setup, include=FALSE}
@@ -53,7 +55,7 @@ source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
 source(paste0(scriptDir, "/simulator.R"))
 source(paste0(scriptDir, "/strToModel.R"))
-source(paste0(scriptDir, "/ABM_TOM_FINAL.R")) #TOM cit. network. 
+source(paste0(scriptDir, "/ABM_PT_FINAL.R")) #TOM cit. network. 
 ```
 
 some_models, g & agentTurn
@@ -109,7 +111,7 @@ For output.
 These are the parameters we don't vary. 
 
 ```{r}
-net_size <- 484
+net_size <- 413
 
 ```
 
@@ -124,7 +126,7 @@ FULL RUN:
 defining parameters
 
 ```{r}
-net_types <- list("Lattice", "Small", "TOM")
+net_types <- list("Lattice", "Small", "PT") #Lattice, Small, PT
 sigmas <- list(0.2, 0.5, 0.8) #0.2 & 0.8 deleted. 
 base_sampleSizes <- list(20, 100) #20 deleted. 
 pop_types <- list("Bo", "Tess", "Mave", "All")
@@ -150,7 +152,7 @@ for(net_type in net_types){
           for(modelCompare in modelCompares){
             for(colab_prob in colab_probs){
         
-ABM_TOM(replications, turns, models, k, 
+ABM_PT(replications, turns, models, k, 
     weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
@@ -171,7 +173,7 @@ SPECIFIC PARAMETERS:
 Just change the hell out of this so that it suits your needs. 
 
 ```{r}
-net_types <- list("Small") #"Lattice", "Small", "TOM"
+net_types <- list("Small") #"Lattice", "Small", "PT"
 sigmas <- list(0.2, 0.8) #0.2, 0.5, 0.8 
 base_sampleSizes <- list(20) #20, 100. 
 pop_types <- list("Bo") #"Bo", "Mave", "Tess", "All"
@@ -195,7 +197,7 @@ for(net_type in net_types){
           for(modelCompare in modelCompares){ #should be
             for(colab_prob in colab_probs){
         
-ABM_TOM(replications, turns, models, k, 
+ABM_PT(replications, turns, models, k, 
     weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds, some_models)
@@ -215,7 +217,7 @@ end_time - start_time
 Hard-set for troubleshooting 
 
 ```{r}
-net_type <- "TOM" #"Lattice", "Small", "TOM"
+net_type <- "PT" #"Lattice", "Small", "PT"
 sigma <- 0.5 #0.2, 0.5, 0.8 
 base_sampleSize <- 20 #20, 100. 
 pop_type <- "All" #"Bo", "Mave", "Tess", "All"
