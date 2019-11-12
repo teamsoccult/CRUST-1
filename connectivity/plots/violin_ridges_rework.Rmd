@@ -44,12 +44,24 @@ mycols <- c("replica",
 
 #loading them 
 dfList <- lapply(files, function(f) {  
-   read.csv(paste0(path, f))[mycols]
+   read_csv(paste0(path, f))[mycols]
 })
 
 #subsetting (because of computational demands)
 df <- do.call(rbind, dfList) 
 rm(list=setdiff(ls(), "df"))
+
+#as factor
+str(df)
+df <- df %>%
+  mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         base_SS = factor(base_SS),
+         colab_cond = factor(colab_cond),
+         net_size = factor(net_size),
+         true_model = factor(true_model),
+         strategy = factor(strategy))
 
 ```
 
@@ -179,6 +191,7 @@ RR_TAT_FUN(melt_RR_TAT, Population)
 RR_TAT_FUN(melt_RR_TAT, TrueModel)
 RR_TAT_FUN(melt_RR_TAT, Network)
 RR_TAT_FUN(melt_RR_TAT, Colaboration)
+RR_TAT_FUN(melt_RR_TAT, NetworkSize)
 
 ```
 
@@ -238,6 +251,7 @@ RR_FUN(melt_RR_TAT, Population)
 RR_FUN(melt_RR_TAT, Sigma)
 RR_FUN(melt_RR_TAT, TrueModel)
 RR_FUN(melt_RR_TAT, Colaboration)
+RR_FUN(melt_RR_TAT, NetworkSize)
 
 ```
 
