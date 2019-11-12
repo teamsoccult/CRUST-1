@@ -23,7 +23,7 @@ loading data.
 #working directory. 
 setwd("~/CRUST-1/data/tests")
 path = "~/CRUST-1/data/tests/"
-files <- list.files(path = path, pattern="*csv")
+files <- list.files(path = path, pattern="*2019.csv")
 
 #taken from the scatter-plot file (reconsider what is needed)
 mycols <- c("replica", 

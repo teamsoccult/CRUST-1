@@ -16,7 +16,7 @@ setwd("~/CRUST-1/data/new_data")
 
 #packages
 library(pacman)
-p_load(tidyverse, tidyselect)
+p_load(tidyverse, tidyselect, data.table)
 
 ```
 
@@ -26,7 +26,7 @@ This is much faster & cleaner than the old system.
 ```{r}
 
 ### potential new prep ###
-myfiles = list.files(pattern="*.csv", full.names=TRUE)
+myfiles = list.files(pattern=c("*COLAB.csv"), full.names=TRUE)
 data <- plyr::ldply(myfiles, read_csv)
 data <- na.omit(data)
 data <- tibble::as_tibble(data)
@@ -51,6 +51,8 @@ data <- data %>%
          orig_type = factor(orig_type),
          strategy = factor(strategy))
 
+str(data) #all grouping should be factor & the rest numeric/integer. 
+
 #summary tests
 summary(data$studies) #max should be whatever max is set to (check ABM2 for input)
 summary(data$network) #Lattice, Small 
@@ -73,6 +75,9 @@ check <- data %>%
   group_by(replica, network, population, sigma, true_model,
            base_SS, net_size, colab_cond) %>%
   summarize(stud = max(studies))
+
+min(check$stud) #10,000
+max(check$stud) #10,000
 
 #check 1: true model = the true model 
 data2 <- data %>%
@@ -190,7 +195,11 @@ new working directory & writing files.
 setwd("~/CRUST-1/data/tests")
 
 getwd()
-write.csv(data, "mikkelBash.csv", row.names = FALSE)
+write.csv(data, ".csv", row.names = FALSE)
+
+#faster but we need to make sure that it works. 
+data.table:fwrite(data, ".csv", row.names = FALSE)
+
 
 ```
 
