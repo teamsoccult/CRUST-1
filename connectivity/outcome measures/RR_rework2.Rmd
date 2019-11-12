@@ -39,12 +39,25 @@ mycols <- c("replica",
 
 #loading them 
 dfList <- lapply(files, function(f) {  
-   read.csv(paste0(path, f))[mycols]
+   read_csv(paste0(path, f))[mycols]
 })
 
 #subsetting (because of computational demands)
 df <- do.call(rbind, dfList) 
 rm(dfList)
+
+#as factor
+df <- df %>%
+  mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         base_SS = factor(base_SS),
+         colab_cond = factor(colab_cond),
+         net_size = factor(net_size),
+         true_model = factor(true_model))
+
+str(df)
+
 ```
 
 How many total variations (for overview)
@@ -63,6 +76,7 @@ rm(var)
 replication overall (used for overview)
 
 ```{r}
+
 #replication overall 
 df_overall <- df %>%
   group_by(replica, network, population, sigma, net_size, colab_cond, 
@@ -70,6 +84,12 @@ df_overall <- df %>%
   summarize(replicated = sum(switch_rep) / sum(switch_rep_study),
             number = sum(switch_rep_study)) %>%
   ungroup()
+
+min(df_overall$number)
+max(df_overall$number)
+min(df_overall$replicated)
+max(df_overall$replicated)
+
 ```
 
 Next chunk: 
@@ -115,6 +135,10 @@ df_byglobal <- df %>%
 low <- df_byglobal[order(df_byglobal$number),]
 low <- low[,-c(2,10)]
 low
+
+#how many below 10: 
+low <- df_byglobal %>%
+  filter(number <= 10)
 
 #making dataframe not grouped by replica
 df_byglobal1 <- df %>%
