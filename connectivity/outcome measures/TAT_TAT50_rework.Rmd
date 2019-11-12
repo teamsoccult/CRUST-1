@@ -42,12 +42,25 @@ mycols <- c("replica",
 
 #loading them 
 dfList <- lapply(files, function(f) {  
-   read.csv(paste0(path, f))[mycols]
+   read_csv(paste0(path, f))[mycols]
 })
 
 #subsetting (because of computational demands)
 df <- do.call(rbind, dfList) 
 rm(dfList)
+
+#as factor
+df <- df %>%
+  mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         base_SS = factor(base_SS),
+         colab_cond = factor(colab_cond),
+         net_size = factor(net_size),
+         true_model = factor(true_model))
+
+str(df)
+
 ```
 
 Calculating TAT (total time)
