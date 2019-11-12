@@ -1,6 +1,6 @@
 "Now made compatible with the entire framework. 
-Recent additions: a constant of 10 agents in colab studies, with the inclusion of neighbors' neighbors. 
-Last edit on 11/11/2019"
+Recent additions: Cap of studies made compatible with neighbor's neighbor.
+Last edit on 12/11/2019"
 
 # should anything change here - do we use all of it? 
 ABM_TOM <- function(replications, turns, models, k, 
@@ -92,21 +92,21 @@ ABM_TOM <- function(replications, turns, models, k,
       ## Colab study ##
       colab <- sample(c('yes', 'no'), size = 1, prob = c(colab_prob, 1-colab_prob))
       
-      ## midlertidig test variabel ##
-      test_models <- list() 
-      
-      ## Makes a list of the agents indexes ##
-      agents_testing <- names(which(matrix_g[, agentIndex] == 1)) #new variable.
-      
-      if(length(agents_testing) >= (study_cap - study)){
-      agents_testing <- sample(agents_testing, study_cap - study - 1)
+      if((study_cap - study) <= 10){
+        
+        colab <- "no" #NEW CHANGE - EXCLUDING THE POSSIBILITY OF COLAB 
       }
-
-      agents_testing <- append(agents_testing, 
-                               agentToken, after = length(agents_testing))
       
       ## Finding agents conducting study ##
       if(colab == 'yes'){
+        
+        ## Makes a list of the agents indexes ##
+        agents_testing <- names(which(matrix_g[, agentIndex] == 1)) #new variable.
+        
+        ## Appending the original agent
+        agents_testing <- append(agents_testing, 
+                                 agentToken, after = length(agents_testing))
+        
         #empty list holding agents in original study if meta. 
         agentIndex <- list()
         list_additional_agents <- list()
@@ -182,13 +182,6 @@ ABM_TOM <- function(replications, turns, models, k,
         #GETTING BACK TO THE RIGHT FORMAT
         for (i in seq_len(length(agentIndex))){
           agentIndex[1:length(agentIndex)][[i]] <- which((V(g)$name) == names(agentIndex)[i])
-        }
-        
-        #FINDING TEST_MODELS: 
-        
-        for(i in seq_len(length(agentIndex))){
-          ## midlertidig test variabel ##
-          test_models[[i]] <- strToModel(V(g)$model[agentIndex[[i]]],k)
         }
       }
       
