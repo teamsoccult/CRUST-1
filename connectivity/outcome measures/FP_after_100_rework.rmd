@@ -54,7 +54,7 @@ mycols <- c("replica",
 
 #loading them 
 dfList <- lapply(files, function(f) {  
-   read.csv(paste0(path, f))[mycols]
+   read_csv(paste0(path, f))[mycols]
 })
 
 #subsetting (because of computational demands)
@@ -74,7 +74,7 @@ rm(var)
 
 ```
 
-Playing with math:
+Now employing a VERY simple method, ##THE MEAN ##. Although this is a very simplistic way of getting the first passage, I think this could be a way of tackling it. However, the way it is measured makes some trials have a first passage below 100. The chunk below automatically assign those trials the value 100. 
 
 ```{r}
 math <- df %>%
@@ -90,11 +90,37 @@ mathing <- math %>%
          before_studies = studies[min(which(most_adhered == 1)-1)],
          hit_prop = prop_true[min(which(most_adhered == 1))],
          before_prop = prop_true[min(which(most_adhered == 1)-1)],
-         first_passage = round((hit_studies+before_studies)/2)) %>%
+         first_passage = round((hit_studies+before_studies)/2),
+         first_passage = ifelse(first_passage <= 100, 100, first_passage)) %>% #This final line makes all the means below 100 go to 100. 
   ungroup()
 
 ```
 
+first passage
+
+```{r}
+
+tommy <- na.omit(mathing) #VERY PROBLEMATIC, SKEWS THE TRIALS - HOW TO CIRCUMVENT THIS
+
+population_math <- tommy %>%
+  group_by(population) %>%
+  summarize(FPMA_median = median(first_passage), 
+            FPMA_mean = mean(first_passage),
+            FPMA_IQR = IQR(first_passage)) 
+
+sigma_math <- tommy %>% 
+  group_by(sigma) %>%
+  summarize(FPMA_median = median(first_passage), 
+            FPMA_mean = mean(first_passage),
+            FPMA_IQR = IQR(first_passage)) 
+
+true_math <- tommy %>%
+  group_by(true_model) %>%
+  summarize(FPMA_median = median(first_passage), 
+            FPMA_mean = mean(first_passage),
+            FPMA_IQR = IQR(first_passage)) 
+
+```
 
 
 Hit/Miss 50
