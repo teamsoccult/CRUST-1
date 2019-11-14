@@ -1,0 +1,99 @@
+---
+title: "prep_BA_reworkLOOP"
+author: "Victor Møller"
+date: "November 14, 2019"
+output: html_document
+---
+14-09-2019
+This document tests & cleans data from ABM5. 
+It is probably only going to work for test-phase with small
+amounts of data. It takes data from "new_data" folder and outputs to "tests".
+
+```{r}
+#Mikkels external 
+setwd("D:/data_new")
+
+#packages
+library(pacman)
+p_load(tidyverse, tidyselect, data.table)
+
+```
+
+
+```{r}
+
+#for basic tests
+condition <- list()
+network <- list()
+population <- list()
+sigma <- list()
+base_SS <- list()
+true_model <- list()
+replica <- list()
+
+#for other tests 
+studiesMAX <- list()
+studiesMIN <- list()
+
+#your files 
+myfiles = list.files(pattern=c("*.csv"), full.names=TRUE)
+
+#running the function
+dataload <- function(i){
+  
+  #setting working directory
+  setwd("D:/data_new")
+  
+  #reading data
+  data <- read_csv(myfiles[i])
+  data <- na.omit(data)
+  data <- tibble::as_tibble(data)
+  
+  #factorizing 
+  data <- data %>%
+  mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         net_size = factor(net_size),
+         base_SS = factor(base_SS),
+         true_model = factor(true_model),
+         colab_cond = factor(colab_cond),
+         orig_type = factor(orig_type),
+         strategy = factor(strategy))
+  
+  #basic tests 
+  condition[i] <- paste0(myfiles[i]) #filename 
+  network[i] <- levels(data$network)
+  population[i] <- levels(data$population)
+  sigma[i] <- levels(data$population)
+  base_SS[i] <- levels(data$base_SS)
+  true_model[i] <- levels(data$true_model)
+  replica[i] <- max(data$replica) #did they reach max rep. 
+  
+  #more tests 1: all replicas 10,000. 
+  check <- data %>%
+  group_by(replica, network, population, sigma, true_model,
+           base_SS, net_size, colab_cond) %>%
+  summarize(stud = max(studies))
+  
+  studiesMAX[i] <- min(check$stud) #10,000
+  studiesMIN[i] <- max(check$stud) #10,000
+  
+  #working directory
+  setwd("D:/data_prepped")
+  write_csv(data, paste0(myfiles[i]))
+  
+}
+
+
+for(i in seq_len(length(myfiles))){
+  dataload(i)
+  
+}
+
+#test <- read_csv("PT_All_0.2_BIC_413_hard_20_13-COLAB.csv")
+
+```
+
+
+
