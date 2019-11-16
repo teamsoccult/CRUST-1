@@ -26,7 +26,7 @@ This is much faster & cleaner than the old system.
 ```{r}
 
 ### potential new prep ###
-myfiles = list.files(pattern=c("*COLAB.csv"), full.names=TRUE)
+myfiles = list.files(pattern=c("*.csv"), full.names=TRUE)
 data <- plyr::ldply(myfiles, read_csv)
 data <- na.omit(data)
 data <- tibble::as_tibble(data)
@@ -61,6 +61,7 @@ summary(data$sigma) #min: 0.2, mean: 0.5, max: 0.8
 summary(data$base_SS) #min: 20, mean: 60, max: 100
 summary(data$true_model) #min: 2, mean: 7.33!!, max: 13. 
 summary(data$strategy) #VERY SKEWED!
+summary(data$replica)
 
 ```
 
@@ -68,7 +69,6 @@ More sophisticated tests.
 Comments reflect expected output (if code is working as it should).
 
 ```{r}
-
 
 #check 0: max studies per 
 check <- data %>%
@@ -81,7 +81,7 @@ max(check$stud) #10,000
 
 #check 1: true model = the true model 
 data2 <- data %>%
-  filter(true_model == 2)
+  filter(true_model == paste0(i$true_model[1]))
 
 data7 <- data %>%
   filter(true_model == 7)

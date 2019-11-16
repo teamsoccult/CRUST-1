@@ -23,7 +23,7 @@ Does it pass our sanity checks & do we have all cases?
 ```{r}
 
 #Working directory of RAW data. 
-setwd("D:/data_new1")
+setwd("D:/Data from Computer Room/LATTICE")
 
 #for basic tests
 condition <- list()
@@ -37,6 +37,7 @@ replica <- list()
 #for other tests 
 studiesMAX <- list()
 studiesMIN <- list()
+prop_true <- list()
 
 #the masterlist
 masterlist <- list()
@@ -45,7 +46,7 @@ masterlist <- list()
 files = list.files(pattern=c("*.csv"), full.names=TRUE)
 
 #running the function
-datacheck <- function(i){
+dataload <- function(i){
   
   for(i in files){
     
@@ -84,15 +85,22 @@ datacheck <- function(i){
   studiesMAX[i] <- min(check$stud) #10,000
   studiesMIN[i] <- max(check$stud) #10,000
   
+  #more tests 2: true model = true model
+  data2 <- i %>%
+  filter(true_model == paste0(i$true_model[1]))
+  prop_true[i] <- all(data2$prop_2 == data2$prop_true)
+  
+  
   }
   
   masterlist <- list(network, population, sigma, base_SS,
-                     true_model, replica, studiesMAX, studiesMIN)
+                     true_model, replica, studiesMAX, studiesMIN,
+                     prop_true)
   return(masterlist)
   
 }
 
-test <- datacheck(files)
+test <- dataload(files)
 
 ## taking out parameters 
 network <- unname(unlist(test[[1]]))
@@ -104,63 +112,6 @@ replica <- unname(unlist(test[[6]]))
 studiesMAX <- unname(unlist(test[[7]]))
 studiesMIN <- unname(unlist(test[[8]]))
 
-#checking
-network
-population
-sigma
-base_SS
-true_model
-replica
-studiesMAX
-studiesMIN
-
-```
-
-write the cleaned files into another directory
-
-```{r}
-
-#Working directory of RAW data. 
-setwd("D:/data_new1")
-
-#your files 
-files = list.files(pattern=c("*.csv"), full.names=TRUE)
-
-#the function
-datawrite <- function(i){
-  
-  for(i in files){
-  
-  #where your raw files are:   
-  setwd("D:/data_new1")
-    
-  #reading data:
-  data <- read_csv(i)
-  data <- na.omit(data)
-  data <- tibble::as_tibble(data)
-  
-  #factorizing (might not work anyways): 
-  data <- data %>%
-  mutate(network = factor(network),
-         population = factor(population),
-         sigma = factor(sigma),
-         net_size = factor(net_size),
-         base_SS = factor(base_SS),
-         true_model = factor(true_model),
-         colab_cond = factor(colab_cond),
-         orig_type = factor(orig_type),
-         strategy = factor(strategy))
-  
-  #directory for the files: 
-  setwd("D:/data_prepped1")
-  
-  #write csv:
-  write_csv(data, paste0(i))
-  
-  }
-}
-
-datawrite(files)
 
 
 ```
@@ -170,8 +121,8 @@ data preparation for "violin_extended_rework":
 ```{r}
 
 #working directory. 
-setwd("D:/data_prepped1")
-path = "D:/data_prepped1/"
+setwd("E:/data_prepped")
+path = "E:/data_prepped/"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -223,23 +174,9 @@ violin_extended_rework <- function(files){
   }
     
   df_final <- do.call("rbind", datalist)
-  
-  #directory for the files: 
-  setwd("D:/data_plotting")
-  
-  #write csv:
-  write_csv(df_final, "violin_extended_rework.csv")
-
+  return(df_final)
 }
 
-#calling the function
-violin_extended_rework(files)
-
 ```
 
-data preparation for "violin_extended_rework": 
-
-```{r}
-
-```
 

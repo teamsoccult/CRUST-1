@@ -16,65 +16,23 @@ p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
 
 ```
 
-loading data. 
-
-```{r}
-
-#working directory. 
-setwd("~/CRUST-1/data/tests")
-path = "~/CRUST-1/data/tests/"
-files <- list.files(path = path, pattern="*2019.csv")
-
-#taken from the scatter-plot file (reconsider what is needed)
-mycols <- c("replica", 
-            "turn", 
-            "studies", 
-            "network", 
-            "population", 
-            "sigma",
-            "base_SS",
-            "colab_cond",
-            "net_size",
-            "true_model",
-            "strategy",
-            "switch_rep_study",
-            "switch_rep",
-            "prop_true",
-            "prop_t_mod")
-
-#loading them 
-dfList <- lapply(files, function(f) {  
-   read_csv(paste0(path, f))[mycols]
-})
-
-#subsetting (because of computational demands)
-df <- do.call(rbind, dfList) 
-rm(dfList)
-
-#as factor
-df <- df %>%
-  mutate(network = factor(network),
-         population = factor(population),
-         sigma = factor(sigma),
-         base_SS = factor(base_SS),
-         colab_cond = factor(colab_cond),
-         net_size = factor(net_size),
-         true_model = factor(true_model),
-         strategy = factor(strategy))
-
-```
-
 Preprocessing (should also be adjusted to accommodate better early prep). 
 
 ```{r}
 
-#replication rate small world 
-df_RR <- df %>%
-  group_by(replica, network, population, sigma, true_model,
-           base_SS, net_size, colab_cond) %>%
-  summarize(RR = sum(switch_rep) / 
-              sum(switch_rep_study)) 
+#load data 
+setwd("D:/data_plotting")
+df <- read_csv("violin_extended_rework.csv")
 
+#as factor
+df <- df %>%
+mutate(network = factor(network),
+      population = factor(population),
+      sigma = factor(sigma),
+      base_SS = factor(base_SS),
+      colab_cond = factor(colab_cond),
+      net_size = factor(net_size),
+      true_model = factor(true_model))
 ```
 
 raincloud prep
@@ -110,6 +68,8 @@ scriptDir <- paste0(baseDir, "/src/functions")
 inputDir <- paste0(baseDir, "/data")
 outputDir <- paste0(baseDir, "/data")
 source(paste0(scriptDir, "/flatViolin.R"))
+
+
 ```
 
 Main effects (1). 
@@ -150,13 +110,13 @@ g
 }
 
 #running the function 
-colnames(df_RR)
-RR_FUN(df_RR, population)
-RR_FUN(df_RR, sigma)
-RR_FUN(df_RR, network)
-RR_FUN(df_RR, true_model) #looks terrible
-RR_FUN(df_RR, colab_cond) #looks terrible 
-RR_FUN(df_RR, net_size) #looks terrible. 
+colnames(df)
+RR_FUN(df, population)
+RR_FUN(df, sigma)
+RR_FUN(df, network)
+RR_FUN(df, true_model) #looks terrible
+RR_FUN(df, colab_cond) #looks terrible 
+RR_FUN(df, net_size) #looks terrible. 
 
 ```
 
@@ -249,42 +209,42 @@ RR_FUN3 <- function(.df, .var1, .var2){
 }
 
 #what can we plot over? 
-colnames(df_RR)
+colnames(df)
 
 #population vs. everything: 
-RR_FUN3(df_RR, population, network) #tom is lower for all. 
-RR_FUN3(df_RR, population, sigma) #some interaction w. BO vs. everyone else. 
-RR_FUN3(df_RR, population, true_model) #no real effect. 
-RR_FUN3(df_RR, population, colab_cond) #no effect it seems. 
-RR_FUN3(df_RR, population, net_size) #no effect. 
+RR_FUN3(df, population, network) #tom is lower for all. 
+RR_FUN3(df, population, sigma) #some interaction w. BO vs. everyone else. 
+RR_FUN3(df, population, true_model) #no real effect. 
+RR_FUN3(df, population, colab_cond) #no effect it seems. 
+RR_FUN3(df, population, net_size) #no effect. 
 
 #network vs. everything 
-RR_FUN3(df_RR, network, population) #TOM does worst overall. 
-RR_FUN3(df_RR, network, sigma) #TOM does worst overall 
-RR_FUN3(df_RR, network, true_model) #TOM does worst overall. 
-RR_FUN3(df_RR, network, colab_cond) #TOM does worst overall. 
-RR_FUN3(df_RR, network, net_size) #same. 
+RR_FUN3(df, network, population) #TOM does worst overall. 
+RR_FUN3(df, network, sigma) #TOM does worst overall 
+RR_FUN3(df, network, true_model) #TOM does worst overall. 
+RR_FUN3(df, network, colab_cond) #TOM does worst overall. 
+RR_FUN3(df, network, net_size) #same. 
 
 #sigma vs. everything
-RR_FUN3(df_RR, sigma, network) #TOM worst, more spread for 0.2
-RR_FUN3(df_RR, sigma, population) #big Tess & Bo effects (unsurprisingly)
-RR_FUN3(df_RR, sigma, true_model) #interaction effect for sure. 
-RR_FUN3(df_RR, sigma, colab_cond) #nothing. 
-RR_FUN3(df_RR, sigma, net_size) #nothing. 
+RR_FUN3(df, sigma, network) #TOM worst, more spread for 0.2
+RR_FUN3(df, sigma, population) #big Tess & Bo effects (unsurprisingly)
+RR_FUN3(df, sigma, true_model) #interaction effect for sure. 
+RR_FUN3(df, sigma, colab_cond) #nothing. 
+RR_FUN3(df, sigma, net_size) #nothing. 
 
 #true model vs. everything 
-RR_FUN3(df_RR, true_model, population)  
-RR_FUN3(df_RR, true_model, network) #least action/change/diff in TOM
-RR_FUN3(df_RR, true_model, sigma) #interaction effect (same as before)
-RR_FUN3(df_RR, true_model, colab_cond) #nothing
-RR_FUN3(df_RR, true_model, net_size) #nothing. 
+RR_FUN3(df, true_model, population)  
+RR_FUN3(df, true_model, network) #least action/change/diff in TOM
+RR_FUN3(df, true_model, sigma) #interaction effect (same as before)
+RR_FUN3(df, true_model, colab_cond) #nothing
+RR_FUN3(df, true_model, net_size) #nothing. 
 
 #colab condition vs. everything
-RR_FUN3(df_RR, colab_cond, network) #nothing
-RR_FUN3(df_RR, colab_cond, population) #nothing.
-RR_FUN3(df_RR, colab_cond, sigma) #nothing.
-RR_FUN3(df_RR, colab_cond, true_model) #nothing. 
-RR_FUN3(df_RR, colab_cond, net_size) #nothing. 
+RR_FUN3(df, colab_cond, network) #nothing
+RR_FUN3(df, colab_cond, population) #nothing.
+RR_FUN3(df, colab_cond, sigma) #nothing.
+RR_FUN3(df, colab_cond, true_model) #nothing. 
+RR_FUN3(df, colab_cond, net_size) #nothing. 
 
 ```
 
