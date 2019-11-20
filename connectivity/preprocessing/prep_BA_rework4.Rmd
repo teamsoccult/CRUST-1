@@ -237,9 +237,101 @@ violin_extended_rework(files)
 
 ```
 
-data preparation for "violin_extended_rework": 
+data preparation for "violin_ridges_rework":
 
 ```{r}
 
+    #create DF.
+    #working directory.
+setwd("~/CRUST-1/data_prepped1")
+path = "~/CRUST-1/data_prepped1/"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list
+datalist1 <- list()
+datalist2 <- list()
+
+
+violin_extended_rework <- function(files){
+ 
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "turn", #need this??
+            "studies", 
+            "network", 
+            "colab_cond",
+            "population", 
+            "sigma",
+            "net_size",
+            "base_SS",
+            "true_model",
+            "strategy",
+            "switch_rep_study",
+            "switch_rep",
+            "prop_true",
+            "prop_t_mod") #importantly. 
+ 
+  for(i in files){
+
+    #read csv
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          base_SS = factor(base_SS),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model),
+          strategy = factor(strategy))
+    
+    #replication rate & TAT overall
+    RR_TAT <- df %>%
+    group_by(replica, network, population, sigma, true_model,
+             base_SS, net_size, colab_cond) %>%
+    summarize(RR = sum(switch_rep) / sum(switch_rep_study),
+              TAT = mean(prop_true)) %>%
+    ungroup %>%
+    mutate(base_SS = ifelse(base_SS == 20,
+                                "Sample size: 20",
+                                "Sample size: 100"))
+
+    #replication rate & TAT (for )
+    #legit to compute TAT for the subset?
+    RR_TAT_TF <- df %>%
+    group_by(prop_t_mod, replica, network, population, sigma, true_model,
+             base_SS, net_size, colab_cond) %>%
+    summarize(RR = sum(switch_rep) / sum(switch_rep_study),
+              TAT = mean(prop_true)) %>%
+    ungroup %>%
+    mutate(base_SS = ifelse(base_SS == 20,
+                                "Sample size: 20",
+                                "Sample size: 100"))
+    
+    datalist1[i] <- list(RR_TAT)
+    datalist2[i] <- list(RR_TAT_TF)
+  }
+    
+  RR_TAT <- do.call("rbind", datalist1)
+  RR_TAT_TF <- do.call("rbind", datalist2)
+ 
+  #directory for the files:
+  setwd("/run/media/victormp/VERBATIM HD/data_plotting")
+ 
+  #write csv:
+  write_csv(RR_TAT, "violin_ridges_RR.csv")
+  write_csv(RR_TAT_TF, "violin_ridges_TF.csv")
+
+}
+
+#calling the function
+violin_extended_rework(files)
+
+    
+
+
 ```
+
 
