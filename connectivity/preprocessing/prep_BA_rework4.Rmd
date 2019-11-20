@@ -315,9 +315,6 @@ violin_extended_rework <- function(files){
 #calling the function
 violin_extended_rework(files)
 
-    
-
-
 ```
 
 true_false plot:
@@ -375,10 +372,9 @@ true_false_rework <- function(files){
     #downsampling
     df <- df[seq(1, nrow(df), 50), ]
     
-    naming <- colnames(df_new)
-
     
     #melting the variables
+    naming <- colnames(df)
     df <- df %>%
     melt(id = c(naming[1:8])) %>% #melting with proportions becoming variable and their values becoming values
     mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% #making a identifying column in order to color                                                                           for the plot
@@ -391,15 +387,15 @@ true_false_rework <- function(files){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("E:/data_outcome_measures")
+  setwd("E:/data_plotting")
   
   #write csv:
-  write_csv(df_final, "stickiness_rework.csv")
+  write_csv(df_final, "true_false_rework.csv")
 
 }
 
 #calling the function
-stickiness_rework(files)
+true_false_rework(files)
 ```
 
 
