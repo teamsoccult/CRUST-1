@@ -406,8 +406,8 @@ Data prep for "Stickiness":
 
 ```{r}
 #working directory. 
-setwd("E:/data_prepped1")
-path = "E:/data_prepped1/"
+setwd("D:/data_prepped1")
+path = "D:/data_prepped1/"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -460,7 +460,7 @@ stickiness_rework <- function(files){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("E:/data_outcome_measures")
+  setwd("D:/data_outcome_measures")
   
   #write csv:
   write_csv(df_final, "stickiness_rework.csv")
@@ -548,3 +548,4 @@ stickiness_rework(files)
 
 ```
 
+First Passage to True Model (FPTT) after 100 (TBA)
