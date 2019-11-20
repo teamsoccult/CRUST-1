@@ -30,7 +30,6 @@ condition <- list()
 network <- list()
 population <- list()
 sigma <- list()
-base_SS <- list()
 true_model <- list()
 replica <- list()
 
@@ -60,7 +59,6 @@ datacheck <- function(i){
          population = factor(population),
          sigma = factor(sigma),
          net_size = factor(net_size),
-         base_SS = factor(base_SS),
          true_model = factor(true_model),
          colab_cond = factor(colab_cond),
          orig_type = factor(orig_type),
@@ -71,14 +69,13 @@ datacheck <- function(i){
   network[i] <- levels(data$network)
   population[i] <- levels(data$population)
   sigma[i] <- levels(data$sigma)
-  base_SS[i] <- levels(data$base_SS)
   true_model[i] <- levels(data$true_model)
   replica[i] <- sum(unique(data$replica))
   
   #more tests 1: all replicas 10,000. 
   check <- data %>%
   group_by(replica, network, population, sigma, true_model,
-           base_SS, net_size, colab_cond) %>%
+          net_size, colab_cond) %>%
   summarize(stud = max(studies))
   
   studiesMAX[i] <- min(check$stud) #10,000
@@ -86,7 +83,7 @@ datacheck <- function(i){
   
   }
   
-  masterlist <- list(network, population, sigma, base_SS,
+  masterlist <- list(network, population, sigma,
                      true_model, replica, studiesMAX, studiesMIN)
   return(masterlist)
   
@@ -98,17 +95,15 @@ test <- datacheck(files)
 network <- unname(unlist(test[[1]]))
 population <- unname(unlist(test[[2]]))
 sigma <- unname(unlist(test[[3]]))
-base_SS <- unname(unlist(test[[4]]))
-true_model <- unname(unlist(test[[5]]))
-replica <- unname(unlist(test[[6]]))
-studiesMAX <- unname(unlist(test[[7]]))
-studiesMIN <- unname(unlist(test[[8]]))
+true_model <- unname(unlist(test[[4]]))
+replica <- unname(unlist(test[[5]]))
+studiesMAX <- unname(unlist(test[[6]]))
+studiesMIN <- unname(unlist(test[[7]]))
 
 #checking
 network
 population
 sigma
-base_SS
 true_model
 replica
 studiesMAX
@@ -145,7 +140,6 @@ datawrite <- function(i){
          population = factor(population),
          sigma = factor(sigma),
          net_size = factor(net_size),
-         base_SS = factor(base_SS),
          true_model = factor(true_model),
          colab_cond = factor(colab_cond),
          orig_type = factor(orig_type),
@@ -186,7 +180,6 @@ violin_extended_rework <- function(files){
             "network", 
             "population", 
             "sigma",
-            "base_SS",
             "colab_cond",
             "net_size",
             "true_model",
@@ -206,7 +199,6 @@ violin_extended_rework <- function(files){
     mutate(network = factor(network),
           population = factor(population),
           sigma = factor(sigma),
-          base_SS = factor(base_SS),
           colab_cond = factor(colab_cond),
           net_size = factor(net_size),
           true_model = factor(true_model),
@@ -215,7 +207,7 @@ violin_extended_rework <- function(files){
     #create DF. 
     df <- df %>%
         group_by(replica, network, population, sigma, true_model,
-           base_SS, net_size, colab_cond) %>%
+          net_size, colab_cond) %>%
         summarize(RR = sum(switch_rep) / 
               sum(switch_rep_study)) 
     
@@ -263,7 +255,6 @@ violin_extended_rework <- function(files){
             "population", 
             "sigma",
             "net_size",
-            "base_SS",
             "true_model",
             "strategy",
             "switch_rep_study",
@@ -281,7 +272,6 @@ violin_extended_rework <- function(files){
     mutate(network = factor(network),
           population = factor(population),
           sigma = factor(sigma),
-          base_SS = factor(base_SS),
           colab_cond = factor(colab_cond),
           net_size = factor(net_size),
           true_model = factor(true_model),
@@ -290,25 +280,21 @@ violin_extended_rework <- function(files){
     #replication rate & TAT overall
     RR_TAT <- df %>%
     group_by(replica, network, population, sigma, true_model,
-             base_SS, net_size, colab_cond) %>%
+            net_size, colab_cond) %>%
     summarize(RR = sum(switch_rep) / sum(switch_rep_study),
               TAT = mean(prop_true)) %>%
     ungroup %>%
-    mutate(base_SS = ifelse(base_SS == 20,
-                                "Sample size: 20",
-                                "Sample size: 100"))
+    mutate(base_SS = "Sample size: 20")
 
     #replication rate & TAT (for )
     #legit to compute TAT for the subset?
     RR_TAT_TF <- df %>%
-    group_by(prop_t_mod, replica, network, population, sigma, true_model,
-             base_SS, net_size, colab_cond) %>%
+    group_by(prop_t_mod, replica, network, population, sigma, true_model, 
+             net_size, colab_cond) %>%
     summarize(RR = sum(switch_rep) / sum(switch_rep_study),
               TAT = mean(prop_true)) %>%
     ungroup %>%
-    mutate(base_SS = ifelse(base_SS == 20,
-                                "Sample size: 20",
-                                "Sample size: 100"))
+    mutate(base_SS = "Sample size: 20")
     
     datalist1[i] <- list(RR_TAT)
     datalist2[i] <- list(RR_TAT_TF)
@@ -334,6 +320,90 @@ violin_extended_rework(files)
 
 ```
 
+true_false plot:
+
+```{r}
+#working directory. 
+setwd("E:/data_prepped1")
+path = "E:/data_prepped1/"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist <- list()
+
+true_false_rework <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("population", 
+            "sigma",
+            "true_model",
+            "studies",
+            "network",
+            "net_size",
+            "replica",
+            "colab_cond",
+            "prop_1",
+            "prop_2",
+            "prop_3",
+            "prop_4",
+            "prop_5",
+            "prop_6",
+            "prop_7",
+            "prop_8",
+            "prop_9",
+            "prop_10",
+            "prop_11",
+            "prop_12",
+            "prop_13",
+            "prop_14",
+            "prop_true")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #downsampling
+    df <- df[seq(1, nrow(df), 50), ]
+    
+    naming <- colnames(df_new)
+
+    
+    #melting the variables
+    df <- df %>%
+    melt(id = c(naming[1:8])) %>% #melting with proportions becoming variable and their values becoming values
+    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% #making a identifying column in order to color                                                                           for the plot
+    mutate(variable = relevel(variable, ref = "prop_true")) %>% #releveling so that proportion true is considered first
+    mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order                                           to make it the top layer in the overlay between different smooths.
+    
+    datalist[i] <- list(df)
+  }
+    
+  df_final <- do.call("rbind", datalist)
+  
+  #directory for the files: 
+  setwd("E:/data_outcome_measures")
+  
+  #write csv:
+  write_csv(df_final, "stickiness_rework.csv")
+
+}
+
+#calling the function
+stickiness_rework(files)
+```
+
+
+
 ###OUTCOME MEASURES:
 ____________________
 Data prep for "Stickiness":
@@ -357,7 +427,6 @@ stickiness_rework <- function(files){
                 "true_model",
                 "net_size", #maybe relevant.
                 "colab_cond",
-                "base_SS", #maybe relevant. 
                 "prop_t_mod", #proposed true? (1 = yes, 0 = no). 
                 "init_g_true", #count of true orig. (testing) agents.
                 "final_g_true", #count of post stud. (testing) agents. 
@@ -374,7 +443,6 @@ stickiness_rework <- function(files){
     mutate(network = factor(network),
           population = factor(population),
           sigma = factor(sigma),
-          base_SS = factor(base_SS),
           colab_cond = factor(colab_cond),
           net_size = factor(net_size),
           true_model = factor(true_model))
@@ -383,7 +451,7 @@ stickiness_rework <- function(files){
     df <- df %>%
       filter(prop_t_mod == 0) %>%
       group_by(replica, sigma, population, network, true_model,
-           net_size, colab_cond, base_SS) %>%
+           net_size, colab_cond) %>%
       summarize(agent_away = sum(as.numeric(init_g_true == 1 & 
                                         final_g_true == 0)),
             agent_total = sum(as.numeric(init_g_true == 1)),
