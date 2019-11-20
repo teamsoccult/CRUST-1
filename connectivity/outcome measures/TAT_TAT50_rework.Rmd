@@ -20,82 +20,44 @@ library(tidyverse)
 
 ```
 
-loading data. 
+Loading & Early prep
 
 ```{r}
-
-#reading 
-path <- "~/CRUST-1/data/tests/"
-
-files <- list.files(path = path, pattern="*csv") #if possible. 
-
-#taken from the scatter-plot file (reconsider what is needed)
-mycols <- c("replica", 
-            "network", 
-            "population", 
-            "sigma",
-            "net_size",
-            "colab_cond",
-            "true_model",
-            "base_SS",
-            "prop_true")
-
-#loading them 
-dfList <- lapply(files, function(f) {  
-   read_csv(paste0(path, f))[mycols]
-})
-
-#subsetting (because of computational demands)
-df <- do.call(rbind, dfList) 
-rm(dfList)
+#reading stuff 
+setwd("D:/data_outcome_measures")
+TAT <- read_csv("TAT_TAT50.csv")
+TAT_AVG <- read_csv("TAT_TAT50_AVG.csv")
 
 #as factor
-df <- df %>%
-  mutate(network = factor(network),
+factorize <- function(dataframe){
+  df <- dataframe %>%
+    mutate(network = factor(network),
          population = factor(population),
          sigma = factor(sigma),
          base_SS = factor(base_SS),
          colab_cond = factor(colab_cond),
          net_size = factor(net_size),
          true_model = factor(true_model))
+  
+  return(df)
+}
 
-str(df)
-
+TAT <- factorize(TAT)
+TAT_AVG <- factorize(TAT_AVG)
 ```
 
-Calculating TAT (total time)
-Not grouped by sigma (could be revised).
-NB: proportion needs to be set to the true model (in this case 7). 
+
+
+Subsets (main effects)
 
 ```{r}
 
-#TAT PER REPLICA
-TAT <- df %>%  
-  mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-  group_by(replica, network, population, true_model, sigma, net_size, 
-           base_SS, colab_cond) %>% 
-  summarise(TAT = mean(prop_true),
-            TAT50 = mean(TAT_50)) 
-
-#TAT AVG. OVER REP. 
-TAT <- df %>%  
-  mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-  group_by(network, population, true_model, sigma, net_size, 
-           base_SS, colab_cond) %>% 
-  summarise(TAT = mean(prop_true),
-            TAT50 = mean(TAT_50)) 
 
 
-
-```
-
-relevant subsets 
-
-```{r}
 
 #NETWORK & POP
-TAT_sum <- TAT %>%
-  group_by(network, population) %>%
+TAT_network <- TAT %>%
+  group_by(network) %>%
   summarize(TAT_median = median(TAT),
             TAT_mean = mean(TAT),
             TAT_IQR = IQR(TAT),
@@ -104,8 +66,18 @@ TAT_sum <- TAT %>%
             TAT50_IQR = IQR(TAT50))
 
 #SIGMA
-TAT_sum1 <- TAT %>%
+TAT_sigma <- TAT %>%
   group_by(sigma) %>%
+  summarize(TAT_median = median(TAT),
+            TAT_mean = mean(TAT),
+            TAT_IQR = IQR(TAT),
+            TAT50_median = median(TAT50),
+            TAT50_mean = round(mean(TAT50),2),
+            TAT50_IQR = IQR(TAT50))
+
+#MODEL
+TAT_true <- TAT %>%
+  group_by(true_model) %>%
   summarize(TAT_median = median(TAT),
             TAT_mean = mean(TAT),
             TAT_IQR = IQR(TAT),
