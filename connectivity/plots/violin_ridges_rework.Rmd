@@ -20,93 +20,42 @@ loading data (come back)
 
 ```{r}
 
-#working directory. 
-setwd("~/CRUST-1/data/tests")
-path = "~/CRUST-1/data/tests/"
-files <- list.files(path = path, pattern="*csv")
+#loading data
+setwd("/run/media/victormp/VERBATIM HD/data_plotting")
+RR <- read_csv("violin_ridges_RR.csv")
+TF <- read_csv("violin_ridges_TF.csv")
 
-#taken from the scatter-plot file (reconsider what is needed)
-mycols <- c("replica", 
-            "turn", #need this??
-            "studies", 
-            "network", 
-            "colab_cond",
-            "population", 
-            "sigma",
-            "net_size",
-            "base_SS",
-            "true_model",
-            "strategy",
-            "switch_rep_study",
-            "switch_rep",
-            "prop_true",
-            "prop_t_mod") #importantly. 
-
-#loading them 
-dfList <- lapply(files, function(f) {  
-   read_csv(paste0(path, f))[mycols]
-})
-
-#subsetting (because of computational demands)
-df <- do.call(rbind, dfList) 
-rm(list=setdiff(ls(), "df"))
-
-#as factor
-str(df)
-df <- df %>%
-  mutate(network = factor(network),
+factorize <- function(dataframe){
+  df <- dataframe %>%
+    mutate(network = factor(network),
          population = factor(population),
          sigma = factor(sigma),
          base_SS = factor(base_SS),
          colab_cond = factor(colab_cond),
          net_size = factor(net_size),
-         true_model = factor(true_model),
-         strategy = factor(strategy))
+         true_model = factor(true_model))
+  
+  return(df)
+}
 
+RR <- factorize(RR)
+TF <- factorize(TF)
+  
 ```
 
-BELOW: 
-preprocessing. 
-with RR for true model & by global.
-why is net_size loaded as "unknown" instead of integer?
-
 ```{r}
-
-#replication rate & TAT overall 
-RR_TAT <- df %>%
-  group_by(replica, network, population, sigma, true_model,
-           base_SS, net_size, colab_cond) %>%
-  summarize(RR = sum(switch_rep) / sum(switch_rep_study),
-            TAT = mean(prop_true)) %>%
-  ungroup %>%
-  mutate(base_SS = ifelse(base_SS == 20, 
-                              "Sample size: 20",
-                              "Sample size: 100"))
-
-#replication rate & TAT (for )
-#legit to compute TAT for the subset?
-RR_TAT_TF <- df %>%
-  group_by(prop_t_mod, replica, network, population, sigma, true_model,
-           base_SS, net_size, colab_cond) %>%
-  summarize(RR = sum(switch_rep) / sum(switch_rep_study),
-            TAT = mean(prop_true)) %>%
-  ungroup %>%
-  mutate(base_SS = ifelse(base_SS == 20,
-                              "Sample size: 20",
-                              "Sample size: 100"))
-
 #adding stuff (this is overall).
-RR_TAT <- RR_TAT %>%
+RR <- RR %>%
   mutate(prop_t_mod = "Overall") 
 
 #changing stuff (this is true).
-RR_TAT_TF$prop_t_mod <- ifelse(RR_TAT_TF$prop_t_mod == "1", "True", "False")
+TF$prop_t_mod <- ifelse(TF$prop_t_mod == "1", "True", "False")
 
 #binding 
-RR_TAT_TOTAL <- rbind(RR_TAT, RR_TAT_TF)
+RR_TOTAL <- rbind(RR, TF)
 
 #Factorizing & Renaming 
-RR_TAT_TOTAL <- RR_TAT_TOTAL %>%
+RR_TOTAL <- RR_TOTAL %>%
   mutate(prop_t_mod = factor(prop_t_mod), 
          sigma = factor(sigma), 
          true_model = factor(true_model)) %>%
@@ -132,7 +81,7 @@ we want to group based on.
 ```{r}
 
 #melting. 
-melt_RR_TAT <- melt(RR_TAT_TOTAL, 
+melt_RR_TAT <- melt(RR_TOTAL, 
                     id.vars = c("replica", "Network", "Population",
                                 "Sigma", "TrueModel", "SampleSize",
                                 "Colaboration", "ProposedTrue",
