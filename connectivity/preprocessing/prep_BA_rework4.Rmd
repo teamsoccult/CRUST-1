@@ -535,14 +535,15 @@ stickiness_rework <- function(files){
     datalist2[i] <- list(TAT_AVG)
   }
     
-  TAT <- do.call("rbind", datalist)
-  TAT_AVG <- 
+  TAT <- do.call("rbind", datalist1)
+  TAT_AVG <- do.call("rbind", datalist2)
   
   #directory for the files: 
   setwd("D:/data_outcome_measures")
   
   #write csv:
-  write_csv(TAT, "TAT_TAT50_rework.csv")
+  write_csv(TAT, "TAT_TAT50.csv")
+  write_csv(TAT_AVG, "TAT_TAT50_AVG.csv")
 
 }
 
