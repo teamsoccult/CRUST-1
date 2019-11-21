@@ -175,5 +175,75 @@ the complex model does much worse.
 
 next chunk: 
 
+Function approach for prep_BA_work4:
+
+```{r}
+#working directory. 
+setwd("E:/data_prepped1")
+path = "E:/data_prepped1/"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist <- list()
+
+stickiness_rework <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+                "network", 
+                "population", 
+                "sigma",
+                "true_model",
+                "net_size", #maybe relevant.
+                "colab_cond",
+                "base_SS", #maybe relevant. 
+                "prop_t_mod", #proposed true? (1 = yes, 0 = no). 
+                "init_g_true", #count of true orig. (testing) agents.
+                "final_g_true", #count of post stud. (testing) agents. 
+                "switch_true",
+                "switch_true_changing")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          base_SS = factor(base_SS),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #create DF
+    df <- df %>%
+      filter(prop_t_mod == 0) %>%
+      group_by(replica, sigma, population, network, true_model,
+           net_size, colab_cond, base_SS) %>%
+      summarize(agent_away = sum(as.numeric(init_g_true == 1 & 
+                                        final_g_true == 0)),
+            agent_total = sum(as.numeric(init_g_true == 1)),
+            switch_away = sum(switch_true_changing),
+            switch_total = sum(switch_true))
+    
+    datalist[i] <- list(df)
+  }
+    
+  df_final <- do.call("rbind", datalist)
+  
+  #directory for the files: 
+  setwd("E:/data_outcome_measures")
+  
+  #write csv:
+  write_csv(df_final, "stickiness_rework.csv")
+
+}
+
+#calling the function
+stickiness_rework(files)
+```
 
 
