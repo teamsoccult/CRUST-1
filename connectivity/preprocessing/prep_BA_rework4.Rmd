@@ -317,12 +317,12 @@ violin_extended_rework(files)
 
 ```
 
-true_false plot:
+true_false plot - only true:
 
 ```{r}
 #working directory. 
-setwd("E:/data_prepped1")
-path = "E:/data_prepped1/"
+setwd("D:/data_prepped1")
+path = "D:/data_prepped1/"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -339,20 +339,6 @@ true_false_rework <- function(files){
             "net_size",
             "replica",
             "colab_cond",
-            "prop_1",
-            "prop_2",
-            "prop_3",
-            "prop_4",
-            "prop_5",
-            "prop_6",
-            "prop_7",
-            "prop_8",
-            "prop_9",
-            "prop_10",
-            "prop_11",
-            "prop_12",
-            "prop_13",
-            "prop_14",
             "prop_true")
   
   for(i in files){
@@ -387,10 +373,10 @@ true_false_rework <- function(files){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("E:/data_plotting")
+  setwd("D:/data_plotting")
   
   #write csv:
-  write_csv(df_final, "true_false_rework.csv")
+  write_csv(df_final, "true_false_rework_only_true.csv")
 
 }
 
