@@ -484,7 +484,7 @@ files <- list.files(path = path, pattern="*.csv")
 datalist1 <- list()
 datalist2 <- list()
 
-stickiness_rework <- function(files){
+TAT50 <- function(files){
   
   #selecting cols (check )
     mycols <- c("replica", 
@@ -544,8 +544,120 @@ stickiness_rework <- function(files){
 }
 
 #calling the function
-stickiness_rework(files)
+TAT50(files)
 
 ```
+
+Data prep for TAT_C_rework.Rmd
+
+```{r}
+
+#working directory. 
+setwd("E:/data_prepped1")
+path = "E:/data_prepped1"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+TATC <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "colab_cond",
+            "network", 
+            "population", 
+            "sigma",
+            "net_size",
+            "true_model",
+            "prop_1",
+            "prop_2",
+            "prop_3",
+            "prop_4",
+            "prop_5",
+            "prop_6",
+            "prop_7",
+            "prop_8",
+            "prop_9",
+            "prop_10",
+            "prop_11",
+            "prop_12",
+            "prop_13",
+            "prop_14",
+            "prop_true")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #IF STATEMENT, mutating max prop column..
+    if(levels(df$true_model) == "2"){
+      
+    df$maxprop = names(df[,c(8, 10:22)])[apply(df[,c(8, 10:22)], 
+                                                   1, which.max)]
+      
+    } else if(levels(df$true_model) == "7"){
+      
+    
+    df$maxprop = names(df[,c(8:13, 15:22)])[apply(df[,c(8:13, 15:22)], 
+                                                  1, which.max)]
+      
+    } else if(levels(df$true_model) == "13"){
+      
+    df$maxprop = names(df[,c(8:19, 21:22)])[apply(df[,c(8:19, 21:22)], 
+                                                    1, which.max)]
+    
+    }
+    
+    #mutating 1 for TAT_c & 0 for not TAT_c
+    df <- df %>%
+      mutate(TAT_C = ifelse(maxprop == "prop_true", 1, 0))
+    
+    #per replica
+    TAT_C_REP <- df %>%
+      group_by(replica, network, population, sigma, net_size, 
+               colab_cond, true_model) %>%
+      summarise(TAT_C = round(mean(TAT_C),2)) 
+    
+    #avg. over rep. 
+    TAT_C_AVG <- df %>%
+      group_by(network, population, sigma, net_size, colab_cond, true_model) %>%
+      summarise(TAT_C = round(mean(TAT_C),2)) 
+    
+    #putting into lists
+    datalist1[i] <- list(TAT_C_REP)
+    datalist2[i] <- list(TAT_C_AVG)
+    
+  }
+    
+  TAT_C_REP <- do.call("rbind", datalist1)
+  TAT_C_AVG <- do.call("rbind", datalist2)
+  
+  #directory for the files: 
+  setwd("E:/data_outcome_measures")
+  
+  #write csv:
+  write_csv(TAT_C_REP, "TATC_REP.csv")
+  write_csv(TAT_C_AVG, "TATC_AVG.csv")
+
+}
+
+#calling the function
+TATC(files)
+
+```
+
+
 
 First Passage to True Model (FPTT) after 100 (TBA)

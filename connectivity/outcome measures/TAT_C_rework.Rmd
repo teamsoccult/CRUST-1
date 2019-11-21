@@ -35,7 +35,6 @@ mycols <- c("replica",
             "population", 
             "sigma",
             "net_size",
-            "base_SS",
             "true_model",
             "prop_1",
             "prop_2",
@@ -67,6 +66,9 @@ calculating TAT_C for small world.
 
 ```{r}
 
+setwd("E:/data_prepped1")
+df <- read_csv("Lattice_All_0.2_BIC_413_hard_20_2-COLAB.csv")
+
 #subsets because of runtime. 
 df_2 <- df %>%
   filter(true_model == 2) 
@@ -79,15 +81,14 @@ df_13 <- df %>%
 
 rm(list=setdiff(ls(), c("df_2", "df_7", "df_13")))
 
-#the indexing is done to make sure that we only get the true model when it is the 
-#biggest and not a tie. which.max uses ties method = "first" meaning that the first #column with a tied highest value is the maxprop. Here we place the true_model as #the last column for each true model. 
+#should only create one of them:: 
 
-df_2$maxprop = names(df_2[,c(9, 11:23)])[apply(df_2[,c(9, 11:23)], 1, which.max)]
+df_2$maxprop = names(df_2[,c(8, 10:22)])[apply(df_2[,c(8, 10:22)], 1, which.max)]
 
-df_7$maxprop = names(df_7[,c(9:14, 16:23)])[apply(df_7[,c(9:14, 16:23)], 
+df_7$maxprop = names(df_7[,c(8:13, 15:22)])[apply(df_7[,c(8:13, 15:22)], 
                                                   1, which.max)]
 
-df_13$maxprop = names(df_13[,c(9:20, 22:23)])[apply(df_13[,c(9:20, 22:23)], 
+df_13$maxprop = names(df_13[,c(8:19, 21:22)])[apply(df_13[,c(8:19, 21:22)], 
                                                     1, which.max)]
   
 #binding 
@@ -99,6 +100,19 @@ df <- df %>%
   
 
 ```
+
+loading data
+
+```{r}
+
+TAT_C_AVG <- read_csv("TATC_AVG.csv")
+TAT_C_REP <- read_csv("TATC_REP.csv")
+
+ggplot(TAT_C_REP, aes()) %>%
+  
+```
+
+
 
 For all variations of parameters: 
 
