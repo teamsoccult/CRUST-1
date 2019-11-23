@@ -343,10 +343,6 @@ ABM_NN <- function(replications, turns, models, k,
                 as.numeric(compareModels(switch_gModel, old_gModel))
             }
           }
-          #hyper-test
-          if(study >= study_cap){
-            break
-          }
         }
       
       ### Record output data ###
