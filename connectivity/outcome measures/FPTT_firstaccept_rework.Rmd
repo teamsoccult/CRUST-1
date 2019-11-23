@@ -137,6 +137,45 @@ colab_cond <- overview(df_clean, colab_cond)
 
 ```
 
+with NAs 
+
+```{r}
+
+#subtracting 
+df_NA <- df %>%
+  mutate(extra_agents = orig_agents - 1,
+         FPTT = first_study - ((extra_agents / 2) + switch_testing))
+
+#summarize 
+overview <- function(.dataframe, .var1){
+  
+  var1 <- enquo(.var1)
+  
+  df <- .dataframe %>%
+  group_by(UQ(var1)) %>%
+  summarise(FPTT_mean = mean(first_study, na.rm = TRUE),
+            FPTT_median = median(first_study, na.rm = TRUE),
+            FPTT_IQR = IQR(first_study, na.rm = TRUE),
+            FPTT_SD = sd(first_study, na.rm = TRUE),
+            FPTT_NA = sum(is.na(first_study)))
+  
+  return(df)
+  
+}
+
+populations <- overview(df_NA, population)
+networks <- overview(df_NA, network)
+sigma <- overview(df_NA, sigma)
+true_model <- overview(df_NA, true_model)
+net_size <- overview(df_NA, net_size)
+colab_cond <- overview(df_NA, colab_cond)
+
+
+
+```
+
+
+
 plotting? 
 
 ```{r}
