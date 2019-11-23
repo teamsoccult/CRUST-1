@@ -694,8 +694,8 @@ FPTT <- function(files){
            colab_cond) %>% 
         summarize(first_row = min(which(final_g_true > init_g_true)),
             first_study = studies[first_row],
-            extra_agents = (orig_agents[first_row] + 
-                              switch_testing[first_row]) - 1)  
+            orig_agents = orig_agents[first_row],
+            switch_testing = switch_testing[first_row])
     
     datalist1[i] <- list(df)
   }
