@@ -11,280 +11,209 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 #set working directory
-setwd("~/CRUST-1/data/new_data")
+setwd("E:/data_outcome_measures")
 
 #packages 
 library(pacman)
 p_load(tidyverse, ggunchained) 
 ```
 
-loading data. 
-
-```{r}
-#reading 
-path <- "~/CRUST-1/data/tests/"
-
-files <- list.files(path = path, pattern="*.csv") #if possible. 
-
-mycols <- c("replica", 
-            "network", 
-            "population", 
-            "sigma",
-            "true_model",
-            "turn",
-            "studies",
-            "net_size",
-            "base_SS",
-            "colab_cond",
-            "prop_t_mod",)
-
-#loading them 
-dfList <- lapply(files, function(f) {  
-   read_csv(paste0(path, f))[mycols]
-})
-
-#subsetting (because of computational demands)
-df <- do.call(rbind, dfList) 
-rm(dfList)
-```
-
-Overview of variables:
-
-```{r}
-var <- df %>%
-  group_by(network, population, sigma, net_size, colab_cond,
-           base_SS, true_model) %>%
-  summarize(n())
-
-rm(var)
-
-```
-
-Now employing a VERY simple method, ##THE MEAN ##. Although this is a very simplistic way of getting the first passage, I think this could be a way of tackling it. However, the way it is measured makes some trials have a first passage below 100. The chunk below automatically assign those trials the value 100. 
-
-```{r}
-math <- df %>%
-  mutate(most_adhered = ifelse(15 == max.col(.[,c(11:25)], ties.method = "last") & studies >= 100, 1, 0))
-
-#math$identifier <- math %>%
-  #str_glue_data("{network} {population} {sigma} {net_size} {colab_cond} {base_SS} {true_model}")
-
-mathing <- math %>% 
-  group_by(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond) %>% 
-  arrange(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond, studies) %>%
-  mutate(hit_studies = studies[min(which(most_adhered == 1))], 
-         before_studies = studies[min(which(most_adhered == 1)-1)],
-         hit_prop = prop_true[min(which(most_adhered == 1))],
-         before_prop = prop_true[min(which(most_adhered == 1)-1)],
-         first_passage = round((hit_studies+before_studies)/2),
-         first_passage = ifelse(first_passage <= 100, 100, first_passage)) %>% #This final line makes all the means below 100 go to 100. 
-  ungroup()
-
-```
-
-first passage
+loading data & early prep. 
 
 ```{r}
 
-tommy <- na.omit(mathing) #VERY PROBLEMATIC, SKEWS THE TRIALS - HOW TO CIRCUMVENT THIS
+#read data 
+df <- read_csv("FPTT.csv")
 
-population_math <- tommy %>%
-  group_by(population) %>%
-  summarize(FPMA_median = median(first_passage), 
-            FPMA_mean = mean(first_passage),
-            FPMA_IQR = IQR(first_passage)) 
-
-sigma_math <- tommy %>% 
-  group_by(sigma) %>%
-  summarize(FPMA_median = median(first_passage), 
-            FPMA_mean = mean(first_passage),
-            FPMA_IQR = IQR(first_passage)) 
-
-true_math <- tommy %>%
-  group_by(true_model) %>%
-  summarize(FPMA_median = median(first_passage), 
-            FPMA_mean = mean(first_passage),
-            FPMA_IQR = IQR(first_passage)) 
+#as factor
+df <- df %>%
+mutate(network = factor(network),
+      population = factor(population),
+      sigma = factor(sigma),
+      colab_cond = factor(colab_cond),
+      net_size = factor(net_size),
+      true_model = factor(true_model))
 
 ```
 
-
-Hit/Miss 50
-
-```{r}
-#clearing & reading 
-
-##CHANGING NET_SIZE INTO A FACTOR FOR LAST PART OF THE CODE - SHOULD BE DONE IN THE PREPROCESSING
-df$net_size <- as.factor(df$net_size)
-df$true_model <- as.factor(df$true_model)
-
-#how many of them got there
-hit_miss_50 <- df %>%
-  group_by(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond) %>%
-  summarize(hit50 = ifelse(max(prop_true >= 0.5), 1, 0))
-
-#percentage of runs got to 50
-hit_miss_50_sum <- hit_miss_50 %>%
-  group_by(population, network, sigma, true_model, net_size, base_SS, colab_cond) %>%
-  summarize(mean = mean(hit50))
-
-#tallying up how many of misses and hits to 50%
-hit_miss_50_tally <- hit_miss_50 %>%
-  group_by(population, network, sigma, true_model, net_size, base_SS, hit50, colab_cond) %>%
-  summarize(count = n())
-
-#first time to true model at 50%
-df_100_fftm <- df %>%
-  group_by(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond) %>%
-  mutate(hit50 = ifelse(max(prop_true >= 0.5), 1, 0)) %>%
-  filter(hit50 == 1) %>%
-  summarize(first_hit50 = min(which(prop_true >= 0.5)))
-
-#summary of first time to to 50%
-df_100_fftm_summary_averaged <- df_100_fftm %>% 
-  group_by(population, network, net_size, colab_cond) %>%
-  summarise(FP50_median = median(first_hit50),
-            FP50_mean = mean(first_hit50),
-            FP50_IQR = IQR(first_hit50),
-            FP50_misses = n())
-
-#MISSES DOESN'T WORK - MAYBE SOMETHING TO DO WITH BO MAN
-
-
-##NOT NECESSARY TO ADD BO ATM
-
-#adding bo
-#df_100_fftm_summary_averaged[4,] <- df_100_fftm_summary_averaged[2,]
-#df_100_fftm_summary_averaged[2,] <- c("Bo", "Small", NA, NA, NA, 450)
-```
-
-Most adhered to 
+RANDOM CHECKS & PERHAPS INTERESTING STUFF
 
 ```{r}
 
-#Which rows have the true model as the most adhered to?
+#1. test infinity 
+inf_cases <- df %>%
+  filter(first_row == Inf) 
 
-df_100_fttma <- df %>%
-  mutate(most_adhered = ifelse(15 == max.col(.[,c(11:25)], ties.method = "last"), 1, 0)) 
+inf_onecond <- df %>%
+  filter(first_row == Inf,
+         population == "Tess",
+         network == "Lattice",
+         sigma == 0.8,
+         true_model == 13,
+         net_size == 413,
+         colab_cond == "yes")
 
-#Filtering so only those runs that have the true model as the most adhered to are included 
-df_100_filter_100 <- df_100_fttma %>%
-  group_by(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond) %>%
-  filter(mean(most_adhered) > 0, studies >= 100)
+replicas <- unlist(inf_onecond$replica)
 
-#new col for which model is the most adhered to at the time
-df_100_filter_100$max_col <- max.col(df_100_filter_100[, c(11:25)], "last")
+#2. test first hit 
+first_cases <- df %>%
+  filter(first_row == 1)
 
-#when is the true model first most adhered to
-df_100_filter_final <- df_100_filter_100 %>%
-  group_by(replica, population, network, sigma, true_model, net_size, base_SS, colab_cond) %>%
-  summarize(min_studies = min(studies), fpttt1 = (min_studies-1) + min(which(max_col == 15))) %>%
-  filter(fpttt1 != Inf)
+#3. test colab vs. nolab 
+colab <- df %>%
+  filter(colab_cond == "yes") %>%
+  group_by(orig_agents) %>%
+  summarise(count = n())
 
-#summarizing the above
-df_100_filter_final_sum <- df_100_filter_final %>%
-  group_by(population, network, net_size, colab_cond) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1),
-            FPMA_misses = (max(df$replica) * length(levels(df$network)) * length(levels(df$net_size))) - n()) #Made flexible, so that the number of misses accurately depict how many possibilities there are. If we need to group over more stuff, they should also be added. 
+## actually checking stuff ##
 
+setwd("E:/data_prepped1")
 
+#1.1. loading a couple of tests 
+tess_inf <- read_csv("Lattice_Tess_0.8_BIC_413_hard_20_13-COLAB.csv")
+bo_inf <- read_csv("Lattice_Bo_0.8_BIC_413_hard_20_13-COLAB.csv")
+
+## 1.2.1 BO ## 
+## seems weird that they always loose here ## 
+
+bo_reps <- bo_inf %>%
+  filter(replica == 4, prop_t_mod == 1) 
+
+## 1.2.2 Tess ##
+## just never samples the true model ## 
+
+tess_reps <- tess_inf %>%
+  filter(replica == c(replicas))
+
+tess_true <- tess_reps %>%
+  filter(prop_t_mod == 1)
+
+rm(list=setdiff(ls(), "df")) 
 ```
 
-MAIN EFFECTS:
-
-```{r}
-colab_final_sum <- df_100_filter_final %>%
-  group_by(colab_cond) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1)) 
-
-network_final_sum <- df_100_filter_final %>%
-  group_by(network) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1)) 
-
-population_final_sum <- df_100_filter_final %>%
-  group_by(population) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1))
-
-sigma_final_sum <- df_100_filter_final %>%
-  group_by(sigma) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1))
-
-true_final_sum <- df_100_filter_final %>%
-  group_by(true_model) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1))
-
-```
-
-Main effects:
-network: Lattice and Small are similar. When this is said, small has a bit larger median, but a smaller mean with a larger IQR. TOM is doing worse than the two networks, with a larger median, a larger mean, and a large IQR. This also suggests that TOM in some cases is a very fast network, but highly unstable. 
-
-pop: Quite similar to our previous results. Bo is the worst, the highest mean and the largest IQR. All is second in all aspects, except for the mean where Tess is 2nd. Mave has the smallest mean with the smallest IQR, but Tess has the smallest median. 
-
-sigma: although the median is smaller for 0.2 sigma, the mean is actually smaller with a lower IQR. How do we explain this? 
-
-colab: The median of “no” and “yes” is fairly similar (110, 116), but the mean and the IQR differ. For YES conditions, we have a much higher mean and larger IQR.
-tmod: for tmod = 2, we have lower median, mean and IQR. 
-
-INTERACTION WITH NETWORK:
-
-```{r}
-colab_network_sum <- df_100_filter_final %>%
-  group_by(colab_cond, network) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1)) 
-
-population_network_sum <- df_100_filter_final %>%
-  group_by(population, network) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1))
-
-sigma_network_sum <- df_100_filter_final %>%
-  group_by(sigma, network) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1))
-
-tmod_network_sum <- df_100_filter_final %>%
-  group_by(true_model, network) %>%
-  summarize(FPMA_median = median(fpttt1), 
-            FPMA_mean = mean(fpttt1),
-            FPMA_IQR = IQR(fpttt1))
-
-
-```
-
-Interactions with network:
-colab: For lattice, we see almost no difference. But especially for TOM, colab has a strong interaction effect. Here we see a much larger median, mean and IQR. This suggests that in many cases, colab slow down the progress of these networks. This is quite trivial, as the colabs in TOM use a lot more studies. 
-
-pop: In contrast to All & Mave, who become significantly slower in TOM, Bo has her lowest mean in the TOM-network, and lowest median in Small. Tess has a quite similar median but a much higher mean in TOM. 
-How do we explain this?
-Could be due to the fact that Bo relies heavily on her neighbors to find the true model. A more well connected network will increase the chances of Bo finding the true model. 
-
-
-sigma: The overall picture is that medians increase when sigma = 0.8. However, there are some interesting cases here:
-The mean for lattice decreases drastically with sigma 0.8 and a much lower IQR.
-
-
-Writing files
+FPTT for the clean data (non-inf). 
+Preparation
 
 ```{r}
 
-write.csv(df_100_fftm_summary_averaged, "C:/Users/Mikkel/Documents/CRUST-1/connectivity/outcome_results/FP50_small_100.csv", row.names = F)
+#omit na
+df_omit <- na.omit(df)
 
-write.csv(df_100_filter_final_sum, "C:/Users/Mikkel/Documents/CRUST-1/connectivity/outcome_results/FPMA_small_100.csv", row.names = F)
+#subtracting 
+df_clean <- df_omit %>%
+  mutate(extra_agents = orig_agents - 1,
+         FPTT = first_study - ((extra_agents / 2) + switch_testing))
 
 ```
+
+FPTT over variables
+
+```{r}
+
+overview <- function(.dataframe, .var1){
+  
+  var1 <- enquo(.var1)
+  
+  df <- .dataframe %>%
+  group_by(UQ(var1)) %>%
+  summarize(FPTT_mean = mean(first_study),
+            FPTT_median = median(first_study),
+            FPTT_IQR = IQR(first_study),
+            FPTT_SD = sd(first_study))
+  
+  return(df)
+  
+}
+
+#what can I group over?
+colnames(df_clean)
+
+populations <- overview(df_clean, population)
+networks <- overview(df_clean, network)
+sigma <- overview(df_clean, sigma)
+true_model <- overview(df_clean, true_model)
+net_size <- overview(df_clean, net_size)
+colab_cond <- overview(df_clean, colab_cond)
+
+```
+
+plotting? 
+
+```{r}
+
+p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
+       viridis, ggridges, ggunchained, rlang)
+
+#preparing raincloud (can be customized)
+raincloud_theme = theme(
+text = element_text(size = 10),
+axis.title.x = element_text(size = 16),
+axis.title.y = element_text(size = 16),
+axis.text = element_text(size = 14),
+axis.text.x = element_text(vjust = 0.5),
+legend.title=element_text(size=16),
+legend.text=element_text(size=16),
+legend.position = "right",
+plot.title = element_text(lineheight=.8, face="bold", size = 16),
+panel.border = element_blank(),
+panel.grid.minor = element_blank(),
+panel.grid.major = element_blank(),
+axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+```
+
+new directory & loading flatViolin
+
+```{r}
+
+setwd("~/CRUST-1")
+baseDir <- "."
+scriptDir <- paste0(baseDir, "/src/functions")
+inputDir <- paste0(baseDir, "/data")
+outputDir <- paste0(baseDir, "/data")
+source(paste0(scriptDir, "/flatViolin.R"))
+
+```
+
+
+```{r}
+#raincloud plot
+
+FPTT_FUN <- function(df, .var){
+  
+  var <- enquo(.var)
+
+g <- df %>%
+  filter(FPTT < 500) %>%
+  ggplot(aes(x = UQ(var), 
+             y = FPTT, fill = UQ(var))) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
+  geom_point(aes(y = FPTT, color = UQ(var)), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 3) +
+  guides(fill = FALSE) + 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  coord_flip() +
+  theme_bw() +
+  labs(title = paste0("FPTT for ", as_label(var), "s"), #with s?
+       subtitle = "Averaged over all other grouping variables",
+       x = paste0(as_label(var), "s"), #with s?
+       y = "FPTT") +
+  raincloud_theme
+
+#call the plot
+g
+
+}
+
+FPTT_FUN(df_clean, network)
+FPTT_FUN(df_clean, population)
+FPTT_FUN(df_clean, sigma)
+FPTT_FUN(df_clean, true_model)
+
+```
+
