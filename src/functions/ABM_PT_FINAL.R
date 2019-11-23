@@ -551,7 +551,7 @@ ABM_PT <- function(replications, turns, models, k,
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
       output[turn, O_STRATEGY] <- ifelse(colab == "yes", "colab", strategy)
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
-      output[turn, O_OLD_MODEL] <- orig_gModel
+      output[turn, O_OLD_MODEL] <- searchModel(orig_gModel, models)
       
       ## META ## 
       output[turn, O_ORIG_AGENTS] <- length(agentIndex) #new: for sanity.

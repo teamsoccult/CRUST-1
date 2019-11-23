@@ -180,6 +180,8 @@ ABM_NN <- function(replications, turns, models, k,
         
         ### If they switch ###
         if(switchModel){ 
+          old_gModel <- gModel
+          
           #local change of model.
           modelStr <- modelToStr(model)
           modelStr <- str_replace(modelStr, "Y ~", "")
@@ -362,7 +364,7 @@ ABM_NN <- function(replications, turns, models, k,
       #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
       output[turn, O_STRATEGY] <- strategy
-      output[turn, O_OLD_MODEL] <- orig_gModel
+      output[turn, O_OLD_MODEL] <- searchModel(orig_gModel, models)
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       
       ## META ## 
