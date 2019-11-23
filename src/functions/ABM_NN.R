@@ -57,7 +57,7 @@ ABM_NN <- function(replications, turns, models, k,
     
     ## generate statistics ##
     
-    sampleSize <- length(agentIndex) * base_sampleSize
+    sampleSize <- base_sampleSize
     Xset <- generateXSet(sampleSize, k, correlation)
     #BETAS#
     tModelBetas <- getBetas(tModel, weights, sigma)
@@ -185,7 +185,7 @@ ABM_NN <- function(replications, turns, models, k,
           
         } 
         #How many agents end at the true? 
-        final_gModel <- final_gModel + as.numeric(compareModels(tModel, strToModel(V(g)$model[agentIndex[[i]]],k)))
+        final_gModel <- final_gModel + as.numeric(compareModels(tModel, strToModel(V(g)$model[agentIndex],k)))
       
         ### IF MODEL-SWITCH THEN EDGES NOW TEST ### 
         ### EVERYTHING CALLED "SWITCH" SOMETHING ###
@@ -211,7 +211,7 @@ ABM_NN <- function(replications, turns, models, k,
           switch_same_global <- NULL  
           
           #total edges of the agent switching. 
-          switch_total <- names(which(matrix_g[, agentIndex == 1)) 
+          switch_total <- names(which(matrix_g[, agentIndex] == 1)) 
           
           for(j in switch_total){
             
@@ -362,7 +362,7 @@ ABM_NN <- function(replications, turns, models, k,
       
       #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
-      output[turn, O_STRATEGY] <- ifelse(colab == "yes", "colab", strategy)
+      output[turn, O_STRATEGY] <- strategy
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       
       ## META ## 
@@ -425,8 +425,8 @@ ABM_NN <- function(replications, turns, models, k,
     ## Write output data table into a file ##
     write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                     sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
-                                    "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
-                                    tMod, "-", paste(ifelse(colab_prob == 0.02, "COLAB", "NOLAB")), 
+                                    "_", net_size, "_", modelSelection, "_", 
+                                    tMod, "_", "NN", 
                                     outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=",", row.names=FALSE,
@@ -436,6 +436,6 @@ ABM_NN <- function(replications, turns, models, k,
   saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                   sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
                                   "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
-                                  tMod, "-", paste(ifelse(colab_prob == 0.02, "COLAB", "NOLAB")),
+                                  tMod, "_", "NN",
                                   paramFile))
 }
