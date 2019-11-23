@@ -1,6 +1,7 @@
 "Now made compatible with the entire framework. 
-Recent additions: Cap of studies made compatible with neighbor's neighbor.
-Last edit on 12/11/2019"
+Recent additions: Made colab more general, recording old gModel, inclusion of colab in param.
+
+Last edit on 23/11/2019"
 
 # should anything change here - do we use all of it? 
 ABM_TOM <- function(replications, turns, models, k, 
@@ -84,6 +85,9 @@ ABM_TOM <- function(replications, turns, models, k,
       ## Agents 
       agentIndex <- which((V(g)$name) == agentToken)
       agentOriginal <- agentIndex #do we need this information for logging, come back?
+      
+      ##ORIGINAL G_MODEL:
+      orig_gModel <- strToModel(V(g)$model[agentIndex], k)
       
       ####### SECTION 1 #######
       ## Colab study ##
@@ -545,6 +549,7 @@ ABM_TOM <- function(replications, turns, models, k,
       #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
       output[turn, O_STRATEGY] <- ifelse(colab == "yes", "colab", strategy)
+      output[turn, O_OLD_MODEL] <- orig_gModel
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       
       ## META ## 
@@ -619,6 +624,6 @@ ABM_TOM <- function(replications, turns, models, k,
   saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                   sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
                                   "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
-                                  tMod, "_", paste(ifelse(colab_prob == 0.02, "COLAB", "NOLAB")),
+                                  tMod, "_", paste(ifelse(colab_prob > 0, "COLAB", "NOLAB")),
                                   paramFile))
 }
