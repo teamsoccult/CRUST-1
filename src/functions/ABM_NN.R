@@ -180,6 +180,8 @@ ABM_NN <- function(replications, turns, models, k,
         
         ### If they switch ###
         if(switchModel){ 
+          old_gModel <- gModel
+          
           #local change of model.
           modelStr <- modelToStr(model)
           modelStr <- str_replace(modelStr, "Y ~", "")
