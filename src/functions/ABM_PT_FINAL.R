@@ -541,7 +541,7 @@ ABM_PT <- function(replications, turns, models, k,
       output[turn, O_NET_SIZE] <- net_size 
       output[turn, O_BASE_SAMPLE_SIZE] <- base_sampleSize 
       output[turn, O_TRUE_MODEL] <- tMod #this edition. 
-      output[turn, O_COLAB_COND] <- colab
+      output[turn, O_COLAB_COND] <- ifelse(colab_prob > 0, "COLAB", "NOLAB")
       
       #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
@@ -598,6 +598,7 @@ ABM_PT <- function(replications, turns, models, k,
     param[[P_NET_TYPE]] <- net_type #BA
     param[[P_NET_SIZE]] <- net_size #BA
     param[[P_POP]] <- pop_type #BA
+    param[[P_COLAB]] <- ifelse(colab_prob > 0, "COLAB", "NOLAB")
     param[[P_NETWORK]] <- matrix_g
     parameters[[replica]] <- param
     
@@ -609,7 +610,7 @@ ABM_PT <- function(replications, turns, models, k,
     write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                     sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
                                     "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
-                                    tMod, "-", paste(ifelse(colab_prob == 0.02, "COLAB", "NOLAB")), 
+                                    tMod, "-", paste(ifelse(colab_prob > 0, "COLAB", "NOLAB")), 
                                     outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=",", row.names=FALSE,
@@ -619,6 +620,6 @@ ABM_PT <- function(replications, turns, models, k,
   saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                   sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
                                   "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
-                                  tMod, "-", paste(ifelse(colab_prob == 0.02, "COLAB", "NOLAB")),
+                                  tMod, "_", paste(ifelse(colab_prob > 0, "COLAB", "NOLAB")),
                                   paramFile))
 }
