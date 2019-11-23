@@ -1,5 +1,6 @@
 #Set-up for new version w. citation networks & meta-studies.
-#Last changed 1-11-2019
+#Latest change: recording colab in param & recording old_gModel
+#Last changed 23/11/2019
 #Adding O_ORIG_AGENTS & O_SWITCH_AGENTS to test. 
 
 ## Types of agents
@@ -16,7 +17,7 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 44
+O_NUM_FIELDS <- 45
 
 #GLOBAL ID VARIABLES#
 O_STUDIES <- 1
@@ -31,48 +32,49 @@ O_COLAB_COND <- 8
 #LOCAL ID VARIABLES#
 O_TYPE <- 9
 O_STRATEGY <- 10 #colab, neighbor, research. 
-O_SELECTED_MODEL <- 11
+O_OLD_MODEL <- 11 #NEW CHANGE!: Recording the first index of old_gModel
+O_SELECTED_MODEL <- 12
 
 #META CATEGORY
-O_ORIG_AGENTS <- 12
-O_SWITCH_AGENTS <- 13
-O_SAMPLE_SIZE <- 14
-O_NUM_AGENTS <- 15 #how many in the study. 
+O_ORIG_AGENTS <- 13
+O_SWITCH_AGENTS <- 14
+O_SAMPLE_SIZE <- 15
+O_NUM_AGENTS <- 16 #how many in the study. 
 
 #STICKINESS
-O_INITIAL_GLOBAL_TRUE_MODEL <- 16
-O_FINAL_GLOBAL_TRUE_MODEL <- 17
+O_INITIAL_GLOBAL_TRUE_MODEL <- 17
+O_FINAL_GLOBAL_TRUE_MODEL <- 18
 
 #REPLICATION
-O_PROPOSED_TRUE_MODEL <- 18
-O_SWITCH_TESTING <- 19
-O_SWITCH_CHANGING <- 20
-O_SWITCH_ALREADY_TRUE <-21
-O_SWITCH_ALREADY_TRUE_CHANGING <- 22
-O_SWITCH_ALREADY_TRUE_REJECTING <- 23
-O_SWITCH_REPLICATION_STUDY <- 24
-O_SWITCH_REPLICATED <- 25
-O_SWITCH_NOT_REPLICATED <- 26
-O_SWITCH_ALL <- 27
-O_SWITCH_GLOBAL <- 28
-O_SWITCH_NOT_GLOBAL <- 29
+O_PROPOSED_TRUE_MODEL <- 19
+O_SWITCH_TESTING <- 20
+O_SWITCH_CHANGING <- 21
+O_SWITCH_ALREADY_TRUE <-22
+O_SWITCH_ALREADY_TRUE_CHANGING <- 23
+O_SWITCH_ALREADY_TRUE_REJECTING <- 24
+O_SWITCH_REPLICATION_STUDY <- 25
+O_SWITCH_REPLICATED <- 26
+O_SWITCH_NOT_REPLICATED <- 27
+O_SWITCH_ALL <- 28
+O_SWITCH_GLOBAL <- 29
+O_SWITCH_NOT_GLOBAL <- 30
 
 #PROPORTIONS 
-O_PROPORTION_1 <- 30
-O_PROPORTION_2 <- 31
-O_PROPORTION_3 <- 32
-O_PROPORTION_4 <- 33
-O_PROPORTION_5 <- 34
-O_PROPORTION_6 <- 35
-O_PROPORTION_7 <- 36
-O_PROPORTION_8 <- 37
-O_PROPORTION_9 <- 38
-O_PROPORTION_10 <- 39
-O_PROPORTION_11 <- 40
-O_PROPORTION_12 <- 41
-O_PROPORTION_13 <- 42
-O_PROPORTION_14 <- 43
-O_PROPORTION_TRUE <- 44
+O_PROPORTION_1 <- 31
+O_PROPORTION_2 <- 32
+O_PROPORTION_3 <- 33
+O_PROPORTION_4 <- 34
+O_PROPORTION_5 <- 35
+O_PROPORTION_6 <- 36
+O_PROPORTION_7 <- 37
+O_PROPORTION_8 <- 38
+O_PROPORTION_9 <- 39
+O_PROPORTION_10 <- 40
+O_PROPORTION_11 <- 41
+O_PROPORTION_12 <- 42
+O_PROPORTION_13 <- 43
+O_PROPORTION_14 <- 44
+O_PROPORTION_TRUE <- 45
 
 
 ## File output headers
@@ -88,6 +90,7 @@ OUTPUT_HEADER <- c("replica",
                    "colab_cond", #colab condition or no. 
                    "orig_type", #type of agent on turn 
                    "strategy", #colab, neighbor, research. 
+                   "old_model", #NEW CHANGE!: recording the first index of old_gModel
                    "selected_model",#sampled model 
                    "orig_agents", #new: for sanity.
                    "switch_agents", #new: for sanity. 
@@ -130,5 +133,6 @@ P_SIGMA <- 3
 P_NET_TYPE <- 4 #small, lattice, PT or TOM
 P_NET_SIZE <- 5 #size..
 P_POP <- 6 
-P_NETWORK <- 7
+P_COLAB <- 7
+P_NETWORK <- 8
 

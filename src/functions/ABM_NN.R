@@ -1,6 +1,7 @@
 "Now made compatible with the entire framework. 
-Recent additions: Cap of studies made compatible with neighbor's neighbor.
-Last edit on 12/11/2019"
+Recent additions: Made colab more general, recording old gModel, inclusion of colab in param.
+
+Last edit on 23/11/2019"
 
 # should anything change here - do we use all of it? 
 ABM_NN <- function(replications, turns, models, k, 
@@ -363,6 +364,7 @@ ABM_NN <- function(replications, turns, models, k,
       #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
       output[turn, O_STRATEGY] <- strategy
+      output[turn, O_OLD_MODEL] <- old_gModel
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       
       ## META ## 

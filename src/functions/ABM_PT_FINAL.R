@@ -1,6 +1,7 @@
 "Now made compatible with the entire framework. 
-Recent additions: Cap of studies made compatible with neighbor's neighbor.
-Last edit on 12/11/2019"
+Recent additions: Made colab more general, recording old gModel, inclusion of colab in param.
+
+Last edit on 23/11/2019"
 
 # should anything change here - do we use all of it? 
 ABM_PT <- function(replications, turns, models, k, 
@@ -547,6 +548,7 @@ ABM_PT <- function(replications, turns, models, k,
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
       output[turn, O_STRATEGY] <- ifelse(colab == "yes", "colab", strategy)
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
+      output[turn, O_OLD_MODEL] <- old_gModel[1]
       
       ## META ## 
       output[turn, O_ORIG_AGENTS] <- length(agentIndex) #new: for sanity.
@@ -610,7 +612,7 @@ ABM_PT <- function(replications, turns, models, k,
     write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
                                     sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
                                     "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
-                                    tMod, "-", paste(ifelse(colab_prob > 0, "COLAB", "NOLAB")), 
+                                    tMod, "_", paste(ifelse(colab_prob > 0, "COLAB", "NOLAB")), 
                                     outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=",", row.names=FALSE,
