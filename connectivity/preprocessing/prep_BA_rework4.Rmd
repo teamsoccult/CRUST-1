@@ -644,6 +644,74 @@ TATC(files)
 
 ```
 
+First passage (true accept): 
 
+```{r}
 
-First Passage to True Model (FPTT) after 100 (TBA)
+#working directory. 
+setwd("E:/data_prepped1")
+path = "E:/data_prepped1"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+
+FPTT <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("turn",
+            "studies",
+            "replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "true_model",
+            "net_size",
+            "colab_cond",
+            "prop_t_mod",
+            "init_g_true",
+            "final_g_true",
+            "orig_agents",
+            "switch_testing")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #TAT PER REPLICA
+    df <- df %>%
+        group_by(replica, population, network, sigma, true_model, net_size, 
+           colab_cond) %>% 
+        summarize(first_row = min(which(final_g_true > init_g_true)),
+            first_study = studies[first_row],
+            extra_agents = (orig_agents[first_row] + 
+                              switch_testing[first_row]) - 1)  
+    
+    datalist1[i] <- list(df)
+  }
+    
+  FPTT <- do.call("rbind", datalist1)
+  
+  #directory for the files: 
+  setwd("E:/data_outcome_measures")
+  
+  #write csv:
+  write_csv(FPTT, "FPTT.csv")
+
+}
+
+#calling the function
+FPTT(files)
+
+```
+
