@@ -16,9 +16,6 @@ ABM_PT <- function(replications, turns, models, k,
   trueModel <- some_models[tMod] #tMod er en liste med 2, 7, 13. 
   tModel <- strToModel(trueModel, k) #conversion. 
   
-  #BETAS#
-  tModelBetas <- getBetas(tModel, weights, sigma)
-  
   for(replica in 1:replications){
     set.seed(seeds[replica])
     
@@ -268,6 +265,8 @@ ABM_PT <- function(replications, turns, models, k,
       ## generate statistics ##
       sampleSize <- length(agentIndex) * base_sampleSize
       Xset <- generateXSet(sampleSize, k, correlation)
+      #BETAS#
+      tModelBetas <- getBetas(tModel, weights, sigma)
       deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
       Yset <- generateY(deterministic, sigma)
       
@@ -364,7 +363,7 @@ ABM_PT <- function(replications, turns, models, k,
       if(length(agentsSwitch) != 0){ 
         
         ## list of edges switching ##
-        switch_agentsSwitch <- list()
+        switch_agentsSwitch <- list() #Could be redundant - we don't really use this for anything
         
         ## Finding relevant edges of those agents ## 
         for(i in seq_len(length(agentsSwitch))){
