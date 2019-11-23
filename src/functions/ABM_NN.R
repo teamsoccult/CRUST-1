@@ -358,7 +358,7 @@ ABM_NN <- function(replications, turns, models, k,
       output[turn, O_NET_SIZE] <- net_size 
       output[turn, O_BASE_SAMPLE_SIZE] <- base_sampleSize 
       output[turn, O_TRUE_MODEL] <- tMod #this edition. 
-      output[turn, O_COLAB_COND] <- ifelse(colab_prob == 0.02, "yes", "no")
+      output[turn, O_COLAB_COND] <- colab
       
       #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
