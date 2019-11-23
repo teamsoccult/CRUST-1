@@ -86,6 +86,9 @@ ABM_TOM <- function(replications, turns, models, k,
       agentIndex <- which((V(g)$name) == agentToken)
       agentOriginal <- agentIndex #do we need this information for logging, come back?
       
+      ##ORIGINAL G_MODEL:
+      orig_gModel <- strToModel(V(g)$model[agentIndex], k)
+      
       ####### SECTION 1 #######
       ## Colab study ##
       colab <- sample(c('yes', 'no'), size = 1, prob = c(colab_prob, 1-colab_prob))
@@ -546,7 +549,7 @@ ABM_TOM <- function(replications, turns, models, k,
       #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
       output[turn, O_STRATEGY] <- ifelse(colab == "yes", "colab", strategy)
-      output[turn, O_OLD_MODEL] <- old_gModel[1]
+      output[turn, O_OLD_MODEL] <- orig_gModel
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       
       ## META ## 

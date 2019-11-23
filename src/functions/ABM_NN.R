@@ -93,6 +93,9 @@ ABM_NN <- function(replications, turns, models, k,
       agentIndex <- which((V(g)$name) == agentToken)
       agentOriginal <- agentIndex #do we need this information for logging, come back?
       
+      ##ORIGINAL G_MODEL:
+      orig_gModel <- strToModel(V(g)$model[agentIndex], k)
+      
       ####### SECTION 1 #######
       
       ## Finding proposed models ##
@@ -177,7 +180,6 @@ ABM_NN <- function(replications, turns, models, k,
         
         ### If they switch ###
         if(switchModel){ 
-          old_gModel <- gModel 
           #local change of model.
           modelStr <- modelToStr(model)
           modelStr <- str_replace(modelStr, "Y ~", "")
@@ -360,7 +362,7 @@ ABM_NN <- function(replications, turns, models, k,
       #LOCAL ID#
       output[turn, O_TYPE] <- V(g)$type[agentOriginal] 
       output[turn, O_STRATEGY] <- strategy
-      output[turn, O_OLD_MODEL] <- old_gModel
+      output[turn, O_OLD_MODEL] <- orig_gModel
       output[turn, O_SELECTED_MODEL] <- searchModel(model, models)
       
       ## META ## 
