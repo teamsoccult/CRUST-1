@@ -55,7 +55,7 @@ source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
 source(paste0(scriptDir, "/simulator.R"))
 source(paste0(scriptDir, "/strToModel.R"))
-source(paste0(scriptDir, "/ABM_NN.R")) #TOM cit. network. 
+source(paste0(scriptDir, "/ABM_NN_MAVE.R")) #TOM cit. network. 
 ```
 
 some_models, g & agentTurn
@@ -72,7 +72,7 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 2 #100 originally, now 2. 
+replications <- 5 #100 originally, now 2. 
 
 ## Length of the simulation
 turns <- 10000
@@ -122,50 +122,6 @@ seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
 
 ```
 
-FULL RUN: 
-defining parameters
-
-```{r}
-net_types <- list("Lattice") #Lattice, Small
-sigmas <- list(0.8) #0.2 & 0.8 deleted. 
-base_sampleSizes <- list(20) #20 
-pop_types <- list("Tess")
-tMods <- list(13)
-modelCompares <- list(BIC) 
-
-```
-
-running the ABM. 
-
-```{r}
-
-start_time <- Sys.time()
-
-### running the ABM for all combinations of parameters ### 
-
-for(net_type in net_types){ 
-  for(sigma in sigmas){
-    for(base_sampleSize in base_sampleSizes){
-      for(pop_type in pop_types){
-        for(tMod in tMods){ #not sure this works. 
-          for(modelCompare in modelCompares){
-        
-ABM_NN(replications, turns, models, k, 
-    weights, base_sampleSize, correlation, sigma,
-    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-    verbose, ndec, seeds, some_models)
-            }
-          }
-        }
-      }
-    }
-  }
-
-end_time <- Sys.time()
-end_time - start_time
-
-```
-
 SPECIFIC PARAMETERS:
 Just change the hell out of this so that it suits your needs. 
 
@@ -173,7 +129,7 @@ Just change the hell out of this so that it suits your needs.
 net_types <- list("Small") #"Lattice", "Small", "PT"
 sigmas <- list(0.8) #0.2, 0.5, 0.8 
 base_sampleSizes <- list(20) #20, 100. 
-pop_types <- list("Tess") #"Bo", "Mave", "Tess", "All"
+pop_types <- list("Tess", "Mave") #"Bo", "Mave", "Tess", "All"
 tMods <- list(13) #2, 7, 13. 
 modelCompares <- list(BIC) #AIC, BIC 
 colab_prob <- 0
