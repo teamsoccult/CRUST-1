@@ -30,13 +30,13 @@ else if(identical(model, models[[4]])){
 }
 
 else if(identical(model, models[[5]])){
-  number <- sample(c(2,10,11), 1)
+  number <- 2
   
   similarModel <- models[[number]]
 }
 
 else if(identical(model, models[[6]])){
-  number <- sample(c(3,10,12), 1)
+  number <- 3
   
   similarModel <- models[[number]]
 }
