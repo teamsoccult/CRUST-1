@@ -168,6 +168,85 @@ datawrite(files)
 
 ```
 
+Test for the new agents and their sampling of models - the test here being that sampling_global.csv should be empty, and that sampling_distribution.csv should have equal distributions for the sampled models. 
+
+```{r}
+
+#working directory. 
+setwd("D:/data/data_prepped_25-11")
+path = "D:/data/data_prepped_25-11/"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+sample_global <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "turn", 
+            "studies", 
+            "network", 
+            "population", 
+            "sigma",
+            "colab_cond",
+            "net_size",
+            "true_model",
+            "strategy",
+            "old_model",
+            "selected_model",
+            "orig_type")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model),
+          strategy = factor(strategy),
+          old_model = factor(old_model),
+          selected_model = factor(selected_model),
+          orig_type = factor(orig_type))
+    
+    #create DF. 
+    df_same_model <- df %>%
+      filter(strategy == "research", old_model == selected_model)
+    
+    df_agent_types <- df %>%
+      filter(strategy == "research") %>%
+      group_by(orig_type, old_model, selected_model) %>%
+      summarize(count = n())
+    
+    datalist1[i] <- list(df_same_model)
+    datalist2[i] <- list(df_agent_types)
+  }
+    
+  df_final1 <- do.call("rbind", datalist1)
+  df_final2 <- do.call("rbind", datalist2)
+  
+  #directory for the files: 
+  setwd("D:/data/data_tests")
+  
+  #write csv:
+  write_csv(df_final1, "sample_global.csv")
+  write_csv(df_final2, "sampling_distribution.csv")
+
+}
+
+#calling the function
+sample_global(files)
+
+```
+
+
 data preparation for "violin_extended_rework": 
 
 ```{r}
