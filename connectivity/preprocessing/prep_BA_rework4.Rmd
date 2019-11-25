@@ -164,12 +164,14 @@ data preparation for "violin_extended_rework":
 ```{r}
 
 #working directory. 
-setwd("D:/data_prepped1")
-path = "D:/data_prepped1/"
+setwd("E:/data/data_prepped_24-11")
+path = "E:/data/data_prepped_24-11"
 files <- list.files(path = path, pattern="*.csv")
 
+
 #initializing empty list 
-datalist <- list()
+datalist1 <- list()
+datalist2 <- list()
 
 violin_extended_rework <- function(files){
   
@@ -205,22 +207,32 @@ violin_extended_rework <- function(files){
           strategy = factor(strategy))
     
     #create DF. 
-    df <- df %>%
+    df_basic <- df %>%
         group_by(replica, network, population, sigma, true_model,
           net_size, colab_cond) %>%
         summarize(RR = sum(switch_rep) / 
               sum(switch_rep_study)) 
     
-    datalist[i] <- list(df)
+    #grouping by strategy 
+    df_strat <- df %>%
+        group_by(replica, network, population, sigma, true_model,
+          net_size, colab_cond, strategy) %>%
+        summarize(RR = sum(switch_rep) / 
+              sum(switch_rep_study))
+    
+    datalist1[i] <- list(df_basic)
+    datalist2[i] <- list(df_strat)
   }
     
-  df_final <- do.call("rbind", datalist)
+  df <- do.call("rbind", datalist1)
+  df_strat <- do.call("rbind", datalist2)
   
   #directory for the files: 
-  setwd("D:/data_plotting")
+  setwd("E:/data/data_plotting")
   
   #write csv:
-  write_csv(df_final, "violin_extended_rework.csv")
+  write_csv(df, "violin_extended_colabtest.csv")
+  write_csv(df_strat, "violin_extended_strat_colabtest.csv")
 
 }
 
@@ -242,9 +254,9 @@ files <- list.files(path = path, pattern="*.csv")
 #initializing empty list
 datalist1 <- list()
 datalist2 <- list()
+datalist3 <- list()
 
-
-violin_extended_rework <- function(files){
+violin_ridges_rework <- function(files){
  
   #selecting cols (check )
     mycols <- c("replica", 
@@ -282,9 +294,7 @@ violin_extended_rework <- function(files){
     group_by(replica, network, population, sigma, true_model,
             net_size, colab_cond) %>%
     summarize(RR = sum(switch_rep) / sum(switch_rep_study),
-              TAT = mean(prop_true)) %>%
-    ungroup %>%
-    mutate(base_SS = "Sample size: 20")
+              TAT = mean(prop_true)) 
 
     #replication rate & TAT (for )
     #legit to compute TAT for the subset?
@@ -292,28 +302,37 @@ violin_extended_rework <- function(files){
     group_by(prop_t_mod, replica, network, population, sigma, true_model, 
              net_size, colab_cond) %>%
     summarize(RR = sum(switch_rep) / sum(switch_rep_study),
-              TAT = mean(prop_true)) %>%
-    ungroup %>%
-    mutate(base_SS = "Sample size: 20")
+              TAT = mean(prop_true))
+    
+    #grouped by strategy:
+    RR_TAT_BYSTRAT <- df %>%
+    group_by(replica, prop_t_mod, network, 
+             population, sigma, true_model, 
+             net_size, colab_cond, strategy) %>%
+    summarize(RR = sum(switch_rep) / sum(switch_rep_study),
+              TAT = mean(prop_true))
     
     datalist1[i] <- list(RR_TAT)
     datalist2[i] <- list(RR_TAT_TF)
+    datalist3[i] <- list(RR_TAT_BYSTRAT)
   }
     
   RR_TAT <- do.call("rbind", datalist1)
   RR_TAT_TF <- do.call("rbind", datalist2)
+  RR_TAT_BYSTRAT <- do.call("rbind", datalist3)
  
   #directory for the files:
-  setwd("/run/media/victormp/VERBATIM HD/data_plotting")
+  setwd("E:/data/data_plotting")
  
   #write csv:
   write_csv(RR_TAT, "violin_ridges_RR.csv")
   write_csv(RR_TAT_TF, "violin_ridges_TF.csv")
+  write_csv(RR_TAT_BYSTRAT, "violin_ridges_BYSTRAT.csv")
 
 }
 
 #calling the function
-violin_extended_rework(files)
+violin_ridges_rework(files)
 
 ```
 
