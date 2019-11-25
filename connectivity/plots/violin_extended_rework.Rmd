@@ -21,18 +21,39 @@ Preprocessing (should also be adjusted to accommodate better early prep).
 ```{r}
 
 #load data 
-setwd("D:/data_plotting")
+setwd("E:/data/data_plotting")
 df <- read_csv("violin_extended_rework.csv")
+df <- df[,-6]
+
+df1 <- read_csv("violin_extended_colabtest.csv")
+df2 <- read_csv("violin_extended_strat_colabtest.csv")
+
+df1 <- df1 %>%
+  mutate(strategy = "overall")
+
+df <- rbind(df1, df2)
 
 #as factor
 df <- df %>%
+  filter(network == "Lattice" | network == "TOM",
+         net_size == 484) %>%
 mutate(network = factor(network),
       population = factor(population),
       sigma = factor(sigma),
-      base_SS = factor(base_SS),
+      colab_cond = factor(colab_cond),
+      net_size = factor(net_size),
+      true_model = factor(true_model),
+      strategy = factor(strategy))
+
+df1 <- df1 %>%
+mutate(network = factor(network),
+      population = factor(population),
+      sigma = factor(sigma),
       colab_cond = factor(colab_cond),
       net_size = factor(net_size),
       true_model = factor(true_model))
+
+df <- rbind(df, df1)
 ```
 
 raincloud prep
@@ -117,6 +138,7 @@ RR_FUN(df, network)
 RR_FUN(df, true_model) #looks terrible
 RR_FUN(df, colab_cond) #looks terrible 
 RR_FUN(df, net_size) #looks terrible. 
+RR_FUN(df, strategy) #new way of grouping. 
 
 ```
 
@@ -246,6 +268,8 @@ RR_FUN3(df, colab_cond, sigma) #nothing.
 RR_FUN3(df, colab_cond, true_model) #nothing. 
 RR_FUN3(df, colab_cond, net_size) #nothing. 
 
+#new comparison (strategy vs. replication). 
+RR_FUN3(df, strategy, colab_cond)
 ```
 
 Interaction effects (2). 

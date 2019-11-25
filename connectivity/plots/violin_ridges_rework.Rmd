@@ -21,25 +21,39 @@ loading data (come back)
 ```{r}
 
 #loading data
-setwd("/run/media/victormp/VERBATIM HD/data_plotting")
+setwd("E:/data/data_plotting")
+
+#new files 
 RR <- read_csv("violin_ridges_RR.csv")
 TF <- read_csv("violin_ridges_TF.csv")
+bystrat <- read_csv("violin_ridges_bystrat.csv")
 
+#strategy into the old files (temporary)
+RR <- RR %>%
+  mutate(strategy = "overall")
+
+TF <- TF %>%
+  mutate(strategy = "overall")
+
+#factor function
 factorize <- function(dataframe){
   df <- dataframe %>%
     mutate(network = factor(network),
          population = factor(population),
          sigma = factor(sigma),
-         base_SS = factor(base_SS),
          colab_cond = factor(colab_cond),
          net_size = factor(net_size),
-         true_model = factor(true_model))
+         true_model = factor(true_model),
+         strategy = factor(strategy))
   
   return(df)
 }
 
 RR <- factorize(RR)
 TF <- factorize(TF)
+bystrat <- factorize(bystrat)
+
+
   
 ```
 
@@ -50,9 +64,10 @@ RR <- RR %>%
 
 #changing stuff (this is true).
 TF$prop_t_mod <- ifelse(TF$prop_t_mod == "1", "True", "False")
+bystrat$prop_t_mod <- ifelse(bystrat$prop_t_mod == "1", "True", "False")
 
 #binding 
-RR_TOTAL <- rbind(RR, TF)
+RR_TOTAL <- rbind(RR, TF, bystrat)
 
 #Factorizing & Renaming 
 RR_TOTAL <- RR_TOTAL %>%
@@ -63,7 +78,6 @@ RR_TOTAL <- RR_TOTAL %>%
          "Network" = "network",
          "Sigma" = "sigma",
          "TrueModel" = "true_model",
-         "SampleSize" = "base_SS",
          "Colaboration" = "colab_cond",
          "ProposedTrue" = "prop_t_mod",
          "NetworkSize" = "net_size")
@@ -83,7 +97,7 @@ we want to group based on.
 #melting. 
 melt_RR_TAT <- melt(RR_TOTAL, 
                     id.vars = c("replica", "Network", "Population",
-                                "Sigma", "TrueModel", "SampleSize",
+                                "Sigma", "TrueModel", 
                                 "Colaboration", "ProposedTrue",
                                 "NetworkSize"), 
                     measure.vars = c("RR", "TAT"), 
@@ -96,8 +110,7 @@ RR_TAT_FUN <- function(melted_frame, group_var){
   group_var <- enquo(group_var)
 
   g <- melted_frame %>%
-      filter(ProposedTrue == "Overall", #meaning full replicas. 
-             SampleSize == "Sample size: 20") %>%
+      filter(ProposedTrue == "Overall") %>%
       ggplot(aes(x = proportion, y = UQ(group_var), 
                                color = variable, fill = variable)) +
       geom_density_ridges(jittered_points = TRUE, scale = 0.8, 
@@ -142,6 +155,7 @@ RR_TAT_FUN(melt_RR_TAT, Network)
 RR_TAT_FUN(melt_RR_TAT, Colaboration)
 RR_TAT_FUN(melt_RR_TAT, NetworkSize)
 
+
 ```
 
 
@@ -157,8 +171,7 @@ RR_FUN <- function(melted_frame, group_var){
   group_var <- enquo(group_var)
   
 g1 <- melted_frame %>%
-    filter(SampleSize == "Sample size: 20",
-           variable == "RR",
+    filter(variable == "RR",
            ProposedTrue != "False") %>%
     ggplot(aes(x = proportion, y = UQ(group_var),
                color = ProposedTrue, 
@@ -222,8 +235,7 @@ RR_FUN_FALSE <- function(melted_frame, group_var){
   group_var <- enquo(group_var)
   
 g1 <- melted_frame %>%
-    filter(SampleSize == "Sample size: 20",
-           variable == "RR") %>%
+    filter(variable == "RR") %>%
     ggplot(aes(x = proportion, y = UQ(group_var),
                color = ProposedTrue, 
                fill = ProposedTrue)) +
@@ -274,6 +286,14 @@ RR_FUN_FALSE(melt_RR_TAT, TrueModel)
 RR_FUN_FALSE(melt_RR_TAT, Colaboration)
 
 ```
+
+
+```{r}
+
+```
+
+
+
 
 
 Below: 

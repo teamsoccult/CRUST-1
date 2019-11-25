@@ -247,8 +247,8 @@ data preparation for "violin_ridges_rework":
 
     #create DF.
     #working directory.
-setwd("~/CRUST-1/data_prepped1")
-path = "~/CRUST-1/data_prepped1/"
+setwd("E:/data/data_prepped_24-11")
+path = "E:/data/data_prepped_24-11/"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list
