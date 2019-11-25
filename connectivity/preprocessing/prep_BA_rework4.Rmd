@@ -23,7 +23,7 @@ Does it pass our sanity checks & do we have all cases?
 ```{r}
 
 #Working directory of RAW data. 
-setwd("D:/data_new1")
+setwd("~/CRUST-1/data/data_new")
 
 #for basic tests
 condition <- list()
@@ -100,7 +100,7 @@ replica <- unname(unlist(test[[5]]))
 studiesMAX <- unname(unlist(test[[6]]))
 studiesMIN <- unname(unlist(test[[7]]))
 
-#checking
+#basic checking
 network
 population
 sigma
@@ -109,6 +109,15 @@ replica
 studiesMAX
 studiesMIN
 
+#summary tests 
+table(network)
+table(population)
+table(sigma)
+table(true_model)
+table(replica)
+table(studiesMAX)
+table(studiesMIN)
+
 ```
 
 write the cleaned files into another directory
@@ -116,7 +125,7 @@ write the cleaned files into another directory
 ```{r}
 
 #Working directory of RAW data. 
-setwd("D:/data_new1")
+setwd("/run/media/victormp/VERBATIM HD/data/data_new")
 
 #your files 
 files = list.files(pattern=c("*.csv"), full.names=TRUE)
@@ -127,7 +136,7 @@ datawrite <- function(i){
   for(i in files){
   
   #where your raw files are:   
-  setwd("D:/data_new1")
+  setwd("/run/media/victormp/VERBATIM HD/data/data_new")
     
   #reading data:
   data <- read_csv(i)
@@ -146,7 +155,7 @@ datawrite <- function(i){
          strategy = factor(strategy))
   
   #directory for the files: 
-  setwd("D:/data_prepped1")
+  setwd("/run/media/victormp/VERBATIM HD/data/data_prepped-18-11")
   
   #write csv:
   write_csv(data, paste0(i))
@@ -163,9 +172,10 @@ data preparation for "violin_extended_rework":
 
 ```{r}
 
+
 #working directory. 
-setwd("D:/data_prepped1")
-path = "D:/data_prepped1/"
+setwd("/run/media/victormp/VERBATIM HD/data/data_prepped_24-11")
+path = "/run/media/victormp/VERBATIM HD/data/data_prepped_24-11/"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -217,10 +227,10 @@ violin_extended_rework <- function(files){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("D:/data_plotting")
+  setwd("/run/media/victormp/VERBATIM HD/data/data_plotting")
   
   #write csv:
-  write_csv(df_final, "violin_extended_rework.csv")
+  write_csv(df_final, "violin_extended_colabtest.csv")
 
 }
 
@@ -235,8 +245,8 @@ data preparation for "violin_ridges_rework":
 
     #create DF.
     #working directory.
-setwd("~/CRUST-1/data_prepped1")
-path = "~/CRUST-1/data_prepped1/"
+setwd("/run/media/victormp/VERBATIM HD/data/data_prepped_24-11")
+path = "/run/media/victormp/VERBATIM HD/data/data_prepped_24-11/"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list
@@ -304,7 +314,7 @@ violin_extended_rework <- function(files){
   RR_TAT_TF <- do.call("rbind", datalist2)
  
   #directory for the files:
-  setwd("/run/media/victormp/VERBATIM HD/data_plotting")
+  setwd("/run/media/victormp/VERBATIM HD/data/data_plotting")
  
   #write csv:
   write_csv(RR_TAT, "violin_ridges_RR.csv")
