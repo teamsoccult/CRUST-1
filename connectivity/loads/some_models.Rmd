@@ -60,8 +60,9 @@ models <- models2
 models[c(10:13)] = models2[c(11:14)]
 models[[14]] <- models2[[10]]
 
-modelToStr(models2[[1]])
-modelToStr(models[[1]])
+modelToStr(models2[[14]])
+modelToStr(models[[14]])
+
 #initializing
 some_models <- NULL
 
@@ -74,9 +75,15 @@ some_models <- str_replace_all(some_models, ":", "")
 
 models[[1]] <- matrix(models[[1]], ncol = 3)
 
+models[[14]] <- unname(models[[14]])
+
+str(models[[14]])
+
 #write csv
 save(some_models, file = "some_models")
 save(models, file = "models")
+
+#yes!
 
 ```
 
