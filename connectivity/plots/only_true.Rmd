@@ -34,7 +34,7 @@ PLOTTING
 ```{r}
 
 network_p <- "Small"
-true_model_p <- 13
+true_model_p <- 2
 sigma_p <- 0.8
 
 g1 <- df %>%

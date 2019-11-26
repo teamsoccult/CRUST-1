@@ -340,8 +340,8 @@ true_false plot - only true:
 
 ```{r}
 #working directory. 
-setwd("D:/data_prepped1")
-path = "D:/data_prepped1/"
+setwd("D:/data/data_prepped_25-11")
+path = "D:/data/data_prepped_25-11/"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -392,7 +392,7 @@ true_false_rework <- function(files){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("D:/data_plotting")
+  setwd("D:/data/data_plotting")
   
   #write csv:
   write_csv(df_final, "true_false_rework_only_true.csv")
@@ -403,6 +403,98 @@ true_false_rework <- function(files){
 true_false_rework(files)
 ```
 
+true_false with false 
+
+NOTE: Implementing a paste0 approach. Splits up the different networks and writes the files. 
+
+```{r}
+
+#working directory. 
+setwd("D:/data/data_prepped_25-11")
+path = "D:/data/data_prepped_25-11/"
+#files <- list.files(path = path, pattern="^PT.*.csv") #USING REGEX TO INDICATE THE SUBSET
+
+#initializing empty list 
+datalist <- list()
+
+true_false_CON <- function(files, identifier){
+  
+  #selecting cols (check )
+    mycols <- c("population", 
+            "sigma",
+            "true_model",
+            "studies",
+            "network",
+            "net_size",
+            "replica",
+            "colab_cond",
+            "prop_1",
+            "prop_2",
+            "prop_3",
+            "prop_4",
+            "prop_5",
+            "prop_6",
+            "prop_7",
+            "prop_8",
+            "prop_9",
+            "prop_10",
+            "prop_11",
+            "prop_12",
+            "prop_13",
+            "prop_14",
+            "prop_true")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #downsampling
+    df <- df[seq(1, nrow(df), 50), ]
+    
+    
+    #melting the variables
+    naming <- colnames(df)
+    df <- df %>%
+    melt(id = c(naming[1:8])) %>% #melting with proportions becoming variable and their values becoming values
+    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% #making a identifying column in order to color                                                                           for the plot
+    mutate(variable = relevel(variable, ref = "prop_true")) %>% #releveling so that proportion true is considered first
+    mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order                                           to make it the top layer in the overlay between different smooths.
+    
+    datalist[i] <- list(df)
+  }
+    
+  df_final <- do.call("rbind", datalist)
+  
+  #directory for the files: 
+  setwd("D:/data/data_plotting")
+  
+  #write csv:
+  write_csv(df_final, paste0(identifier, "_true_false_CON.csv"))
+
+}
+
+
+#WHAT NETWORKS ARE YOU SUBSETTING:
+subset_variables <- c("Lattice", "Small", "PT") #or TOM
+
+for (i in subset_variables){
+  files <- list.files(path = path, pattern=paste0("^", i, ".*.csv"))
+  
+  true_false_CON(files, i)
+}
+
+
+```
 
 
 ###OUTCOME MEASURES:
