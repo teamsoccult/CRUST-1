@@ -483,7 +483,6 @@ true_false_CON <- function(files, identifier){
 
 }
 
-
 #WHAT NETWORKS ARE YOU SUBSETTING:
 subset_variables <- c("Lattice", "Small", "PT") #or TOM
 
