@@ -17,6 +17,46 @@ p_load(tidyverse, tidyselect, data.table)
 
 ```
 
+do we have all files
+
+```{r}
+
+#Working directory of RAW data. 
+setwd("E:/data/27-11")
+
+#which files do we have
+files = list.files(pattern=c("*.csv"), full.names=TRUE)
+
+#do we lack anything 
+
+#networks
+identifiers <- c("Small", "Lattice", "TOM", "PT", 
+              "_Mave_", "_Tess_", "_All_", "_Bo_",
+              "_0.2_", "_0.5_", "_0.8_", 
+              "_413_", "_484_",
+              "_2_", "_7_", "_13_",
+              "_COLAB", "_NOLAB")
+
+for (i in identifiers){
+  
+network <- noquote(i)
+
+#
+x <- files
+network <- str_detect(files, i)
+subset <- x[network]
+value <- length(unlist(subset))
+print(paste0(value, ": ", i))
+
+}
+
+
+
+
+lapply(s)
+```
+
+
 First chunk is a screening of the data. 
 Does it pass our sanity checks & do we have all cases? 
 
