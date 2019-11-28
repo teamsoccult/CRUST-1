@@ -25,9 +25,9 @@ library(MCMCpack)
 ## PATHS
 #############
 baseDir <- "."
-scriptDir <- paste0(baseDir, "/src/functions")
-inputDir <- paste0(baseDir, "/data")
-outputDir <- paste0(baseDir, "/data")
+scriptDir <- paste0(baseDir, "/DevezerAlteredAgents/src/functions")
+inputDir <- paste0(baseDir, "/DevezerAlteredAgents/data")
+outputDir <- paste0(baseDir, "/DevezerAlteredAgents/data/raw")
 
 
 #############
@@ -58,7 +58,7 @@ source(paste0(scriptDir, "/strToModel.R"))
 ## INPUT PARAMETERS
 ###################
 ## Number of replications
-replications <- 100
+replications <- 1
 
 ## Length of the simulation
 timesteps <- 11000
@@ -132,7 +132,7 @@ modelCompare <- BIC
 ## "soft"
 ## "hard"
 ##
-modelSelection <- "soft"
+modelSelection <- "hard"
 
 ## Output filename
 outputFile <- "output.csv"
