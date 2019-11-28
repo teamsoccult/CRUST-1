@@ -31,35 +31,48 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 22
-O_STRATEGY <- 1
-O_SELECTED_MODEL <- 2
-O_SELECTED_TRUE_MODEL <- 3
-O_SELECTED_MODEL_DISTANCE <- 4
-O_INITIAL_GLOBAL_MODEL <- 5
-O_INITIAL_GLOBAL_TRUE_MODEL <- 6
-O_INITIAL_GLOBAL_MODEL_DISTANCE <- 7
-O_FINAL_GLOBAL_MODEL <- 8
-O_FINAL_GLOBAL_TRUE_MODEL <- 9
-O_FINAL_GLOBAL_MODEL_DISTANCE <- 10
-O_NUM_PREDICTORS <- 11
-O_SAMPLE_SIZE <- 12
-O_BETA1_TRUE <- 13
-O_BETA1_ESTIMATE <- 14
-O_BETA1_ERROR <- 15
-O_TSTATISTICS <- 16
-O_RSQ <- 17
-O_ARSQ <- 18
-O_AIC <- 19
-O_BIC <- 20
-O_REPLICATED <- 21
-O_PREDICTORS <- 22
+O_NUM_FIELDS <- 26
+
+# ID VARIABLES
+O_POPULATION <- 1
+O_SIGMA <- 2
+O_SAMPLE_SIZE <- 3
+O_TRUE_MODEL <- 4
+O_STRATEGY <- 5
+O_MODELCOMPARE <- 6
+
+# OTHER VARIABLES
+O_SELECTED_MODEL <- 7
+O_SELECTED_TRUE_MODEL <- 8
+O_SELECTED_MODEL_DISTANCE <- 9
+O_INITIAL_GLOBAL_MODEL <- 10
+O_INITIAL_GLOBAL_TRUE_MODEL <- 11
+O_INITIAL_GLOBAL_MODEL_DISTANCE <- 12
+O_FINAL_GLOBAL_MODEL <- 13
+O_FINAL_GLOBAL_TRUE_MODEL <- 14
+O_FINAL_GLOBAL_MODEL_DISTANCE <- 15
+O_NUM_PREDICTORS <- 16
+O_BETA1_TRUE <- 17
+O_BETA1_ESTIMATE <- 18
+O_BETA1_ERROR <- 19
+O_TSTATISTICS <- 20
+O_RSQ <- 21
+O_ARSQ <- 22
+O_AIC <- 23
+O_BIC <- 24
+O_REPLICATED <- 25
+O_PREDICTORS <- 26
 
 
 ## File output headers
 OUTPUT_HEADER <- c("replica",
                    "timestep",
+                   "population",
+                   "sigma",
+                   "sample_size",
+                   "tmodel",
                    "strategy",
+                   "modelcompare",
                    "selected_model",
                    "selected_true_model",
                    "selected_model_distance",
@@ -70,7 +83,6 @@ OUTPUT_HEADER <- c("replica",
                    "final_global_true_model",
                    "final_global_model_distance",
                    "num_predictors",
-                   "sample_size",
                    "beta1_true",
                    "beta1_estimate",
                    "beta1_error",

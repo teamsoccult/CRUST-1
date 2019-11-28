@@ -26,7 +26,7 @@
 ## @param ndec         Number of decimal precision
 ## @param seeds        Vector of seeds
 ##
-## @return None
+## @restep None
 ##
 ## @lastChange 2018-09-18
 ##
@@ -142,12 +142,12 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
 
       ## Tess
       } else if(agentType == TESS){
-        model <- modelSimilarByTermRework(gModel, models, mode="random",
+        model <- modelSimilarByTerm(gModel, models, mode="random",
                                     modelSelection=modelSelection)
 
       ## Bo
       } else if(agentType == BO){
-        model <- modelSimilarByInteractionRework(gModel, models)
+        model <- modelSimilarByInteraction(gModel, models)
 
       ## Maverick
       } else if(agentType == MAVE){
@@ -228,12 +228,12 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
       }
 
       ##IDENTIFICATION COLUMNS ##
-      output[turn, O_POPULATION] <- population
-      output[turn, O_SIGMA] <- sigma 
-      output[turn, O_SAMPLE_SIZE] <- sampleSize
-      output[turn, O_TRUE_MODEL] <- tModel 
+      output[step, O_POPULATION] <- population
+      output[step, O_SIGMA] <- sigma 
+      output[step, O_SAMPLE_SIZE] <- sampleSize
+      output[step, O_TRUE_MODEL] <- tModel 
       output[step, O_STRATEGY] <- agentType
-      output[step, O_MODELCOMPARE] <- modelCompares
+      output[step, O_MODELCOMPARE] <- modelCompare
       
       ## OTHER OUTPUT ##
       output[step, O_SELECTED_MODEL] <- searchModel(model, models)
@@ -280,12 +280,15 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
     write.table(output, file=paste0(outputDir, "/", pop_type, "_", 
                                     sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
                                     "_", modelSelection, "_", sampleSize, "_", 
-                                    tModel, "_", 
+                                    tModel, 
                                     outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=",", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
 
-  saveRDS(parameters, file=paste0(outputDir, "/", paramFile))
+  saveRDS(parameters, file=paste0(outputDir, "/", pop_type, "_", 
+                                  sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
+                                  "_", modelSelection, "_", sampleSize, "_", 
+                                  tModel, paramFile))
 }
