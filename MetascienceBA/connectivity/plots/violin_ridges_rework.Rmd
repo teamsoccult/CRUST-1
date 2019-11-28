@@ -1,0 +1,347 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "20 maj 2019"
+output: html_document
+---
+
+updated 09-11-2019. 
+plots looking at RR & its connection to TAT. 
+
+```{r}
+
+library(pacman)
+p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
+       viridis, ggridges, ggunchained, rlang)
+
+```
+
+loading data (come back)
+
+```{r}
+
+#loading data
+setwd("E:/data/data_plotting")
+
+#new files 
+RR <- read_csv("violin_ridges_RR.csv")
+TF <- read_csv("violin_ridges_TF.csv")
+bystrat <- read_csv("violin_ridges_bystrat.csv")
+
+#strategy into the old files (temporary)
+RR <- RR %>%
+  mutate(strategy = "overall")
+
+TF <- TF %>%
+  mutate(strategy = "overall")
+
+#factor function
+factorize <- function(dataframe){
+  df <- dataframe %>%
+    mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         colab_cond = factor(colab_cond),
+         net_size = factor(net_size),
+         true_model = factor(true_model),
+         strategy = factor(strategy))
+  
+  return(df)
+}
+
+RR <- factorize(RR)
+TF <- factorize(TF)
+bystrat <- factorize(bystrat)
+
+
+  
+```
+
+```{r}
+#adding stuff (this is overall).
+RR <- RR %>%
+  mutate(prop_t_mod = "Overall") 
+
+#changing stuff (this is true).
+TF$prop_t_mod <- ifelse(TF$prop_t_mod == "1", "True", "False")
+bystrat$prop_t_mod <- ifelse(bystrat$prop_t_mod == "1", "True", "False")
+
+#binding 
+RR_TOTAL <- rbind(RR, TF, bystrat)
+
+#Factorizing & Renaming 
+RR_TOTAL <- RR_TOTAL %>%
+  mutate(prop_t_mod = factor(prop_t_mod), 
+         sigma = factor(sigma), 
+         true_model = factor(true_model)) %>%
+  rename("Population" = "population",
+         "Network" = "network",
+         "Sigma" = "sigma",
+         "TrueModel" = "true_model",
+         "Colaboration" = "colab_cond",
+         "ProposedTrue" = "prop_t_mod",
+         "NetworkSize" = "net_size")
+
+```
+
+BELOW: 
+(overall) Replication rate vs. time at true model. 
+This is what we prep. with our melt. 
+We also create a function that can be used to plot. 
+NB: the text for the plot does note make sense at the moment. 
+It will have to be tailored to our needs later when we know what
+we want to group based on. 
+
+```{r}
+
+#melting. 
+melt_RR_TAT <- melt(RR_TOTAL, 
+                    id.vars = c("replica", "Network", "Population",
+                                "Sigma", "TrueModel", 
+                                "Colaboration", "ProposedTrue",
+                                "NetworkSize"), 
+                    measure.vars = c("RR", "TAT"), 
+                    variable.name = "variable", 
+                    value.name = "proportion")
+
+#for populations: 
+RR_TAT_FUN <- function(melted_frame, group_var){
+
+  group_var <- enquo(group_var)
+
+  g <- melted_frame %>%
+      filter(ProposedTrue == "Overall") %>%
+      ggplot(aes(x = proportion, y = UQ(group_var), 
+                               color = variable, fill = variable)) +
+      geom_density_ridges(jittered_points = TRUE, scale = 0.8, 
+                          rel_min_height = .01,
+                          point_shape = "|", point_size = 3, size = 0.25, 
+                          position = position_points_jitter(height = 0)) +
+      scale_y_discrete(expand = c(0.01, 0)) +
+      scale_x_continuous(expand = c(0,0), 
+                         name = "Replication rate & time at true model") +
+      scale_fill_manual(values = c("#D55E0050", "#0072B250"), 
+                        labels = c("Replication rate", "Time at true model")) +
+      scale_color_manual(values = c("#D55E00", "#0072B2"), guide = "none") +
+      scale_discrete_manual("point_color", values = c("#D55E00", "#0072B2"), 
+                            guide = "none") +
+      guides(fill = guide_legend("",
+        override.aes = list(
+        fill = c("#D55E00A0", "#0072B2A0"),
+        color = NA, point_color = NA))
+      ) +
+      theme_ridges(center = TRUE) + 
+      theme_janco_point() 
+      
+    g + labs(caption = "Sample size: 100. 'Replication rate' and 'proportion of time at the true model' both on the x-axis. \n Density curves are averaged over sigma-levels, true models and replicas. \n Lines at the bottom represent mean values for individual replicas") +
+      theme(plot.caption = element_text(hjust = 0.5))
+}
+
+
+
+```
+
+Below: 
+plotting with the function RR_TAT_FUN. 
+
+```{r}
+
+colnames(melt_RR_TAT)
+
+RR_TAT_FUN(melt_RR_TAT, Sigma)
+RR_TAT_FUN(melt_RR_TAT, Population)
+RR_TAT_FUN(melt_RR_TAT, TrueModel)
+RR_TAT_FUN(melt_RR_TAT, Network)
+RR_TAT_FUN(melt_RR_TAT, Colaboration)
+RR_TAT_FUN(melt_RR_TAT, NetworkSize)
+
+
+```
+
+
+Below: 
+preparation for plotting of RR of TRUE/FALSE.
+NB: the text for the plot is bogus. 
+
+```{r}
+
+#ridges plot
+RR_FUN <- function(melted_frame, group_var){
+  
+  group_var <- enquo(group_var)
+  
+g1 <- melted_frame %>%
+    filter(variable == "RR",
+           ProposedTrue != "False") %>%
+    ggplot(aes(x = proportion, y = UQ(group_var),
+               color = ProposedTrue, 
+               fill = ProposedTrue)) +
+    geom_density_ridges(jittered_points = TRUE, scale = 0.8, rel_min_height = .01,
+                        point_shape = "|", point_size = 3, size = 0.25, 
+                        position = position_points_jitter(height = 0)) +
+    scale_y_discrete(expand = c(0.01, 0)) +
+    xlim(0,1) + xlab("Replication rate") +
+    scale_fill_manual(values = c("#D55E0050", "#0072B250")) +
+    scale_color_manual(values = c("#D55E00", "#0072B2"), guide = "none") +
+    scale_discrete_manual("point_color", values = c("#D55E00", "#0072B2"), 
+                          guide = "none") +
+    guides(fill = guide_legend("",
+      override.aes = list(
+      fill = c("#D55E00A0", "#0072B2A0"),
+      color = NA, point_color = NA))) + 
+    theme_ridges(center = TRUE) +
+      theme_janco_point() 
+    
+  g1 + labs(caption = "Sample size: 20. Density curves are averaged over sigma-levels, true models and replicas. \n Lines at the bottom represent mean values for individual replicas") +
+    theme(plot.caption = element_text(hjust = 0.5))
+
+}
+
+```
+
+Below:
+running the plots of RR
+
+```{r}
+
+#what you can group over
+colnames(melt_RR_TAT)
+
+#looking at the plots
+RR_FUN(melt_RR_TAT, Network)
+RR_FUN(melt_RR_TAT, Population)
+RR_FUN(melt_RR_TAT, Sigma)
+RR_FUN(melt_RR_TAT, TrueModel)
+RR_FUN(melt_RR_TAT, Colaboration)
+RR_FUN(melt_RR_TAT, NetworkSize)
+
+```
+
+ABOVE: 
+We have 13 rows containing non-finite values.
+These are replicas of TESS with high sigma for TRUE (I.e., there were no replication attemts of the true model in those runs). Of course this is somewhat problematic as it will skew the results somewhat. However, on aggregate the picture should still be relatively clear. 
+
+BELOW: 
+Plotting replication rate (1) overall, (2) false & (3) true. 
+This makes some sense (to me) since the overall is what we know from the "outside",
+the true we want to have high & the false we want to have low. 
+
+```{r}
+
+
+#ridges plot
+RR_FUN_FALSE <- function(melted_frame, group_var){
+  
+  group_var <- enquo(group_var)
+  
+g1 <- melted_frame %>%
+    filter(variable == "RR") %>%
+    ggplot(aes(x = proportion, y = UQ(group_var),
+               color = ProposedTrue, 
+               fill = ProposedTrue)) +
+    geom_density_ridges(jittered_points = TRUE, scale = 0.8, rel_min_height = .01,
+                        point_shape = "|", point_size = 3, size = 0.25, 
+                        position = position_points_jitter(height = 0)) +
+    scale_y_discrete(expand = c(0.01, 0)) +
+    xlim(0,1) + xlab("Replication rate") +
+    scale_fill_manual(values = c("#16AD3C50", "#D55E0050", "#0072B250")) +
+    scale_color_manual(values = c("#16AD3C", "#D55E00", "#0072B2"), 
+                       guide = "none") +
+    scale_discrete_manual("point_color", 
+                          values = c("#16AD3C", "#D55E00", "#0072B2"), 
+                          guide = "none") +
+    guides(fill = guide_legend("",
+      override.aes = list(
+      fill = c("#16AD3C50", "#D55E00A0", "#0072B2A0"),
+      color = NA, point_color = NA))) + 
+    theme_ridges(center = TRUE) +
+      theme_janco_point() 
+    
+  g1 + labs(caption = "Sample size: 20. Density curves are averaged over sigma-levels, true models and replicas. \n Lines at the bottom represent mean values for individual replicas") +
+    theme(plot.caption = element_text(hjust = 0.5))
+
+}
+
+```
+
+
+ABOVE:
+consider colours: 
+(1) manually here: https://htmlcolorcodes.com/
+(2) otherwise consider color brewer package. 
+
+Below:
+generating plots. 
+
+```{r}
+
+#what you can group over
+colnames(melt_RR_TAT)
+
+#looking at the plots
+RR_FUN_FALSE(melt_RR_TAT, Network)
+RR_FUN_FALSE(melt_RR_TAT, Population)
+RR_FUN_FALSE(melt_RR_TAT, Sigma)
+RR_FUN_FALSE(melt_RR_TAT, TrueModel)
+RR_FUN_FALSE(melt_RR_TAT, Colaboration)
+
+```
+
+
+```{r}
+
+```
+
+
+
+
+
+Below: 
+Experimenting with brewer palette. 
+Still a work in progress.
+Not sure whether it is worth it as well :) 
+
+```{r}
+
+install.packages("RColorBrewer")
+library(RColorBrewer)
+
+#ridges plot
+RR_FUN_FALSE <- function(melted_frame, group_var){
+  
+  group_var <- enquo(group_var)
+  
+g1 <- melted_frame %>%
+    filter(SampleSize == "Sample size: 20",
+           variable == "RR") %>%
+    ggplot(aes(x = proportion, y = UQ(group_var),
+               color = ProposedTrue, 
+               fill = ProposedTrue)) +
+    geom_density_ridges(jittered_points = TRUE, scale = 0.8, rel_min_height = .01,
+                        point_shape = "|", point_size = 3, size = 0.25, 
+                        position = position_points_jitter(height = 0)) +
+    scale_y_discrete(expand = c(0.01, 0)) +
+    xlim(0,1) + xlab("Replication rate") +
+    scale_fill_brewer(palette = "Dark2") +
+    scale_color_brewer(palette = "Dark2") +
+    guides(fill = guide_legend("",
+      override.aes = list(
+      fill = c("#16AD3C50", "#D55E00A0", "#0072B2A0"),
+      color = NA, point_color = NA))) + 
+    theme_ridges(center = TRUE) +
+      theme_janco_point() 
+    
+  g1 + labs(caption = "Sample size: 20. Density curves are averaged over sigma-levels, true models and replicas. \n Lines at the bottom represent mean values for individual replicas") +
+    theme(plot.caption = element_text(hjust = 0.5))
+
+}
+
+```
+
+
+```{r}
+RR_FUN_FALSE(melt_RR_TAT, Population)
+display.brewer.all()
+```
+
+

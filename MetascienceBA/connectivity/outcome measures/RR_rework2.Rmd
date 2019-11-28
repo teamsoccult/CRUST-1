@@ -1,0 +1,334 @@
+---
+title: "replication scaled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+```{r}
+#set working directory
+setwd("~/CRUST-1/data/tests")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+loading data. 
+
+```{r}
+
+#reading 
+path <- "~/CRUST-1/data/tests/"
+
+files <- list.files(path = path, pattern="*.csv") #if possible. 
+
+mycols <- c("replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "net_size",
+            "base_SS",
+            "true_model",
+            "colab_cond",
+            "switch_rep_study",
+            "switch_rep",
+            "init_g_true",
+            "final_g_true",
+            "prop_t_mod")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read_csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
+
+#as factor
+df <- df %>%
+  mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         base_SS = factor(base_SS),
+         colab_cond = factor(colab_cond),
+         net_size = factor(net_size),
+         true_model = factor(true_model))
+
+str(df)
+
+```
+
+How many total variations (for overview)
+
+```{r}
+
+var <- df %>%
+  group_by(network, population, sigma, net_size, colab_cond,
+           base_SS, true_model) %>%
+  summarize(n())
+
+rm(var)
+
+```
+
+replication overall (used for overview)
+
+```{r}
+
+#replication overall 
+df_overall <- df %>%
+  group_by(replica, network, population, sigma, net_size, colab_cond, 
+           base_SS, true_model) %>%
+  summarize(replicated = sum(switch_rep) / sum(switch_rep_study),
+            number = sum(switch_rep_study)) %>%
+  ungroup()
+
+min(df_overall$number)
+max(df_overall$number)
+min(df_overall$replicated)
+max(df_overall$replicated)
+
+```
+
+Next chunk: 
+Checking max & min number of replication studies.
+Which conditions, do we have enough & is it interesting?
+
+```{r}
+
+#checking for low number of rep. studies
+low <- df_overall[order(df_overall$number),]
+low <- low[,-c(1)]
+low
+
+high <- df_overall[order(-df_overall$number),]
+high <- high[,-c(1)]
+high
+
+rm("high", "low")
+
+```
+
+Comments for above chunk: 
+So far it seems that we have most replications in "bad" conditions 
+with low replication rate and fewest replications in "good" conditions
+with high replication rate. It seems that high replication rate 
+(as it should) is affected by sigma (I.e., with higher certainty there is 
+higher replication rate). 
+
+Next chunk:
+Grouping by TRUE prop. mod. 
+How many rep. studies in diff. conditions?
+
+```{r}
+#making the global dataframe.
+df_byglobal <- df %>%
+  group_by(prop_t_mod, replica, network, population, sigma, net_size, colab_cond, 
+           base_SS, true_model) %>%
+  summarize(replicated = sum(switch_rep) / sum(switch_rep_study),
+            number = sum(switch_rep_study)) %>%
+  ungroup()
+
+#finding min. amount of rep. studies. 
+low <- df_byglobal[order(df_byglobal$number),]
+low <- low[,-c(2,10)]
+low
+
+#how many below 10: 
+low <- df_byglobal %>%
+  filter(number <= 10)
+
+#making dataframe not grouped by replica
+df_byglobal1 <- df %>%
+  group_by(prop_t_mod, network, population, sigma, net_size, colab_cond, 
+           base_SS, true_model) %>%
+  summarize(replicated = sum(switch_rep) / sum(switch_rep_study),
+            number = sum(switch_rep_study)) %>%
+  ungroup()
+
+#finding min. amount of rep. studies. 
+low <- df_byglobal1[order(df_byglobal1$number),]
+low <- low[,-c(9)]
+low
+
+rm(low)
+```
+
+Above chunk: 
+Some replicas without any replication studies of TRUE model (especially sig. 0.8)
+Still some with very few when combining 5 reps. 
+Should be OK though. 
+
+Next chunk: 
+overall summary stats (not grouped by true/not true).
+
+```{r}
+#summary stats
+df_overall_sum <- df_overall %>%
+  group_by(network, population, sigma, net_size, colab_cond, 
+           base_SS, true_model) %>%
+  summarize(RR_median = median(replicated),
+            RR_mean = mean(replicated),
+            RR_IQR = IQR(replicated),
+            RR_SD = sd(replicated)) %>%
+  ungroup()
+
+#lowest replication rates.  
+low_rep <- df_overall_sum[order(df_overall_sum$RR_mean),]
+head(low_rep)
+
+#highest replication rates.
+high_rep <- df_overall_sum[order(-df_overall_sum$RR_mean),]
+head(high_rep)
+
+rm("low_rep", "high_rep")
+
+```
+
+Comments on above chunk: 
+all lowest replication rates are in the TOM condition (worrying?)
+Generally rep. rate is lower than 50%. 
+TESS seems to be the best replicator & MAVE the worst. 
+
+Next chunk:
+Testing differences in replication rates for TRUE/FALSE
+focusing on different grouping variables. 
+This section ignores interactions & only focuses on main effects. 
+
+```{r}
+#replication based on TRUE/FALSE & NETWORKS
+byglobal_network <- df_byglobal %>%
+  group_by(prop_t_mod, network) %>%
+  summarize(RR_median = median(replicated, na.rm = TRUE),
+            RR_mean = mean(replicated, na.rm = TRUE),
+            RR_IQR = IQR(replicated, na.rm = TRUE),
+            RR_SD = sd(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
+byglobal_network
+
+#replication based on TRUE/FALSE & POPULATIONS
+byglobal_pop <- df_byglobal %>%
+  group_by(prop_t_mod, population) %>%
+  summarize(RR_median = median(replicated, na.rm = TRUE),
+            RR_mean = mean(replicated, na.rm = TRUE),
+            RR_IQR = IQR(replicated, na.rm = TRUE),
+            RR_SD = sd(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
+byglobal_pop
+
+#replication based on TRUE/FALSE & SIGMA
+byglobal_sigma <- df_byglobal %>%
+  group_by(prop_t_mod, sigma) %>%
+  summarize(RR_median = median(replicated, na.rm = TRUE),
+            RR_mean = mean(replicated, na.rm = TRUE),
+            RR_IQR = IQR(replicated, na.rm = TRUE),
+            RR_SD = sd(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
+byglobal_sigma
+
+#replication based on TRUE/FALSE & T_MOD
+byglobal_tmod <- df_byglobal %>%
+  group_by(prop_t_mod, true_model) %>%
+  summarize(RR_median = median(replicated, na.rm = TRUE),
+            RR_mean = mean(replicated, na.rm = TRUE),
+            RR_IQR = IQR(replicated, na.rm = TRUE),
+            RR_SD = sd(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
+byglobal_tmod
+
+#replication based on TRUE/FALSE & COLAB
+byglobal_colab <- df_byglobal %>%
+  group_by(prop_t_mod, colab_cond) %>%
+  summarize(RR_median = median(replicated, na.rm = TRUE),
+            RR_mean = mean(replicated, na.rm = TRUE),
+            RR_IQR = IQR(replicated, na.rm = TRUE),
+            RR_SD = sd(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
+byglobal_colab
+
+#replication based on TRUE/FALSE & base_SS
+byglobal_SS <- df_byglobal %>%
+  group_by(prop_t_mod, base_SS) %>%
+  summarize(RR_median = median(replicated, na.rm = TRUE),
+            RR_mean = mean(replicated, na.rm = TRUE),
+            RR_IQR = IQR(replicated, na.rm = TRUE),
+            RR_SD = sd(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
+byglobal_SS
+
+```
+
+Above chunk: 
+(1) byglobal_network: consistently higher RR for TRUE (~50%) than false (~30%).
+TOM generally has somewhat lower rep. rate (mean, median) than SMALL/LAT. 
+However, This also means that he is as good at distinguishing..
+SMALL has quite a high RR median & TOM has quite a low RR median (for TRUE). 
+
+(2) byglobal_pop: consistently higher RR for true (~35-50%) than false (~30%).
+Bo has very high rep. rate of true model (Mave also doing good). 
+Tess replicates the most false models. 
+
+(3) byglobal_sigma: Crazy high RR for TRUE/0.2 (80%).
+However, the RR for TRUE/0.8 (20%) is lower than both FALSE. 
+Also, there seems to be an interaction effect here. 
+
+(4) byglobal_colab: Does not seem to affect rates. 
+Both FALSE conditions (~30%) and both TRUE conditions (~50%).
+
+(5) byglobal_tmod: consistently higher RR for TRUE (~40-50%) than FALSE (~30%).
+However, the difference is bigger for mod2 than mod13 suggesting that they
+are better at selecting here. 
+
+Next chunk:
+Investigating TRUE replications only 
+
+```{r}
+
+#sum over some parameters. 
+df_byglobal_sum <- df_byglobal %>%
+  group_by(prop_t_mod, network, population, net_size) %>%
+  summarize(RR_true_median = median(replicated, na.rm = TRUE),
+            RR_true_mean = mean(replicated, na.rm = TRUE),
+            RR_true_IQR = IQR(replicated, na.rm = TRUE),
+            RR_true_SD = sd(replicated, na.rm = TRUE)) %>%
+  ungroup()
+
+#only true 
+df_true_sum <- df_byglobal_sum %>%
+  filter(prop_t_mod == 1) %>%
+  dplyr::select(network, population, RR_true_median, RR_true_IQR, 
+         RR_true_mean, RR_true_SD)
+
+```
+
+
+
+write.csv
+
+```{r}
+#working directory 
+setwd("~/CRUST-1/connectivity/outcome_results/sample_size_20")
+
+#writing csv. 
+write.csv(df_overall_sum, "RR_small_20.csv", row.names = F)
+write.csv(df_true_sum, "RRT_small_20.csv", row.names = F)
+
+#testing 
+read.csv("RR_small_20.csv")
+read.csv("RRT_small_20.csv")
+
+#testing 
+head(RR_lattice_100)
+head(RR_small_100)
+head(RRT_lattice_100)
+head(RRT_small_100)
+
+```

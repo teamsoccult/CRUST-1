@@ -1,0 +1,249 @@
+---
+title: "stickiness"
+author: "Mikkel Werling"
+date: "5/19/2019"
+output: html_document
+---
+
+
+```{r}
+
+#set working directory
+setwd("~/CRUST-1/data/tests")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+loading data. 
+
+```{r}
+#reading 
+path <- "~/CRUST-1/data/tests/"
+
+files <- list.files(path = path, pattern="*.csv") #if possible. 
+
+mycols <- c("replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "true_model",
+            "net_size", #maybe relevant.
+            "colab_cond",
+            "base_SS", #maybe relevant. 
+            "prop_t_mod", #proposed true? (1 = yes, 0 = no). 
+            "init_g_true", #count of true orig. (testing) agents.
+            "final_g_true", #count of post stud. (testing) agents. 
+            "switch_true",
+            "switch_true_changing")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
+
+```
+
+Next chunk:
+Making the dataframe that we compute everything else based on: 
+
+```{r}
+
+#prep data frame.  
+df1 <- df %>%
+  filter(prop_t_mod == 0) %>%
+  group_by(replica, sigma, population, network, true_model,
+           net_size, colab_cond, base_SS) %>%
+  summarize(agent_away = sum(as.numeric(init_g_true == 1 & 
+                                        final_g_true == 0)),
+            agent_total = sum(as.numeric(init_g_true == 1)),
+            switch_away = sum(switch_true_changing),
+            switch_total = sum(switch_true))
+
+```
+
+next chunk: 
+stickiness based on agents vs. switch vs. combined. 
+avg. over network & population. 
+
+```{r}
+#only orig. agents 
+df_agents <- df1 %>%
+  mutate(stickiness = 1 - (agent_away / agent_total)) %>%
+  group_by(network, population) %>%
+  summarize(stickiness_median = median(stickiness),
+            stickiness_mean = mean(stickiness),
+            stickiness_IQR = IQR(stickiness), 
+            stickiness_SD = sd(stickiness))
+
+#only switch. agents
+df_switch <- df1 %>%
+  mutate(stickiness = 1 - (switch_away / switch_total)) %>%
+  group_by(network, population) %>%
+  summarize(stickiness_median = median(stickiness),
+            stickiness_mean = mean(stickiness),
+            stickiness_IQR = IQR(stickiness), 
+            stickiness_SD = sd(stickiness))
+
+#combined stickiness
+df_combined <- df1 %>%
+  mutate(lose_global = agent_away + switch_away,
+         all_global = agent_total + switch_total,
+         stickiness = 1 - (lose_global / all_global)) %>%
+  group_by(network, population) %>%
+  summarize(stickiness_median = median(stickiness),
+            stickiness_mean = mean(stickiness),
+            stickiness_IQR = IQR(stickiness), 
+            stickiness_SD = sd(stickiness))
+
+```
+
+above chunk: 
+generally low stickiness. 
+higher stickiness for orig. agents (we have a potential explanation). 
+
+next chunk: 
+avg. over orig. & switch (investigating true model)
+
+```{r}
+
+#combined stickiness
+df_true <- df1 %>%
+  mutate(lose_global = agent_away + switch_away,
+         all_global = agent_total + switch_total,
+         stickiness = 1 - (lose_global / all_global)) %>%
+  group_by(true_model) %>%
+  summarize(stickiness_median = median(stickiness),
+            stickiness_mean = mean(stickiness),
+            stickiness_IQR = IQR(stickiness), 
+            stickiness_SD = sd(stickiness))
+
+
+```
+
+above chunk: 
+overfitting (even with BIC): Mod2 has much higher stickiness than
+Mod13. Mod13 is almost down to 50%.
+
+next chunk: 
+investigating sigma: 
+
+```{r}
+
+#combined stickiness
+df_sigma <- df1 %>%
+  mutate(lose_global = agent_away + switch_away,
+         all_global = agent_total + switch_total,
+         stickiness = 1 - (lose_global / all_global)) %>%
+  group_by(sigma) %>%
+  summarize(stickiness_median = median(stickiness),
+            stickiness_mean = mean(stickiness),
+            stickiness_IQR = IQR(stickiness), 
+            stickiness_SD = sd(stickiness))
+
+```
+
+above chunk: 
+sigma is everything (as per fucking usual).
+
+next chunk: 
+combining parameters (interaction effects).
+
+```{r}
+#combined stickiness
+df_SigMod <- df1 %>%
+  mutate(lose_global = agent_away + switch_away,
+         all_global = agent_total + switch_total,
+         stickiness = 1 - (lose_global / all_global)) %>%
+  group_by(sigma, true_model) %>%
+  summarize(stickiness_median = median(stickiness),
+            stickiness_mean = mean(stickiness),
+            stickiness_IQR = IQR(stickiness), 
+            stickiness_SD = sd(stickiness))
+
+```
+
+above chunk: 
+sigma is the "strongest" variable (I.e., for both models low sigma = high stick).
+However, there is an interaction in the sense that in high sigma conditions
+the complex model does much worse. 
+
+next chunk: 
+
+Function approach for prep_BA_work4:
+
+```{r}
+#working directory. 
+setwd("E:/data_prepped1")
+path = "E:/data_prepped1/"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist <- list()
+
+stickiness_rework <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+                "network", 
+                "population", 
+                "sigma",
+                "true_model",
+                "net_size", #maybe relevant.
+                "colab_cond",
+                "base_SS", #maybe relevant. 
+                "prop_t_mod", #proposed true? (1 = yes, 0 = no). 
+                "init_g_true", #count of true orig. (testing) agents.
+                "final_g_true", #count of post stud. (testing) agents. 
+                "switch_true",
+                "switch_true_changing")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          base_SS = factor(base_SS),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #create DF
+    df <- df %>%
+      filter(prop_t_mod == 0) %>%
+      group_by(replica, sigma, population, network, true_model,
+           net_size, colab_cond, base_SS) %>%
+      summarize(agent_away = sum(as.numeric(init_g_true == 1 & 
+                                        final_g_true == 0)),
+            agent_total = sum(as.numeric(init_g_true == 1)),
+            switch_away = sum(switch_true_changing),
+            switch_total = sum(switch_true))
+    
+    datalist[i] <- list(df)
+  }
+    
+  df_final <- do.call("rbind", datalist)
+  
+  #directory for the files: 
+  setwd("E:/data_outcome_measures")
+  
+  #write csv:
+  write_csv(df_final, "stickiness_rework.csv")
+
+}
+
+#calling the function
+stickiness_rework(files)
+```
+
+

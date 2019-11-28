@@ -1,0 +1,164 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+NOTE: 
+We really need to consider why we choose 15% as our FFTT in terms of proportion. The code should work, but the conceptual aspects should be considered. 
+Last update: 31/10/2019
+
+
+```{r}
+library(pacman)
+
+p_load(tidyverse)
+
+#set working directory
+setwd("~/CRUST-1/data/tests")
+
+```
+
+```{r}
+#reading 
+path <- "~/CRUST-1/data/tests/"
+
+files <- list.files(path = path, pattern="*.csv") #if possible. 
+
+mycols <- c("replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "net_size",
+            "base_SS",
+            "true_model",
+            "prop_true",
+            "init_g_true",
+            "final_g_true",
+            "prop_t_mod")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
+```
+
+
+```{r}
+library(tidyverse)
+#how many of them got there
+test <- df %>%
+  group_by(replica, population, network, sigma, net_size, base_SS) %>%
+  summarize(hit15 = ifelse(max(prop_true >= 0.15), 1, 0))
+
+#percentage of runs got to 15%
+test1 <- test %>%
+  group_by(population, network, sigma, net_size, base_SS) %>%
+  summarize(mean = mean(hit15))
+
+#tallying up how many of misses and hits to 50%
+test2 <- test %>%
+  group_by(population, network, hit15, sigma, net_size, base_SS) %>%
+  summarize(count = n())
+
+#first time to true model at 15%
+df_fttm <- df %>%
+  group_by(replica, population, network, sigma, net_size, base_SS) %>%
+  mutate(hit15 = ifelse(max(prop_true >= 0.15), 1, 0)) %>%
+  filter(hit15 == 1) %>%
+  summarize(first_hit15 = min(which(prop_true >= 0.15)))
+
+#summary of first time to to 50%
+df_fttm_sum <- df_fttm %>% 
+  group_by(population, network) %>%
+  summarise(median = median(first_hit15), 
+            IQR = IQR(first_hit15))
+
+
+```
+
+by individual agents 
+
+```{r}
+
+#first way 
+by_agent <- df %>%
+  group_by(replica, population, network, sigma, true_model, net_size, base_SS) %>%
+  summarize(obtained = min(which(prop_t_mod == 1 & 
+                                final_g_true == 1)))
+
+
+#second way
+testing <- df %>%
+  mutate(obtained = ifelse(prop_t_mod == 1 & 
+                             final_g_true == 1, 1, 0))
+  
+testing1 <- testing %>%
+  group_by(replica, population, network, sigma, true_model, net_size, base_SS) %>%
+  summarize(first = min(which((obtained == 1))))
+
+#are they the same?
+all(by_agent == testing1)  
+
+#summarized 
+sum <- by_agent %>%
+  group_by(network, population, net_size, base_SS) %>%
+  summarize(FPTT_mean = mean(obtained),
+            FPTT_median = median(obtained),
+            FPTT_IQR = IQR(obtained),
+            FPTT_SD = sd(obtained))
+
+```
+
+relevant subsets. 
+
+```{r}
+
+#subsetting 
+FPTT_lattice <- sum %>%
+  filter(network == "Lattice") %>%
+  select(network, population, net_size, base_SS, FPTT_mean, 
+         FPTT_median, FPTT_IQR, FPTT_SD)
+
+FPTT_small <- sum %>%
+  filter(network == "Small") %>%
+  select(network, population, net_size, base_SS, FPTT_mean,
+         FPTT_median, FPTT_IQR, FPTT_SD)
+
+FPTT_TOM <- sum %>%
+  filter(network == "TOM") %>%
+  select(network, population, net_size, base_SS, FPTT_mean,
+         FPTT_median, FPTT_IQR, FPTT_SD)
+
+#checking
+head(FPTT_lattice)
+head(FPTT_small)
+
+```
+
+write csv 
+
+```{r}
+
+#We should make outcome folders compatible with the rework
+
+setwd("~/CRUST-1/connectivity/outcome_results/sample_size_100")
+getwd()
+
+write.csv(FPTT_lattice, "FPTT_lattice_100.csv", row.names = F)
+write.csv(FPTT_small, "FPTT_small_100.csv", row.names = F)
+
+```
+
+read csv (to check)
+
+```{r}
+
+read.csv("FPTT_lattice_100.csv")
+read.csv("FPTT_small_100.csv")
+
+```

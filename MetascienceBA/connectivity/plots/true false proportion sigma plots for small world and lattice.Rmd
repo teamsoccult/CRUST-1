@@ -1,0 +1,199 @@
+---
+title: "sigma plots for epi 0.5 across both networks"
+author: "Mikkel Werling"
+date: "5/21/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse)
+```
+
+
+Sigma Plots for the Epistemic Small
+
+```{r}
+#Loading the files
+
+small_epi_0.2_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/small_epi_0.2_BIC_100_hard_100.csv", sep = ",")
+
+small_epi_0.2_BIC_100_hard_100.csv <- small_epi_0.2_BIC_100_hard_100.csv[seq(1, nrow(small_epi_0.2_BIC_100_hard_100.csv), 25), ]
+
+small_epi_0.5_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/small_epi_0.5_BIC_100_hard_100.csv", sep = ",")
+
+small_epi_0.5_BIC_100_hard_100.csv <- small_epi_0.5_BIC_100_hard_100.csv[seq(1, nrow(small_epi_0.5_BIC_100_hard_100.csv), 25), ]
+
+small_epi_0.8_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/small_epi_0.8_BIC_100_hard_100.csv", sep = ",")
+
+small_epi_0.8_BIC_100_hard_100.csv <- small_epi_0.8_BIC_100_hard_100.csv[seq(1, nrow(small_epi_0.8_BIC_100_hard_100.csv), 25), ]
+
+```
+
+melting the files 0.2
+
+```{r}
+naming <- colnames(small_epi_0.2_BIC_100_hard_100.csv)
+
+melt_epi_2 <- melt(small_epi_0.2_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+melt_epi_2$true <- ifelse(melt_epi_2$variable == "proportion_7", "True", "False")
+
+melt_epi_2$variable <- relevel(melt_epi_2$variable, ref = "proportion_7")
+
+melt_epi_2$variable <- fct_rev(melt_epi_2$variable)
+
+epi_2_plot_true <- ggplot(melt_epi_2, aes(timestep, value, color = true))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.9, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "Sigma = 0.2") + 
+  theme(legend.position = "none") 
+```
+
+melting the files 0.5
+
+```{r}
+naming <- colnames(small_epi_0.5_BIC_100_hard_100.csv)
+
+melt_epi <- melt(small_epi_0.5_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+melt_epi$true <- ifelse(melt_epi$variable == "proportion_7", "True", "False")
+
+melt_epi$variable <- relevel(melt_epi$variable, ref = "proportion_7")
+
+melt_epi$variable <- fct_rev(melt_epi$variable)
+
+epi_5_plot_true <- ggplot(melt_epi, aes(timestep, value, color = variable))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.01) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "Sigma = 0.5")
+```
+
+
+melting the files 0.8
+
+```{r}
+naming <- colnames(small_epi_0.8_BIC_100_hard_100.csv)
+
+melt_epi_8 <- melt(small_epi_0.8_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+melt_epi_8$true <- ifelse(melt_epi_8$variable == "proportion_7", "True", "False")
+
+melt_epi_8$variable <- relevel(melt_epi_8$variable, ref = "proportion_7")
+
+melt_epi_8$variable <- fct_rev(melt_epi_8$variable)
+
+epi_8_plot_true <- ggplot(melt_epi_8, aes(timestep, value, color = true))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.9, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "Sigma = 0.8") + 
+  theme(legend.position = "none")
+```
+
+Sigma Plots for the Epistemic Lattice
+
+```{r}
+#Loading the files
+
+lattice_epi_0.2_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/lattice_epi_0.2_BIC_100_hard_100.csv", sep = ",")
+
+lattice_epi_0.2_BIC_100_hard_100.csv <- lattice_epi_0.2_BIC_100_hard_100.csv[seq(1, nrow(lattice_epi_0.2_BIC_100_hard_100.csv), 25), ]
+
+lattice_epi_0.5_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/lattice_epi_0.5_BIC_100_hard_100.csv", sep = ",")
+
+lattice_epi_0.5_BIC_100_hard_100.csv <- lattice_epi_0.5_BIC_100_hard_100.csv[seq(1, nrow(lattice_epi_0.5_BIC_100_hard_100.csv), 25), ]
+
+lattice_epi_0.8_BIC_100_hard_100.csv <- read.csv("~/CRUST-1/data/model7csv/lattice_epi_0.8_BIC_100_hard_100.csv", sep = ",")
+
+lattice_epi_0.8_BIC_100_hard_100.csv <- lattice_epi_0.8_BIC_100_hard_100.csv[seq(1, nrow(lattice_epi_0.8_BIC_100_hard_100.csv), 25), ]
+
+```
+
+melting the files 0.2
+
+```{r}
+naming <- colnames(lattice_epi_0.2_BIC_100_hard_100.csv)
+
+melt_epi_lattice_2 <- melt(lattice_epi_0.2_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+melt_epi_lattice_2$true <- ifelse(melt_epi_lattice_2$variable == "proportion_7", "True", "False")
+
+melt_epi_lattice_2$variable <- relevel(melt_epi_lattice_2$variable, ref = "proportion_7")
+
+melt_epi_lattice_2$variable <- fct_rev(melt_epi_lattice_2$variable)
+
+epi_lattice_2_plot_true <- ggplot(melt_epi_lattice_2, aes(timestep, value, color = true))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.9, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "Sigma = 0.2") + 
+  theme(legend.position = "none") 
+```
+
+meltin the files 0.5
+
+```{r}
+naming <- colnames(lattice_epi_0.5_BIC_100_hard_100.csv)
+
+melt_epi <- melt(lattice_epi_0.5_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+melt_epi$true <- ifelse(melt_epi$variable == "proportion_7", "True", "False")
+
+melt_epi$variable <- relevel(melt_epi$variable, ref = "proportion_7")
+
+melt_epi$variable <- fct_rev(melt_epi$variable)
+
+epi_lattice_5_plot_true <- ggplot(melt_epi, aes(timestep, value, color = true))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.9, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "True or False Model", title = "Sigma = 0.5") +
+  theme(legend.position = "none") 
+```
+
+
+melting the files 0.8
+
+```{r}
+naming <- colnames(lattice_epi_0.8_BIC_100_hard_100.csv)
+
+melt_epi_lattice_8 <- melt(lattice_epi_0.8_BIC_100_hard_100.csv, id = c(naming[1:25], naming[40:49]))
+
+melt_epi_lattice_8$true <- ifelse(melt_epi_lattice_8$variable == "proportion_7", "True", "False")
+
+melt_epi_lattice_8$variable <- relevel(melt_epi_lattice_8$variable, ref = "proportion_7")
+
+melt_epi_lattice_8$variable <- fct_rev(melt_epi_lattice_8$variable)
+
+epi_lattice_8_plot_true <- ggplot(melt_epi_lattice_8, aes(timestep, value, color = true))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(alpha = 0.9, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dashed", size = 1) + 
+  labs(y = "Proportion", color = "Proportion of different models", title = "Sigma = 0.8") + 
+  theme(legend.position = "none")
+```
+
+combining the plots
+
+```{r}
+small_sigma_plot = plot_grid(epi_2_plot_true, epi_5_plot_true + theme(legend.position = "none"), epi_8_plot_true, align = "h", labels = "Small World", label_size = 13, nrow = 1)
+
+sigma_plot
+
+#sigma_plot <- plot_grid(main, align = "h", labels = "Small World")
+
+#sigma_plot
+
+lattice_sigma_plot = plot_grid(epi_lattice_2_plot_true, epi_lattice_5_plot_true, epi_lattice_8_plot_true, labels = "Lattice", label_size = 13, nrow = 1)
+
+lattice_sigma_plot
+```

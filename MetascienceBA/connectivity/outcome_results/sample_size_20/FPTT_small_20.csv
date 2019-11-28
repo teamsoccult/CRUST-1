@@ -1,0 +1,5 @@
+"network","population","FPTT_mean","FPTT_median","FPTT_IQR","FPTT_SD"
+"Small","All",33.8622222222222,19,31,47.301041715688
+"Small","Bo",Inf,67.5,319,Inf
+"Small","Mave",23.3755555555556,16,20,33.8405645777059
+"Small","Tess",Inf,18,41.75,Inf

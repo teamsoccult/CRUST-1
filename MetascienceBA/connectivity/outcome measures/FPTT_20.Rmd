@@ -1,0 +1,131 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "27 maj 2019"
+output: html_document
+---
+
+
+```{r}
+library(pacman)
+
+p_load(tidyverse)
+
+#set working directory
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/sample_size_20")
+
+```
+
+```{r}
+#reading 
+path <- "C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv/sample_size_20/"
+
+files <- list.files(path = path, pattern="*.csv") #if possible. 
+
+mycols <- c("replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "true_model",
+            "proportion_true",
+            "initial_global_true_model",
+            "final_global_true_model",
+            "selected_true_model")
+
+#loading them 
+dfList <- lapply(files, function(f) {  
+   read.csv(paste0(path, f))[mycols]
+})
+
+#subsetting (because of computational demands)
+df <- do.call(rbind, dfList) 
+rm(dfList)
+```
+
+This does not really work. Go to the next chunk. 
+
+```{r}
+library(tidyverse)
+#how many of them got there
+test <- df %>%
+  group_by(replica, population, network, sigma) %>%
+  summarize(hit15 = ifelse(max(proportion_true >= 0.15), 1, 0))
+
+#percentage of runs got to 50
+test1 <- test %>%
+  group_by(population, network, sigma) %>%
+  summarize(mean = mean(hit15))
+
+#tallying up how many of misses and hits to 50%
+test2 <- test %>%
+  group_by(population, network, hit15, sigma) %>%
+  summarize(count = n())
+
+#first time to true model at 50%
+df_fttm <- df %>%
+  group_by(replica, population, network, sigma, true_model) %>%
+  mutate(hit15 = ifelse(max(proportion_true >= 0.12), 1, 0)) %>%
+  filter(hit15 == 1) %>%
+  summarize(first_hit15 = min(which(proportion_true >= 0.12)))
+
+#summary of first time to to 50%
+df_fttm_sum <- df_fttm %>% 
+  group_by(population, network) %>%
+  summarise(median = median(first_hit15), 
+            IQR = IQR(first_hit15))
+
+
+```
+
+by individual agents 
+
+```{r}
+
+#first way 
+by_agent <- df %>%
+  group_by(replica, population, network, sigma, true_model) %>%
+  summarize(obtained = min(which(selected_true_model == 1 & 
+                                final_global_true_model == 1)))
+
+
+#second way
+testing <- df %>%
+  mutate(obtained = ifelse(selected_true_model == 1 & 
+                             final_global_true_model == 1, 1, 0))
+  
+testing1 <- testing %>%
+  group_by(replica, population, network, sigma, true_model) %>%
+  summarize(first = min(which((obtained == 1))))
+
+#are they the same?
+all(by_agent == testing1)  
+
+#summarized 
+sum <- by_agent %>%
+  group_by(network, population) %>%
+  summarize(FPTT_mean = mean(obtained),
+            FPTT_median = median(obtained),
+            FPTT_IQR = IQR(obtained),
+            FPTT_SD = sd(obtained))
+
+```
+
+write csv. 
+
+```{r}
+
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/connectivity/outcome_results/sample_size_20")
+getwd()
+
+write.csv(sum, "FPTT_small_20.csv", row.names = F)
+rm(list = ls())
+
+```
+
+read csv (to check)
+
+```{r}
+
+read.csv("FPTT_small_20.csv")
+
+```

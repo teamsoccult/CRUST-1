@@ -1,0 +1,475 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "20 maj 2019"
+output: html_document
+---
+
+updated 09-11-2019.
+Still much work to do. 
+
+```{r}
+
+library(pacman)
+p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
+       viridis, ggridges, ggunchained, rlang)
+
+```
+
+Preprocessing (should also be adjusted to accommodate better early prep). 
+
+```{r}
+
+#load data 
+setwd("E:/data/data_plotting")
+df <- read_csv("violin_extended_rework.csv")
+df <- df[,-6]
+
+df1 <- read_csv("violin_extended_colabtest.csv")
+df2 <- read_csv("violin_extended_strat_colabtest.csv")
+
+df1 <- df1 %>%
+  mutate(strategy = "overall")
+
+df <- rbind(df1, df2)
+
+#as factor
+df <- df %>%
+  filter(network == "Lattice" | network == "TOM",
+         net_size == 484) %>%
+mutate(network = factor(network),
+      population = factor(population),
+      sigma = factor(sigma),
+      colab_cond = factor(colab_cond),
+      net_size = factor(net_size),
+      true_model = factor(true_model),
+      strategy = factor(strategy))
+
+df1 <- df1 %>%
+mutate(network = factor(network),
+      population = factor(population),
+      sigma = factor(sigma),
+      colab_cond = factor(colab_cond),
+      net_size = factor(net_size),
+      true_model = factor(true_model))
+
+df <- rbind(df, df1)
+```
+
+raincloud prep
+
+```{r}
+
+#preparing raincloud (can be customized)
+raincloud_theme = theme(
+text = element_text(size = 10),
+axis.title.x = element_text(size = 16),
+axis.title.y = element_text(size = 16),
+axis.text = element_text(size = 14),
+axis.text.x = element_text(vjust = 0.5),
+legend.title=element_text(size=16),
+legend.text=element_text(size=16),
+legend.position = "right",
+plot.title = element_text(lineheight=.8, face="bold", size = 16),
+panel.border = element_blank(),
+panel.grid.minor = element_blank(),
+panel.grid.major = element_blank(),
+axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
+```
+
+new directory & loading flatViolin
+
+```{r}
+
+setwd("~/CRUST-1")
+baseDir <- "."
+scriptDir <- paste0(baseDir, "/src/functions")
+inputDir <- paste0(baseDir, "/data")
+outputDir <- paste0(baseDir, "/data")
+source(paste0(scriptDir, "/flatViolin.R"))
+
+
+```
+
+Main effects (1). 
+Upright plot of main effects avg. over all other grouping variables. 
+
+```{r}
+
+#raincloud plot
+
+RR_FUN <- function(df, .var){
+  
+  var <- enquo(.var)
+
+g <- df %>%
+  ggplot(aes(x = UQ(var), 
+             y = RR, fill = UQ(var))) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
+  geom_point(aes(y = RR, color = UQ(var)), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 3) +
+  guides(fill = FALSE) + 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  #coord_flip() +
+  theme_bw() +
+  labs(title = paste0("Replication rate for ", as_label(var), "s"), #with s?
+       subtitle = "Averaged over all other grouping variables",
+       x = paste0(as_label(var), "s"), #with s?
+       y = "Replication rate") +
+  raincloud_theme
+
+#call the plot
+g
+
+}
+
+#running the function 
+colnames(df)
+RR_FUN(df, population)
+RR_FUN(df, sigma)
+RR_FUN(df, network)
+RR_FUN(df, true_model) #looks terrible
+RR_FUN(df, colab_cond) #looks terrible 
+RR_FUN(df, net_size) #looks terrible. 
+RR_FUN(df, strategy) #new way of grouping. 
+
+```
+
+Main effects (2). 
+Flipped plot of main effects avg. over all other grouping variables. 
+
+```{r}
+
+#raincloud plot
+
+RR_FUN2 <- function(df, .var){
+  
+  var <- enquo(.var)
+
+g <- df %>%
+  ggplot(aes(x = UQ(var), 
+             y = RR, fill = UQ(var))) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
+  geom_point(aes(y = RR, color = UQ(var)), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 3) +
+  guides(fill = FALSE) + 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  coord_flip() +
+  theme_bw() +
+  labs(title = paste0("Replication rate for ", as_label(var), "s"), #with s?
+       subtitle = "Averaged over all other grouping variables",
+       x = paste0(as_label(var), "s"), #with s?
+       y = "Replication rate") +
+  raincloud_theme
+
+#call the plot
+g
+
+}
+
+#running the function 
+colnames(df_RR)
+RR_FUN2(df_RR, population)
+RR_FUN2(df_RR, sigma)
+RR_FUN2(df_RR, network)
+RR_FUN2(df_RR, true_model) #looks terrible
+RR_FUN2(df_RR, colab_cond) #looks terrible 
+RR_FUN2(df_RR, net_size)
+
+```
+
+Interaction effects (1). 
+Upright plot of two main effects (possibly interaction)
+avg. over all other grouping variables. 
+Some of these look terrible bc. we have terrible var names. 
+Maybe just hard-code once we have found the plots we want to present. 
+
+```{r}
+
+RR_FUN3 <- function(.df, .var1, .var2){
+  
+  var1 <- enquo(.var1)
+  var2 <- enquo(.var2)
+  
+#raincloud plot
+  g <- .df %>%
+    ggplot(aes(x = UQ(var1), y = RR, fill = UQ(var2))) +
+    geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+    geom_point(aes(y = RR, color = UQ(var2)), 
+                    position = position_jitter(width = .15), 
+                    size = .5, alpha = 0.8) +
+    geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+    expand_limits(x = 2) + #not clear that this changes much. 
+    #guides(fill = FALSE) + #legend can be deleted. 
+    guides(color = FALSE) +
+    scale_fill_tableau() +
+    scale_color_tableau() +
+    #coord_flip() +
+    theme_bw() +
+    labs(title = paste0("Replication rate for ", as_label(var1), "s"),
+         subtitle = paste0("Grouped by ", as_label(var2)), 
+         x = paste0(as_label(var1)), 
+         y = "Replication rate",
+         fill = paste0(as_label(var2))) + #sets the legend title.
+    raincloud_theme
+  
+  #call the plot
+  g
+
+}
+
+#what can we plot over? 
+colnames(df)
+
+#population vs. everything: 
+RR_FUN3(df, population, network) #tom is lower for all. 
+RR_FUN3(df, population, sigma) #some interaction w. BO vs. everyone else. 
+RR_FUN3(df, population, true_model) #no real effect. 
+RR_FUN3(df, population, colab_cond) #no effect it seems. 
+RR_FUN3(df, population, net_size) #no effect. 
+
+#network vs. everything 
+RR_FUN3(df, network, population) #TOM does worst overall. 
+RR_FUN3(df, network, sigma) #TOM does worst overall 
+RR_FUN3(df, network, true_model) #TOM does worst overall. 
+RR_FUN3(df, network, colab_cond) #TOM does worst overall. 
+RR_FUN3(df, network, net_size) #same. 
+
+#sigma vs. everything
+RR_FUN3(df, sigma, network) #TOM worst, more spread for 0.2
+RR_FUN3(df, sigma, population) #big Tess & Bo effects (unsurprisingly)
+RR_FUN3(df, sigma, true_model) #interaction effect for sure. 
+RR_FUN3(df, sigma, colab_cond) #nothing. 
+RR_FUN3(df, sigma, net_size) #nothing. 
+
+#true model vs. everything 
+RR_FUN3(df, true_model, population)  
+RR_FUN3(df, true_model, network) #least action/change/diff in TOM
+RR_FUN3(df, true_model, sigma) #interaction effect (same as before)
+RR_FUN3(df, true_model, colab_cond) #nothing
+RR_FUN3(df, true_model, net_size) #nothing. 
+
+#colab condition vs. everything
+RR_FUN3(df, colab_cond, network) #nothing
+RR_FUN3(df, colab_cond, population) #nothing.
+RR_FUN3(df, colab_cond, sigma) #nothing.
+RR_FUN3(df, colab_cond, true_model) #nothing. 
+RR_FUN3(df, colab_cond, net_size) #nothing. 
+
+#new comparison (strategy vs. replication). 
+RR_FUN3(df, strategy, colab_cond)
+```
+
+Interaction effects (2). 
+Flipped plot of two main effects (possibly interaction)
+avg. over all other grouping variables. 
+
+```{r}
+
+RR_FUN4 <- function(.df, .var1, .var2){
+  
+  var1 <- enquo(.var1)
+  var2 <- enquo(.var2)
+  
+#raincloud plot
+  g <- .df %>%
+    ggplot(aes(x = UQ(var1), y = RR, fill = UQ(var2))) +
+    geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+    geom_point(aes(y = RR, color = UQ(var2)), 
+                    position = position_jitter(width = .15), 
+                    size = .5, alpha = 0.8) +
+    geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+    expand_limits(x = 2) + #not clear that this changes much. 
+    #guides(fill = FALSE) + #legend can be deleted. 
+    guides(color = FALSE) +
+    scale_fill_tableau() +
+    scale_color_tableau() +
+    coord_flip() +
+    theme_bw() +
+    labs(title = paste0("Replication rate for ", as_label(var1), "s"),
+         subtitle = paste0("Grouped by ", as_label(var2)), 
+         x = paste0(as_label(var1)), 
+         y = "Replication rate",
+         fill = paste0(as_label(var2))) + #sets the legend title.
+    raincloud_theme
+  
+  #call the plot
+  g
+
+}
+
+#what can we plot over? 
+colnames(df_RR)
+
+#population vs. everything: 
+RR_FUN4(df_RR, population, network) #tom is lower for all. 
+RR_FUN4(df_RR, population, sigma) #some interaction w. BO vs. everyone else. 
+RR_FUN4(df_RR, population, true_model) #no real effect. 
+RR_FUN4(df_RR, population, colab_cond) #no effect it seems. 
+
+#network vs. everything 
+RR_FUN4(df_RR, network, population) #TOM does worst overall. 
+RR_FUN4(df_RR, network, sigma) #TOM does worst overall 
+RR_FUN4(df_RR, network, true_model) #TOM does worst overall. 
+RR_FUN4(df_RR, network, colab_cond) #TOM does worst overall. 
+
+#sigma vs. everything
+RR_FUN4(df_RR, sigma, network) #TOM worst, more spread for 0.2
+RR_FUN4(df_RR, sigma, population) #big Tess & Bo effects (unsurprisingly)
+RR_FUN4(df_RR, sigma, true_model) #interaction effect for sure. 
+RR_FUN4(df_RR, sigma, colab_cond) #nothing. 
+
+#true model vs. everything 
+RR_FUN4(df_RR, true_model, population)  
+RR_FUN4(df_RR, true_model, network) #least action/change/diff in TOM
+RR_FUN4(df_RR, true_model, sigma) #interaction effect (same as before)
+RR_FUN4(df_RR, true_model, colab_cond) #nothing
+
+#colab condition vs. everything
+RR_FUN4(df_RR, colab_cond, network) #nothing
+RR_FUN4(df_RR, colab_cond, population) #nothing.
+RR_FUN4(df_RR, colab_cond, sigma) #nothing.
+RR_FUN4(df_RR, colab_cond, true_model) #nothing. 
+
+```
+
+with RR for true model (preprocessing)
+by global
+
+```{r}
+#creating the grouped by (3 rows missing)
+by_global <- small %>%
+  group_by(final_global_true_model, replica, network, population, 
+           true_model, sigma, sample_size) %>%
+  summarize(RR = sum(edges_replicated) / sum(edges_replication_study)) %>%
+  filter(final_global_true_model == 1) 
+
+#adding stuff.  
+small_RR <- small_RR %>%
+  mutate(final_global_true_model = "Overall") 
+
+#changing stuff
+by_global$final_global_true_model <- "True"
+
+#cbinding 
+all_overall <- rbind(by_global, small_RR)
+
+#factor. 
+all_overall$final_global_true_model <- as.factor(all_overall$final_global_true_model)
+```
+
+
+```{r}
+
+#raincloud plot
+g <- all_overall %>%
+  filter(sample_size == "100") %>%
+  ggplot(aes(x = population, 
+                              y = RR, fill = final_global_true_model)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+  geom_point(aes(y = RR, color = final_global_true_model), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 2) + #not clear that this changes much. 
+  #guides(fill = FALSE) + #legend can be deleted. 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  #coord_flip() +
+  theme_bw() +
+  labs(title = "Replication rate for populations",
+       subtitle = "Grouped by true model", 
+       x = "Population", 
+       y = "Replication rate",
+       fill = "Replication rate") + #sets the legend title.
+  raincloud_theme
+
+#call the plot
+g
+```
+
+sigma 100 
+
+```{r}
+
+#sigma as factor
+small_RR$sigma <- as.factor(small_RR$sigma)
+
+#raincloud plot
+g <- small_RR %>%
+  filter(sample_size == "100") %>%
+  ggplot(aes(x = population, 
+                              y = RR, fill = sigma)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+  geom_point(aes(y = RR, color = sigma), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 2) + #not clear that this changes much. 
+  #guides(fill = FALSE) + #legend can be deleted. 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  #coord_flip() +
+  theme_bw() +
+  labs(title = "Replication rate by population",
+       subtitle = "Sample size: 100", 
+       x = "Population", 
+       y = "Replication rate",
+       fill = "Sigma") + #sets the legend title.
+  raincloud_theme
+
+#call the plot
+g
+
+```
+
+for sample size 20
+
+```{r}
+
+#raincloud plot
+g1 <- small_RR %>%
+  filter(sample_size == "20") %>%
+  ggplot(aes(x = population, 
+                              y = RR, fill = sigma)) +
+  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+  geom_point(aes(y = RR, color = sigma), 
+                  position = position_jitter(width = .15), 
+                  size = .5, alpha = 0.8) +
+  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+  expand_limits(x = 2) + #not clear that this changes much. 
+  #guides(fill = FALSE) + #legend can be deleted. 
+  guides(color = FALSE) +
+  scale_fill_tableau() +
+  scale_color_tableau() +
+  #coord_flip() +
+  theme_bw() +
+  labs(title = "Replication rate by population",
+       subtitle = "Sample size: 20", 
+       x = "Population", 
+       y = "Replication rate",
+       fill = "Sigma") + #sets the legend title.
+  raincloud_theme
+
+#call the plot
+g1
+
+library(cowplot)
+plot_grid(g, g1)
+
+```
+

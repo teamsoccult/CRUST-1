@@ -1,0 +1,178 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "25 maj 2019"
+output: html_document
+---
+
+14-09-2019
+This document tests & cleans data from ABM5. 
+It is probably only going to work for test-phase with small
+amounts of data. It takes data from "new_data" folder and outputs to "tests".
+
+```{r}
+#set working directory to where you have raw files
+setwd("~/CRUST-1/data/new_data")
+
+#packages
+library(pacman)
+p_load(tidyverse, tidyselect)
+
+```
+
+Loading data
+
+```{r}
+
+#file-names
+temp <- list.files(pattern="*csv")
+
+#loading them 
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ";"))
+
+#bind all together - coerces something into character. 
+data <- mget(ls(pattern="*csv")) %>%
+              bind_rows()
+
+#remove all the old shit 
+rm(list=setdiff(ls(), "data")) 
+
+```
+
+Naive tests in sequential order. 
+Just testing whether we have the right data. 
+
+Notes: 
+- network: currently a character (it this what we want?)
+- population: currently a character (is this what we want?)
+
+```{r}
+
+summary(data$turn) #max should be whatever max is set to (check ABM2 for input)
+unique(data$network) #Lattice, Small 
+unique(data$population) #All, Bo, Mave, Tess
+summary(data$sigma) #min: 0.2, mean: 0.5, max: 0.8
+summary(data$sample_size) #min: 20, mean: 60, max: 100
+summary(data$true_model) #min: 2, mean: 7.33!!, max: 13. 
+summary(data$strategy) #Bo, Mave, Tess (should be more or less equal). 
+
+```
+
+More sophisticated tests. 
+Comments reflect expected output (if code is working as it should).
+
+```{r}
+
+#Check 1 
+all(data$edges_testing == data$edges_not_same_global) #TRUE
+
+#Check 2 (not true at the moment since we have changed edges_total).
+#There is no bug in the code, we just need to consider what we want. 
+data_check <- data %>%
+  mutate(together = edges_same_global + edges_not_same_global)
+all(data_check$edges_total == data_check$together) #TRUE
+
+#Check 3. 
+#Split into true models & Check whether it is correctly assigned. 
+data2 <- data_check %>%
+  filter(true_model == 2)
+
+data7 <- data_check %>%
+  filter(true_model == 7)
+
+data13 <- data_check %>%
+  filter(true_model == 13)
+
+all(data2$proportion_2 == data2$proportion_true) #TRUE
+all(data7$proportion_7 == data7$proportion_true) #TRUE
+all(data13$proportion_13 == data13$proportion_true) #TRUE
+
+#check 4
+sum(data[37:50]) #same as number of rows. 
+
+#check 5
+all(data$edges_testing >= data$edges_changing) #TRUE 
+
+#check 6.
+#overwrites the old "data_check" which is fine.  
+data_check <- data %>%
+  mutate(replica_stud = edges_replicated + edges_not_replicated)
+
+all(data_check$edges_replication_study == data_check$replica_stud) #TRUE 
+
+#check 7
+data_check <- data_check %>%
+  mutate(edges_already_test = edges_already_true_changing + edges_already_true_rejecting)
+  
+all(data_check$edges_already_test == data_check$edges_already_true) #TRUE 
+
+```
+
+Filtering columns. 
+
+#columns that we don't use in the analsis but kept from the Devezer paper. 
+--> beta1_true 
+--> beta1_estimate
+--> beta1_error
+--> tStatistics
+--> RSQ
+--> ARSQ
+--> AIC
+--> BIC
+
+#columns that were used as sanity checks. 
+--> edges_not_same_global
+--> edges_not_replicated
+--> edges_already_true_rejecting 
+
+```{r}
+
+#selecting the columns we want. 
+cols <- c("beta1_true", 
+            "beta1_estimate",
+            "beta1_error",
+            "tStatistics",
+            "RSQ",
+            "ARSQ",
+            "AIC",
+            "BIC",
+            "edges_not_same_global",
+            "edges_not_replicated",
+            "edges_already_true_rejecting",
+            "edges_same_global")
+
+data <- data %>%
+  dplyr::select(-one_of(cols)) 
+
+#BE CAREFUL, YOU ARE DELETING DATA!!
+data <- data %>%
+  subset(studies <= 11000)
+
+#checking whether it worked
+data_check <- data %>%
+  group_by(replica, sigma, population) %>%
+  summarize(studymax = max(studies))
+  
+#changing column index (hacky but works)
+col_start <- 1:20
+col_end <- 21:41
+col_great <- 42
+
+data <- data[, c(1:20, 42, 21:41)]
+colnames(data)
+
+```
+
+new working directory & writing files.
+
+```{r}
+
+#output directory - NOW TESTS.
+setwd("~/CRUST-1/data/tests")
+
+getwd()
+write.csv(data, "populations.csv", row.names = FALSE)
+
+```
+
+

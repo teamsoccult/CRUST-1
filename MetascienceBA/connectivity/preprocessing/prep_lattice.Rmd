@@ -1,0 +1,149 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "25 maj 2019"
+output: html_document
+---
+
+Files loaded in from outside storage space. 
+This is where the working directory is refering. 
+
+```{r}
+#set working directory to where you have raw files
+setwd("D:/soc_kult_exam/data raw/model7_20csv")
+
+#packages
+library(tidyverse)
+
+```
+
+Loading Lattice
+
+```{r}
+
+#file-names
+temp <- list.files(pattern="Lattice")
+
+#loading them 
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ";"))
+
+#bind all latice together. 
+lattice <- mget(ls(pattern="Lattice")) %>%
+              bind_rows()
+
+#remove all the old shit 
+rm(list=setdiff(ls(), "lattice")) #lattice_all_0.8 lacking turn 14. 
+
+
+```
+
+checking small world.
+The comments reflect the expected print. 
+
+```{r}
+
+#check 1 
+all(lattice$edges_testing == lattice$edges_not_same_global) #TRUE
+
+#check 2
+lattice_checking <- lattice %>%
+  mutate(together = edges_same_global + edges_not_same_global)
+
+all(lattice_checking$edges_total == lattice_checking$together) #TRUE
+
+#check 3. 
+#Set "true_model" = the true model you are working with. 
+small_mod <- lattice %>%
+  filter(true_model == 7) 
+
+all(small_mod$proportion_7 == small_mod$proportion_true) #TRUE
+
+#check 4
+sum(lattice[37:50]) #6.600.000
+
+#check 5
+all(lattice$edges_testing >= lattice$edges_changing) #TRUE 
+
+#check 6.
+#overwrites the old "small_checking" but that is fine. 
+lattice_checking <- lattice %>%
+  mutate(replica_stud = edges_replicated + edges_not_replicated)
+
+all(lattice_checking$edges_replication_study == lattice_checking$replica_stud) #TRUE 
+
+#check 7
+lattice_checking <- lattice_checking %>%
+  mutate(edges_already_test = edges_already_true_changing + edges_already_true_rejecting)
+  
+all(lattice_checking$edges_already_test == lattice_checking$edges_already_true) #TRUE 
+
+```
+
+Filtering columns. 
+
+#columns that we don't use in the analsis but kept from the Devezer paper. 
+--> beta1_true 
+--> beta1_estimate
+--> beta1_error
+--> tStatistics
+--> RSQ
+--> ARSQ
+--> AIC
+--> BIC
+
+#columns that were used as sanity checks. 
+--> edges_not_same_global
+--> edges_not_replicated
+--> edges_already_true_rejecting 
+
+```{r}
+
+#selecting the columns we want. 
+lattice <- lattice %>%
+  select(-c(beta1_true, 
+            beta1_estimate,
+            beta1_error,
+            tStatistics,
+            RSQ,
+            ARSQ,
+            AIC,
+            BIC,
+            edges_not_same_global,
+            edges_not_replicated,
+            edges_already_true_rejecting,
+            edges_same_global))
+
+#subsetting 
+lattice <- lattice %>%
+  subset(studies <= 11000)
+
+#checking whether it worked
+lattice_check <- lattice %>%
+  group_by(replica, sigma, population) %>%
+  summarize(studymax = max(studies))
+  
+#changing column index (hacky but works)
+col_start <- 1:20
+col_end <- 21:41
+col_great <- 42
+
+lattice <- lattice[, c(1:20, 42, 21:41)]
+colnames(lattice)
+
+```
+
+new working directory & writing files.
+
+```{r}
+
+#output directory 
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
+
+getwd()
+#write csv. 
+#write.csv(lattice, "lattice_sanity.csv", row.names = FALSE)
+write.csv(lattice, "lattice_7_20.csv", row.names = FALSE)
+
+```
+
+
