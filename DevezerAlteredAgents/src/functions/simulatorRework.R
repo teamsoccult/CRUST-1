@@ -154,6 +154,7 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
         modelnumber <- searchModel(gModel, models)
         available_mods <- models[-modelnumber]
         model <- sample(available_mods, 1)
+        model <- model[[1]]
       }
       
       model1 <- model
@@ -277,7 +278,7 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
     names(output) <- OUTPUT_HEADER
 
     ## Write output data table into a file
-    write.table(output, file=paste0(outputDir, "/", pop_type, "_", 
+    write.table(output, file=paste0(outputDir, "/", population, "_", 
                                     sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
                                     "_", modelSelection, "_", sampleSize, "_", 
                                     tModel, 
@@ -287,7 +288,7 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
 
-  saveRDS(parameters, file=paste0(outputDir, "/", pop_type, "_", 
+  saveRDS(parameters, file=paste0(outputDir, "/", population, "_", 
                                   sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
                                   "_", modelSelection, "_", sampleSize, "_", 
                                   tModel, paramFile))
