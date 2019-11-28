@@ -113,15 +113,21 @@ save(some_models, file = paste0(outputDir, "/some_models"))
 
 ```
 
+TEST IF EVERYTHING WORKED
+
 ```{r}
 
 setwd(paste0(baseDir, "/FunctionsLoads/Loads/MetascienceBaLoads"))
 load("some_models")
 some_models
 
-setwd(paste0(baseDir, "/FunctionsLoads/Loads/MetascienceBaLoads"))
 load("models")
 models
+
+setwd("~/CRUST-1")
+setwd(paste0(baseDir, "/FunctionsLoads/Loads/DevezerLoads"))
+
+load("models")
 
 ```
 
