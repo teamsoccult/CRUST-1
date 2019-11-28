@@ -31,7 +31,7 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 26
+O_NUM_FIELDS <- 25
 
 # ID VARIABLES
 O_POPULATION <- 1
@@ -61,7 +61,6 @@ O_ARSQ <- 22
 O_AIC <- 23
 O_BIC <- 24
 O_REPLICATED <- 25
-O_PREDICTORS <- 26
 
 
 ## File output headers
@@ -91,8 +90,7 @@ OUTPUT_HEADER <- c("replica",
                    "ARSQ",
                    "AIC",
                    "BIC",
-                   "replicated",
-                   "predictors")
+                   "replicated")
 
 ## Parameter output
 P_TMODEL <- 1

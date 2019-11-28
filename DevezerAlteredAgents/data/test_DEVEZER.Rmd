@@ -1,0 +1,31 @@
+---
+title: "test_DEVEZER"
+author: "Mikkel Werling"
+date: "11/28/2019"
+output: html_document
+---
+## Types of agents
+#REY <- 1
+#TESS <- 2
+#BO <- 3
+#MAVE <- 4
+
+```{r}
+#do we see suspicious patterns? 
+tess_proportions <- all %>%
+  filter(strategy == "2") %>%
+  group_by(initial_global_model, selected_model) %>%
+  summarize(count = n())
+
+#mave 
+bo_proportions <- all %>%
+  filter(strategy == "3") %>%
+  group_by(initial_global_model, selected_model) %>%
+  summarize(count = n())
+
+mave_proportions <- all %>%
+  filter(strategy == "4") %>%
+  group_by(initial_global_model, selected_model) %>%
+  summarize(count = n())
+```
+

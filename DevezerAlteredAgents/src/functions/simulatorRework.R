@@ -256,7 +256,6 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
       output[step, O_AIC] <- round(finalGModelStat$aic, ndec)
       output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
       output[step, O_REPLICATED] <- replicated
-      output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
       }
 
     ## Parameter output
