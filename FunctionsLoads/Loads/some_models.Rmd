@@ -1,0 +1,99 @@
+---
+title: "some_models"
+author: "Mikkel Werling"
+date: "5/13/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r setup, include=FALSE}
+
+library(pacman)
+p_load(caTools, data.table, permute, matrixStats, MCMCpack, stringr, pracma)
+
+```
+
+paths
+
+```{r}
+setwd("~/CRUST-1/connectivity/loads")
+baseDir <- "~/CRUST-1"
+scriptDir <- paste0(baseDir, "/src/functions")
+inputDir <- paste0(baseDir, "/data")
+outputDir <- paste0(baseDir, "/data")
+```
+
+functions
+
+```{r}
+source(paste0(scriptDir, "/analysis.R"))
+source(paste0(scriptDir, "/calculateDet.R"))
+source(paste0(scriptDir, "/calculateDistance.R"))
+source(paste0(scriptDir, "/compareModels.R"))
+source(paste0(scriptDir, "/constants.R"))
+source(paste0(scriptDir, "/convertBinary.R"))
+source(paste0(scriptDir, "/generateBetas.R"))
+source(paste0(scriptDir, "/generateModels.R"))
+source(paste0(scriptDir, "/generateXSet.R"))
+source(paste0(scriptDir, "/generateY.R"))
+source(paste0(scriptDir, "/getBetas.R"))
+source(paste0(scriptDir, "/getPredictors.R"))
+source(paste0(scriptDir, "/modelSimilarByInteraction.R"))
+source(paste0(scriptDir, "/modelSimilarByTerm.R"))
+source(paste0(scriptDir, "/modelToStr.R"))
+source(paste0(scriptDir, "/searchModel.R"))
+source(paste0(scriptDir, "/seedGenerator.R"))
+source(paste0(scriptDir, "/simulator.R"))
+source(paste0(scriptDir, "/strToModel.R"))
+```
+
+## R Markdown
+
+```{r}
+
+#fixing their mistake with model 10 being rep. as model 14.  
+models2 <- generateModels(k = 3)
+models <- models2
+models[c(10:13)] = models2[c(11:14)]
+models[[14]] <- models2[[10]]
+
+modelToStr(models2[[14]])
+modelToStr(models[[14]])
+
+#initializing
+some_models <- NULL
+
+for (N in 1:length(models)){
+  some_models[N] <- modelToStr(models[[N]])
+}
+
+some_models <- str_replace(some_models, "Y ~", "")
+some_models <- str_replace_all(some_models, ":", "")
+
+models[[1]] <- matrix(models[[1]], ncol = 3)
+
+models[[14]] <- unname(models[[14]])
+
+str(models[[14]])
+
+#write csv
+save(some_models, file = "some_models")
+save(models, file = "models")
+
+#yes!
+
+```
+
+```{r}
+
+load("some_models")
+some_models
+
+load("models")
+models
+
+```
+
