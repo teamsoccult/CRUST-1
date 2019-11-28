@@ -85,12 +85,31 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
     model1 <- models[[as.integer(runif(1, min=1, max=length(models) + 1))]]
     model2 <- gModel
     
+    ## INITIALIZING POPULATIONS ##
     
+    if(population == "Rey"){
+      nRey <- 297; nMave <- 1; nBo <- 1; nTess <- 1
+    }
+    else if (population == "Mave"){
+      nRey <- 1; nMave <- 297; nBo <- 1; nTess <- 1
+    }
     
+    else if (population == "Bo"){
+      nRey <- 1; nMave <- 1; nBo <- 297; nTess <- 1
+    }
+    
+    else if (population == "Tess"){
+      nRey <- 1; nMave <- 1; nBo <- 1; nTess <- 297
+    }
+    
+    else if (population == "All"){
+      nRey <- 1; nMave <- 1; nBo <- 1; nTess <- 1
+    }
     
     ## Initialize agents
-    N <- c(rep(REY, population$nRey), rep(TESS, population$nTess), 
-           rep(BO, population$nBo), rep(MAVE, population$nMave))
+    N <- c(rep(REY, nRey), rep(TESS, nTess), 
+           rep(BO, nBo), rep(MAVE, nMave))
+    
     N <- N[shuffle(length(N))]
 
     agentTypes <- N[as.integer(runif(timesteps, min=1,
@@ -209,7 +228,7 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
       }
 
       ##IDENTIFICATION COLUMNS ##
-      output[turn, O_POPULATION] <- ls(populations[population])
+      output[turn, O_POPULATION] <- population
       output[turn, O_SIGMA] <- sigma 
       output[turn, O_SAMPLE_SIZE] <- sampleSize
       output[turn, O_TRUE_MODEL] <- tModel 

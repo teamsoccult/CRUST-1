@@ -1,6 +1,6 @@
 ---
 title: "Untitled"
-author: "Victor Møller"
+author: "Victor M?ller"
 date: "November 27, 2019"
 output: html_document
 ---
@@ -94,37 +94,9 @@ ID variables to be looped over:
 ```{r}
 
 #Populations prep 
-ReyCond <- list(nRey = 297, 
-            nTess = 1, 
-            nBo = 1, 
-            nMave= 1)
-
-TessCond <- list(nRey = 1, 
-            nTess = 297, 
-            nBo = 1, 
-            nMave= 1)
-
-BoCond <- list(nRey = 1, 
-            nTess = 1, 
-            nBo = 297, 
-            nMave= 1)
-
-MaveCond <- list(nRey = 1, 
-            nTess = 1, 
-            nBo = 1, 
-            nMave= 297)
-
-AllCond <- list(nRey = 1, 
-            nTess = 1, 
-            nBo = 1, 
-            nMave= 1)
 
 #ID variables we vary based on
-populations <- list(ReyIndex = ReyCond, 
-                    TessIndex = TessCond, 
-                    BoIndex = BoCond, 
-                    MaveIndex = MaveCond, 
-                    AllIndex = AllCond)
+populations <- list("Rey", "Tess", "Mave", "Bo", "All")
 sigmas <- list(0.2, 0.5, 0.8) #0.2, 0.5, 0.8 
 sampleSizes <- list(100) #20, 100. 
 tModels <- list(2, 7, 13) #2, 7, 13. 
