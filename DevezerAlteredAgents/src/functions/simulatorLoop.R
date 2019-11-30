@@ -234,9 +234,9 @@ simulatorLoop <- function(replications, timesteps, models, k, tModel,
       output[step, O_SIGMA] <- sigma
       output[step, O_NETWORK] <- "None"
       output[step, O_SAMPLE_SIZE] <- sampleSize
-      output[step, O_TMODEL] <- tMod
+      output[step, O_TRUE_MODEL] <- tMod
       output[step, O_MODELCOMPARE] <- modelCompare
-      output[step, O_STRATEGY] <- agentType
+      output[step, O_ORIG_TYPE] <- agentType
       
       ## Record output data
       output[step, O_SELECTED_MODEL] <- searchModel(model, models)
@@ -268,14 +268,14 @@ simulatorLoop <- function(replications, timesteps, models, k, tModel,
 
     ## Write output data table into a file
     write.table(output, file=paste0(outputDir, "/", population, "_", sigma, "_", 
-                                    modelSelection, "_", tMod, 
-                                    outputFile),
+                                    paste(ifelse(modelCompare == 5, "BIC", "AIC")),
+                                    "_", sampleSize, "_", tMod, outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=",", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
 
   saveRDS(parameters, file=paste0(outputDir, "/", population, "_", sigma, "_", 
-                                  modelSelection, "_", tMod, 
-                                  paramFile))
+                                  paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
+                                  "_", sampleSize, "_", tMod, paramFile))
 }

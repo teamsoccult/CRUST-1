@@ -67,7 +67,7 @@ Input parameters
 
 ```{r}
 ## Number of replications
-replications <- 2
+replications <- 50
 
 ## Length of the simulation
 timesteps <- 11000
@@ -98,8 +98,7 @@ ID variables to be looped over:
 
 
 #ID variables we vary based on
-populations <- list("Mave", "Rey", "Tess",
-                    "Bo", "All") #"Rey", "Tess", "Mave", "Bo", "All"
+populations <- list("Mave") #"Rey", "Tess", "Mave", "Bo", "All"
 sigmas <- list(0.2) #0.2, 0.5, 0.8 
 sampleSizes <- list(100) #20, 100. 
 tMods <- list(2) #2, 7, 13. 

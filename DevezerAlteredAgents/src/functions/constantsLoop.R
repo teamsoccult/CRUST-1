@@ -33,39 +33,45 @@ BIC <- 5
 ## Model output fields
 O_NUM_FIELDS <- 13
 
-#ID VAR
+## Model output fields
+O_NUM_FIELDS <- 14
+
+# ID VARIABLES
 O_POPULATION <- 1
 O_SIGMA <- 2
-O_SAMPLE_SIZE <- 3
-O_TMODEL <- 4
-O_MODELCOMPARE <- 5
-O_STRATEGY <- 6
+O_NETWORK <- 3
+O_SAMPLE_SIZE <- 4
+O_TRUE_MODEL <- 5
+O_MODELCOMPARE <- 6
+O_ORIG_TYPE <- 7
 
-#OTHER VAR
-O_SELECTED_MODEL <- 7
-O_SELECTED_TRUE_MODEL <- 8
-O_INITIAL_GLOBAL_MODEL <- 9
-O_INITIAL_GLOBAL_TRUE_MODEL <- 10
-O_FINAL_GLOBAL_MODEL <- 11
-O_FINAL_GLOBAL_TRUE_MODEL <- 12
-O_REPLICATED <- 13
+
+# OTHER VARIABLES
+O_SELECTED_MODEL <- 8
+O_PROPOSED_TRUE_MODEL <- 9
+O_OLD_MODEL <- 10 
+O_INITIAL_GLOBAL_TRUE_MODEL <- 11
+O_FINAL_GLOBAL_MODEL <- 12
+O_FINAL_GLOBAL_TRUE_MODEL <- 13
+O_REPLICATED <- 14
 
 
 ## File output headers
 OUTPUT_HEADER <- c("replica",
-                   "timestep",
+                   "turn",
                    "population",
                    "sigma",
-                   "sample_size",
-                   "tmodel",
+                   "network",
+                   "base_SS",
+                   "true_model",
                    "modelcompare",
-                   "strategy",
+                   "orig_type",
                    "selected_model",
-                   "selected_true_model",
-                   "initial_global_model",
-                   "initial_global_true_model",
-                   "final_global_model",
-                   "final_global_true_model",
+                   "prop_t_mod",
+                   "old_model",
+                   "init_g_true",
+                   "final_g",
+                   "final_g_true",
                    "replicated")
 
 ## Parameter output

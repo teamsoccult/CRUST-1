@@ -269,18 +269,15 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
     names(output) <- OUTPUT_HEADER
 
     ## Write output data table into a file
-    write.table(output, file=paste0(outputDir, "/", population, "_", 
-                                    sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
-                                    "_", modelSelection, "_", sampleSize, "_", 
-                                    tMod, 
-                                    outputFile),
+    write.table(output, file=paste0(outputDir, "/", population, "_", sigma, "_", 
+                                    paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
+                                    "_", sampleSize, "_", tMod, outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=",", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
 
-  saveRDS(parameters, file=paste0(outputDir, "/", population, "_", 
-                                  sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
-                                  "_", modelSelection, "_", sampleSize, "_", 
-                                  tMod, paramFile))
+  saveRDS(parameters, file=paste0(outputDir, "/", population, "_", sigma, "_", 
+                                  paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
+                                  "_", sampleSize, "_", tMod, paramFile))
 }
