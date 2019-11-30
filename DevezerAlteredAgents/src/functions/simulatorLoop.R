@@ -26,7 +26,7 @@
 ## @param ndec         Number of decimal precision
 ## @param seeds        Vector of seeds
 ##
-## @restep None
+## @return None
 ##
 ## @lastChange 2018-09-18
 ##
@@ -61,11 +61,12 @@
 ##   Consider interactions in model expectation calculation [2016-06-22]
 ##
 ################
-simulatorRework <- function(replications, timesteps, models, k, tModel,
+simulatorLoop <- function(replications, timesteps, models, k, tModel,
     nRey, nTess, nBo, nMave, weights, sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds){
-
+  
+  
   #true model
   trueModel <- some_models[tMod]
   tModel <- strToModel(trueModel, k)
@@ -87,7 +88,7 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
 
     model1 <- models[[as.integer(runif(1, min=1, max=length(models) + 1))]]
     model2 <- gModel
-    
+
     ## INITIALIZING POPULATIONS ##
     
     if(population == "Rey"){
@@ -110,9 +111,7 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
     }
     
     ## Initialize agents
-    N <- c(rep(REY, nRey), rep(TESS, nTess), 
-           rep(BO, nBo), rep(MAVE, nMave))
-    
+    N <- c(rep(REY, nRey), rep(TESS, nTess), rep(BO, nBo), rep(MAVE, nMave))
     N <- N[shuffle(length(N))]
 
     agentTypes <- N[as.integer(runif(timesteps, min=1,
@@ -150,14 +149,12 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
 
       ## Bo
       } else if(agentType == BO){
-        model <- modelSimilarByInteraction(gModel, models)
+        model <- modelSimilarByInteraction(gModel, models, mode="random",
+                                           modelSelection=modelSelection)
 
       ## Maverick
       } else if(agentType == MAVE){
-        modelnumber <- searchModel(gModel, models)
-        available_mods <- models[-modelnumber]
-        model <- sample(available_mods, 1)
-        model <- model[[1]]
+        model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
       }
       
       model1 <- model
@@ -231,16 +228,17 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
         }
       }
 
-      ##IDENTIFICATION COLUMNS ##
+      
+      ## ID variables 
       output[step, O_POPULATION] <- population
-      output[step, O_SIGMA] <- sigma 
+      output[step, O_SIGMA] <- sigma
       output[step, O_NETWORK] <- "None"
       output[step, O_SAMPLE_SIZE] <- sampleSize
-      output[step, O_TRUE_MODEL] <- tMod
+      output[step, O_TMODEL] <- tMod
       output[step, O_MODELCOMPARE] <- modelCompare
-      output[step, O_ORIG_TYPE] <- agentType
+      output[step, O_STRATEGY] <- agentType
       
-      ## OTHER OUTPUT ##
+      ## Record output data
       output[step, O_SELECTED_MODEL] <- searchModel(model, models)
       output[step, O_PROPOSED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
       output[step, O_OLD_MODEL] <- searchModel(initGModel, models)
@@ -269,18 +267,15 @@ simulatorRework <- function(replications, timesteps, models, k, tModel,
     names(output) <- OUTPUT_HEADER
 
     ## Write output data table into a file
-    write.table(output, file=paste0(outputDir, "/", population, "_", 
-                                    sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
-                                    "_", modelSelection, "_", sampleSize, "_", 
-                                    tMod, 
+    write.table(output, file=paste0(outputDir, "/", population, "_", sigma, "_", 
+                                    modelSelection, "_", tMod, 
                                     outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=",", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
 
-  saveRDS(parameters, file=paste0(outputDir, "/", population, "_", 
-                                  sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
-                                  "_", modelSelection, "_", sampleSize, "_", 
-                                  tMod, paramFile))
+  saveRDS(parameters, file=paste0(outputDir, "/", population, "_", sigma, "_", 
+                                  modelSelection, "_", tMod, 
+                                  paramFile))
 }

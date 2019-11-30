@@ -24,6 +24,7 @@ library(MCMCpack)
 #############
 ## PATHS
 #############
+setwd("~/CRUST-1")
 baseDir <- "."
 scriptDir <- paste0(baseDir, "/DevezerAlteredAgents/src/functions")
 inputDir <- paste0(baseDir, "/DevezerAlteredAgents/data")
@@ -58,7 +59,7 @@ source(paste0(scriptDir, "/strToModel.R"))
 ## INPUT PARAMETERS
 ###################
 ## Number of replications
-replications <- 1
+replications <- 100
 
 ## Length of the simulation
 timesteps <- 11000

@@ -1,7 +1,7 @@
 ---
 title: "Untitled"
-author: "Victor M?ller"
-date: "November 27, 2019"
+author: "Victor Møller"
+date: "November 30, 2019"
 output: html_document
 ---
 
@@ -30,7 +30,7 @@ source(paste0(scriptDir, "/analysis.R"))
 source(paste0(scriptDir, "/calculateDet.R"))
 source(paste0(scriptDir, "/calculateDistance.R"))
 source(paste0(scriptDir, "/compareModels.R"))
-source(paste0(scriptDir, "/constantsRework.R"))
+source(paste0(scriptDir, "/constantsLoop.R"))
 source(paste0(scriptDir, "/convertBinary.R"))
 source(paste0(scriptDir, "/generateBetas.R"))
 source(paste0(scriptDir, "/generateModels.R"))
@@ -38,12 +38,12 @@ source(paste0(scriptDir, "/generateXSet.R"))
 source(paste0(scriptDir, "/generateY.R"))
 source(paste0(scriptDir, "/getBetas.R"))
 source(paste0(scriptDir, "/getPredictors.R"))
-source(paste0(scriptDir, "/modelSimilarByInteractionRework.R"))
-source(paste0(scriptDir, "/modelSimilarByTermRework.R"))
+source(paste0(scriptDir, "/modelSimilarByInteraction.R"))
+source(paste0(scriptDir, "/modelSimilarByTerm.R"))
 source(paste0(scriptDir, "/modelToStr.R"))
 source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
-source(paste0(scriptDir, "/simulatorRework.R"))
+source(paste0(scriptDir, "/simulatorLoop.R"))
 source(paste0(scriptDir, "/strToModel.R"))
 
 ```
@@ -62,7 +62,6 @@ verbose <- TRUE
 ndec <- 4
 ```
 
-
 Input parameters
 
 ```{r}
@@ -78,7 +77,7 @@ k <- 3
 ## Correlation
 correlation <- 0.2
 
-## Models (Fixed so that model 14 is not model 10). 
+## Testing stuff here ## 
 load(paste0(baseDir, "/FunctionsLoads/Loads/models"))
 load(paste0(baseDir, "/FunctionsLoads/Loads/some_models"))
 
@@ -90,21 +89,19 @@ weights <- generateBetas(models)
 
 ## modelselection 
 modelSelection <- "hard"
+
 ```
 
 ID variables to be looped over: 
 
 ```{r}
 
-
 #ID variables we vary based on
-populations <- list("Mave", "Rey", "Tess",
-                    "Bo", "All") #"Rey", "Tess", "Mave", "Bo", "All"
+populations <- list("Mave") #"Rey", "Tess", "Mave", "Bo", "All"
 sigmas <- list(0.2) #0.2, 0.5, 0.8 
 sampleSizes <- list(100) #20, 100. 
 tMods <- list(2) #2, 7, 13. 
 modelCompares <- list(BIC) #AIC, BIC 
-
 
 ```
 
@@ -114,16 +111,17 @@ set seed
 seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
 ```
 
-Run the ABM 
+Run the function 
 
 ```{r}
+
 
 for (population in populations){
   for (sigma in sigmas){
     for (sampleSize in sampleSizes){
       for (tMod in tMods){
         for (modelCompare in modelCompares){
-simulatorRework(replications, timesteps, models, k, tModel,
+simulatorLoop(replications, timesteps, models, k, tModel,
   nRey, nTess, nBo, nMave, weights, sampleSize, correlation, sigma,
   modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
   verbose, ndec, seeds)

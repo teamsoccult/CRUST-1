@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 ```{r setup, include=FALSE}
 
 library(pacman)
@@ -19,6 +20,7 @@ paths
 
 ```{r}
 #setwd("~/CRUST-1/connectivity/loads")
+setwd("~/CRUST-1")
 baseDir <- "."
 scriptDir <- paste0(baseDir, "/FunctionsLoads/Functions")
 #inputDir <- paste0(baseDir, "/DevezerAlteredAgents/data")
@@ -49,22 +51,6 @@ source(paste0(scriptDir, "/simulator.R"))
 source(paste0(scriptDir, "/strToModel.R"))
 ```
 
-Generating models for Devezer. 
-Fixes the fact that models 10 & 14 are switched around in their code.  
-
-```{r}
-
-#fixing their mistake with model 10 being rep. as model 14.  
-models2 <- generateModels(k = 3)
-models <- models2
-models[c(10:13)] = models2[c(11:14)]
-models[[14]] <- models2[[10]]
-
-#write devezer model
-outputDir <- paste0(baseDir, "/FunctionsLoads/Loads/DevezerLoads")
-save(models, file = paste0(outputDir, "/models"))
-```
-
 Generating models for MetascienceBa. 
 Some formatting differences. 
 
@@ -80,10 +66,11 @@ models[[1]] <- matrix(models[[1]], ncol = 3)
 models[[14]] <- unname(models[[14]])
 
 #Write MetascienceBa models
-outputDir <- paste0(baseDir, "/FunctionsLoads/Loads/MetascienceBaLoads")
+outputDir <- paste0(baseDir, "/FunctionsLoads/Loads")
 save(models, file = paste0(outputDir, "/models"))
 ```
 
+Some models 
 
 ```{r}
 
@@ -108,7 +95,7 @@ some_models <- str_replace(some_models, "Y ~", "")
 some_models <- str_replace_all(some_models, ":", "")
 
 #Write MetascienceBa models
-outputDir <- paste0(baseDir, "/FunctionsLoads/Loads/MetascienceBaLoads")
+outputDir <- paste0(baseDir, "/FunctionsLoads/Loads")
 save(some_models, file = paste0(outputDir, "/some_models"))
 
 ```
@@ -117,16 +104,12 @@ TEST IF EVERYTHING WORKED
 
 ```{r}
 
-setwd(paste0(baseDir, "/FunctionsLoads/Loads/MetascienceBaLoads"))
+setwd(paste0(baseDir, "/FunctionsLoads/Loads"))
 load("some_models")
 some_models
 
 load("models")
 models
 
-setwd("~/CRUST-1")
-setwd(paste0(baseDir, "/FunctionsLoads/Loads/DevezerLoads"))
-
-load("models")
 
 ```
