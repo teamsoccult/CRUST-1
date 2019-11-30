@@ -23,7 +23,7 @@ p_load(stringr)
 Reading the data file
 
 ```{r}
-setwd("~/CRUST-1/citation_network/Prospect Theory 2018-2019")
+setwd("~/CRUST-1/MetascienceBA/CitationNetworks/Prospect Theory 2018-2019")
 
 temp <- list.files(pattern="*bib")
 
@@ -130,6 +130,8 @@ Network visualization.
 
 g <- graph_from_data_frame(data_new_1, directed = F)
 
+length(V(g))
+
 #remove multiple edges and loops. Should already be gone from cleaning though. 
 g <- igraph::simplify(g) 
 
@@ -149,6 +151,9 @@ mean(degree(g))
 
 #median degree
 median(degree(g))
+
+#number of degrees
+sum(degree(g))
 
 which(degree(g)==max(degree(g)))
 
