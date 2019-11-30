@@ -196,7 +196,17 @@ datawrite(files)
 
 ```
 
+Data preparation for model sampling: 
+
+```{r}
+
+```
+
+
+
 data preparation for "violin_extended_rework": 
+Consider including the column with final_global_true_model 
+so that we can group based on whether they sampled the true model. 
 
 ```{r}
 
