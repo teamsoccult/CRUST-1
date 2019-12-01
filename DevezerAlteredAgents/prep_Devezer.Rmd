@@ -21,6 +21,8 @@ naming_scheme <- "_Devezer_fixed.csv"
 
 ```
 
+### TEST SECTION ###
+
 
 ```{r}
 setwd("D:/data/Raw data from Computer Room/30-11/raw")
@@ -105,7 +107,7 @@ TAT_AVG <- all %>%
 
 ```
 
-rename and mutate variables
+rename and mutate variables - might not be relevant after rerunning stuff
 
 ```{r}
 #Working directory of RAW data. 
