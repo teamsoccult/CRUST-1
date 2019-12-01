@@ -5,9 +5,8 @@ date: "November 14, 2019"
 output: html_document
 ---
 30-11
-This document tests & cleans data from ABM5. 
-It is probably only going to work for test-phase with small
-amounts of data. It takes data from "new_data" folder and outputs to "tests".
+This document tests & cleans data from Devezer with fixed agents. 
+Right now, it takes input from Raw and output to either plotting or outcome. 
 
 
 ```{r}
