@@ -16,6 +16,9 @@ amounts of data. It takes data from "new_data" folder and outputs to "tests".
 library(pacman)
 p_load(tidyverse, tidyselect, data.table)
 
+#Naming scheme:
+naming_scheme <- "_Devezer_fixed.csv"
+
 ```
 
 
@@ -66,13 +69,11 @@ all <- all %>%
 
 
 df_basic <- all %>%
-        group_by(replica, network, population, sigma, true_model,
-          net_size, colab_cond) %>%
+        group_by(replica, network, population, sigma, true_model) %>%
         summarize(RR = sum(replicated) / n())
 
 RR_TAT <- all %>%
-    group_by(replica, network, population, sigma, true_model,
-            net_size, colab_cond) %>%
+    group_by(replica, network, population, sigma, true_model) %>%
     summarize(RR = sum(replicated) / n(),
               TAT = 100 * (sum(as.numeric(final_global_model == true_model)) / n()))
 
@@ -83,6 +84,25 @@ tommy <- all %>%
       summarize(agent_away = sum(as.numeric(init_g_true == 1 & 
                                         final_g_true == 0)),
             agent_total = sum(as.numeric(init_g_true == 1)))
+
+TAT <- all %>%  
+  group_by(replica, network, population, true_model, sigma, sample_size) %>% 
+      mutate(TAT = 100 * (sum(as.numeric(final_global_model == true_model)) / n()),
+        TAT_50 = ifelse(TAT >= 50, 1, 0)) %>%
+      summarise(TAT = mean(TAT),
+                TAT50 = mean(TAT_50)) 
+
+TAT_AVG <- all %>%  
+      group_by(network, population, true_model, sigma, sample_size) %>% 
+      mutate(TAT = 100 * (sum(as.numeric(final_global_model == true_model)) / n()),
+        TAT_50 = ifelse(TAT >= 50, 1, 0)) %>%
+      summarise(TAT = mean(TAT),
+                TAT50 = mean(TAT_50))
+
+ df <- all %>%
+        group_by(replica, population, network, sigma, true_model) %>% 
+        summarize(first_row = min(which(final_g_true > init_g_true)))
+
 ```
 
 rename and mutate variables
@@ -175,101 +195,6 @@ print(paste0(value, ": ", i))
 
 ```
 
-
-First chunk is a screening of the data. 
-Does it pass our sanity checks & do we have all cases? 
-
-```{r}
-
-#Working directory of RAW data. 
-setwd("D:/data_new1")
-
-#for basic tests
-condition <- list()
-network <- list()
-population <- list()
-sigma <- list()
-true_model <- list()
-replica <- list()
-
-#for other tests 
-studiesMAX <- list()
-studiesMIN <- list()
-
-#the masterlist
-masterlist <- list()
-
-#your files 
-files = list.files(pattern=c("*.csv"), full.names=TRUE)
-
-#running the function
-datacheck <- function(i){
-  
-  for(i in files){
-    
-  #reading data
-  data <- read_csv(i)
-  data <- na.omit(data)
-  data <- tibble::as_tibble(data)
-  
-  #factorizing 
-  data <- data %>%
-  mutate(network = factor(network),
-         population = factor(population),
-         sigma = factor(sigma),
-         net_size = factor(net_size),
-         true_model = factor(true_model),
-         colab_cond = factor(colab_cond),
-         orig_type = factor(orig_type),
-         strategy = factor(strategy))
-  
-  #basic tests 
-  condition[i] <- paste0(i)
-  network[i] <- levels(data$network)
-  population[i] <- levels(data$population)
-  sigma[i] <- levels(data$sigma)
-  true_model[i] <- levels(data$true_model)
-  replica[i] <- sum(unique(data$replica))
-  
-  #more tests 1: all replicas 10,000. 
-  check <- data %>%
-  group_by(replica, network, population, sigma, true_model,
-          net_size, colab_cond) %>%
-  summarize(stud = max(studies))
-  
-  studiesMAX[i] <- min(check$stud) #10,000
-  studiesMIN[i] <- max(check$stud) #10,000
-  
-  }
-  
-  masterlist <- list(network, population, sigma,
-                     true_model, replica, studiesMAX, studiesMIN)
-  return(masterlist)
-  
-}
-
-test <- datacheck(files)
-
-## taking out parameters 
-network <- unname(unlist(test[[1]]))
-population <- unname(unlist(test[[2]]))
-sigma <- unname(unlist(test[[3]]))
-true_model <- unname(unlist(test[[4]]))
-replica <- unname(unlist(test[[5]]))
-studiesMAX <- unname(unlist(test[[6]]))
-studiesMIN <- unname(unlist(test[[7]]))
-
-#checking
-network
-population
-sigma
-true_model
-replica
-studiesMAX
-studiesMIN
-
-```
-
 data preparation for "violin_extended_rework": 
 
 ```{r}
@@ -292,8 +217,6 @@ violin_extended_rework <- function(files){
             "network", 
             "population", 
             "sigma",
-            "colab_cond",
-            "net_size",
             "true_model",
             "replicated",
             "prop_t_mod")
@@ -308,16 +231,12 @@ violin_extended_rework <- function(files){
     mutate(network = factor(network),
           population = factor(population),
           sigma = factor(sigma),
-          colab_cond = factor(colab_cond),
-          net_size = factor(net_size),
           true_model = factor(true_model))
     
     #create DF. 
     df_basic <- df %>%
-        group_by(replica, network, population, sigma, true_model,
-          net_size, colab_cond) %>%
-        summarize(RR = sum(replicated) / 
-              n()) 
+        group_by(replica, network, population, sigma, true_model) %>%
+        summarize(RR = sum(replicated) / n()) 
     
     datalist[i] <- list(df_basic)
 
@@ -329,7 +248,7 @@ violin_extended_rework <- function(files){
   setwd("D:/data/data_plotting")
   
   #write csv:
-  write_csv(df, "violin_extended_Devezer_fixed_agents.csv")
+  write_csv(df, paste0("violin_extended", naming_scheme))
 
 }
 
@@ -344,14 +263,13 @@ data preparation for "violin_ridges_rework":
 
     #create DF.
     #working directory.
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/data_prepped_30-11")
+path = "D:/data/data_prepped_30-11"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list
 datalist1 <- list()
 datalist2 <- list()
-datalist3 <- list()
 
 violin_ridges_rework <- function(files){
  
@@ -360,15 +278,10 @@ violin_ridges_rework <- function(files){
             "turn", #need this??
             "studies", 
             "network", 
-            "colab_cond",
             "population", 
             "sigma",
-            "net_size",
             "true_model",
-            "strategy",
-            "switch_rep_study",
-            "switch_rep",
-            "prop_true",
+            "final_g_model",
             "prop_t_mod") #importantly. 
  
   for(i in files){
@@ -381,24 +294,20 @@ violin_ridges_rework <- function(files){
     mutate(network = factor(network),
           population = factor(population),
           sigma = factor(sigma),
-          colab_cond = factor(colab_cond),
-          net_size = factor(net_size),
           true_model = factor(true_model))
     
     #replication rate & TAT overall
     RR_TAT <- df %>%
-    group_by(replica, network, population, sigma, true_model,
-            net_size, colab_cond) %>%
+    group_by(replica, network, population, sigma, true_model) %>%
     summarize(RR = sum(replicated) / n(),
-              TAT = sum(as.numeric(final_g_model == true_model))) 
+              TAT = 100 * (sum(as.numeric(final_global_model == true_model)) / n())) 
 
     #replication rate & TAT (for )
     #legit to compute TAT for the subset?
     RR_TAT_TF <- df %>%
-    group_by(prop_t_mod, replica, network, population, sigma, true_model, 
-             net_size, colab_cond) %>%
-    summarize(RR = sum(switch_rep) / sum(switch_rep_study),
-              TAT = mean(prop_true))
+    group_by(prop_t_mod, replica, network, population, sigma, true_model) %>%
+    summarize(RR = sum(replicated) / n(),
+              TAT = 100 * (sum(as.numeric(final_global_model == true_model)) / n()))
     
     
     datalist1[i] <- list(RR_TAT)
@@ -410,11 +319,11 @@ violin_ridges_rework <- function(files){
 
  
   #directory for the files:
-  setwd("E:/data/dataPlotting")
+  setwd("D:/data/data_plotting")
  
   #write csv:
-  write_csv(RR_TAT, "violin_ridges_RR.csv")
-  write_csv(RR_TAT_TF, "violin_ridges_TF.csv")
+  write_csv(RR_TAT, paste0("violin_ridges_RR", naming_scheme))
+  write_csv(RR_TAT_TF, paste0("violin_ridges_TF", naming_scheme))
 
 }
 
@@ -423,165 +332,7 @@ violin_ridges_rework(files)
 
 ```
 
-true_false plot - only true:
-
-```{r}
-#working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
-files <- list.files(path = path, pattern="*.csv")
-
-#initializing empty list 
-datalist <- list()
-
-true_false_rework <- function(files){
-  
-  #selecting cols (check )
-    mycols <- c("population", 
-            "sigma",
-            "true_model",
-            "studies",
-            "network",
-            "net_size",
-            "replica",
-            "colab_cond",
-            "prop_true")
-  
-  for(i in files){
-
-    #read csv 
-    df <- read_csv(i)[mycols]
-    
-    #as factor
-    df <- df %>%
-    mutate(network = factor(network),
-          population = factor(population),
-          sigma = factor(sigma),
-          colab_cond = factor(colab_cond),
-          net_size = factor(net_size),
-          true_model = factor(true_model))
-    
-    #downsampling
-    df <- df[seq(1, nrow(df), 50), ]
-    
-    
-    #melting the variables
-    naming <- colnames(df)
-    df <- df %>%
-    melt(id = c(naming[1:8])) %>% #melting with proportions becoming variable and their values becoming values
-    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% #making a identifying column in order to color                                                                           for the plot
-    mutate(variable = relevel(variable, ref = "prop_true")) %>% #releveling so that proportion true is considered first
-    mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order                                           to make it the top layer in the overlay between different smooths.
-    
-    datalist[i] <- list(df)
-  }
-    
-  df_final <- do.call("rbind", datalist)
-  
-  #directory for the files: 
-  setwd("E:/data/dataPlotting")
-  
-  #write csv:
-  write_csv(df_final, "true_false_rework_only_true.csv")
-
-}
-
-#calling the function
-true_false_rework(files)
-```
-
-true_false with false 
-
-NOTE: Implementing a paste0 approach. Splits up the different networks and writes the files. 
-
-```{r}
-
-#working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
-#files <- list.files(path = path, pattern="^PT.*.csv") #USING REGEX TO INDICATE THE SUBSET
-
-#initializing empty list 
-datalist <- list()
-
-true_false_CON <- function(files, identifier){
-  
-  #selecting cols (check )
-    mycols <- c("population", 
-            "sigma",
-            "true_model",
-            "studies",
-            "network",
-            "net_size",
-            "replica",
-            "colab_cond",
-            "prop_1",
-            "prop_2",
-            "prop_3",
-            "prop_4",
-            "prop_5",
-            "prop_6",
-            "prop_7",
-            "prop_8",
-            "prop_9",
-            "prop_10",
-            "prop_11",
-            "prop_12",
-            "prop_13",
-            "prop_14",
-            "prop_true")
-  
-  for(i in files){
-
-    #read csv 
-    df <- read_csv(i)[mycols]
-    
-    #as factor
-    df <- df %>%
-    mutate(network = factor(network),
-          population = factor(population),
-          sigma = factor(sigma),
-          colab_cond = factor(colab_cond),
-          net_size = factor(net_size),
-          true_model = factor(true_model))
-    
-    #downsampling
-    df <- df[seq(1, nrow(df), 50), ]
-    
-    
-    #melting the variables
-    naming <- colnames(df)
-    df <- df %>%
-    melt(id = c(naming[1:8])) %>% #melting with proportions becoming variable and their values becoming values
-    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% #making a identifying column in order to color                                                                           for the plot
-    mutate(variable = relevel(variable, ref = "prop_true")) %>% #releveling so that proportion true is considered first
-    mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order                                           to make it the top layer in the overlay between different smooths.
-    
-    datalist[i] <- list(df)
-  }
-    
-  df_final <- do.call("rbind", datalist)
-  
-  #directory for the files: 
-  setwd("E:/data/dataPlotting")
-  
-  #write csv:
-  write_csv(df_final, paste0(identifier, "_true_false_CON.csv"))
-
-}
-
-#WHAT NETWORKS ARE YOU SUBSETTING:
-subset_variables <- c("Lattice", "Small", "PT") #or TOM
-
-for (i in subset_variables){
-  files <- list.files(path = path, pattern=paste0("^", i, ".*.csv"))
-  
-  true_false_CON(files, i)
-}
-
-
-```
-
+### NOT INCLUDING TRUE_FALSE RIGHT NOW - As we're not dealing with proportions, the plots doesn't make any sense. Something akin to that could be made. 
 
 ###OUTCOME MEASURES:
 ____________________
@@ -589,8 +340,8 @@ Data prep for "Stickiness":
 
 ```{r}
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/data_prepped_30-11")
+path = "D:/data/data_prepped_30-11"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -604,13 +355,9 @@ stickiness_rework <- function(files){
                 "population", 
                 "sigma",
                 "true_model",
-                "net_size", #maybe relevant.
-                "colab_cond",
                 "prop_t_mod", #proposed true? (1 = yes, 0 = no). 
                 "init_g_true", #count of true orig. (testing) agents.
-                "final_g_true", #count of post stud. (testing) agents. 
-                "switch_true",
-                "switch_true_changing")
+                "final_g_true")
   
   for(i in files){
 
@@ -622,15 +369,12 @@ stickiness_rework <- function(files){
     mutate(network = factor(network),
           population = factor(population),
           sigma = factor(sigma),
-          colab_cond = factor(colab_cond),
-          net_size = factor(net_size),
           true_model = factor(true_model))
     
     #create DF
     df <- df %>%
       filter(prop_t_mod == 0) %>%
-      group_by(replica, sigma, population, network, true_model,
-           net_size, colab_cond) %>%
+      group_by(replica, sigma, population, network, true_model) %>%
       summarize(agent_away = sum(as.numeric(init_g_true == 1 & 
                                         final_g_true == 0)),
             agent_total = sum(as.numeric(init_g_true == 1)))
@@ -641,10 +385,10 @@ stickiness_rework <- function(files){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/data_outcome_measures")
   
   #write csv:
-  write_csv(df_final, "stickiness_rework.csv")
+  write_csv(df_final, paste0("stickiness_rework", naming_scheme))
 
 }
 
@@ -657,8 +401,8 @@ Data prep for TAT_TAT50_rework.Rmd
 ```{r}
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/data_prepped_30-11")
+path = "D:/data/data_prepped_30-11"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -672,11 +416,8 @@ TAT50 <- function(files){
                 "network", 
                 "population", 
                 "sigma",
-                "net_size",
-                "colab_cond",
                 "true_model",
-                "base_SS",
-                "prop_true")
+                "base_SS")
   
   for(i in files){
 
@@ -688,24 +429,22 @@ TAT50 <- function(files){
     mutate(network = factor(network),
           population = factor(population),
           sigma = factor(sigma),
-          colab_cond = factor(colab_cond),
-          net_size = factor(net_size),
           true_model = factor(true_model))
     
     #TAT PER REPLICA
     TAT <- df %>%  
-      mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-      group_by(replica, network, population, true_model, sigma, net_size, 
-               base_SS, colab_cond) %>% 
-      summarise(TAT = mean(prop_true),
+      group_by(replica, network, population, true_model, sigma, sample_size) %>% 
+      mutate(TAT = 100 * (sum(as.numeric(final_global_model == true_model)) / n()),
+        TAT_50 = ifelse(TAT >= 50, 1, 0)) %>%
+      summarise(TAT = mean(TAT),
                 TAT50 = mean(TAT_50)) 
         
     #TAT AVG. OVER REP. 
     TAT_AVG <- df %>%  
-      mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-      group_by(network, population, true_model, sigma, net_size, 
-               base_SS, colab_cond) %>% 
-      summarise(TAT = mean(prop_true),
+      group_by(network, population, true_model, sigma, sample_size) %>% 
+      mutate(TAT = 100 * (sum(as.numeric(final_global_model == true_model)) / n()),
+        TAT_50 = ifelse(TAT >= 50, 1, 0)) %>%
+      summarise(TAT = mean(TAT),
                 TAT50 = mean(TAT_50)) 
     
     datalist1[i] <- list(TAT)
@@ -716,11 +455,11 @@ TAT50 <- function(files){
   TAT_AVG <- do.call("rbind", datalist2)
   
   #directory for the files: 
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/data_outcome_measures")
   
   #write csv:
-  write_csv(TAT, "TAT_TAT50.csv")
-  write_csv(TAT_AVG, "TAT_TAT50_AVG.csv")
+  write_csv(TAT, paste0("TAT_TAT50", naming_scheme))
+  write_csv(TAT_AVG, paste0("TAT_TAT50_AVG", naming_scheme))
 
 }
 
@@ -729,13 +468,15 @@ TAT50(files)
 
 ```
 
-Data prep for TAT_C_rework.Rmd
+### TAT_C IS NOT REALLY A MEASURE THAT MAKES SENSE WITH A SINGLE GLOBAL MODEL
+
+Data prep for TAT_C_rework.Rmd 
 
 ```{r}
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/data_prepped_30-11")
+path = "D:/data/data_prepped_30-11"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -844,8 +585,8 @@ First passage (true accept):
 ```{r}
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/data_prepped_30-11")
+path = "D:/data/data_prepped_30-11"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -861,13 +602,9 @@ FPTT <- function(files){
             "population", 
             "sigma",
             "true_model",
-            "net_size",
-            "colab_cond",
             "prop_t_mod",
             "init_g_true",
-            "final_g_true",
-            "orig_agents",
-            "switch_testing")
+            "final_g_true")
   
   for(i in files){
 
@@ -879,18 +616,12 @@ FPTT <- function(files){
     mutate(network = factor(network),
           population = factor(population),
           sigma = factor(sigma),
-          colab_cond = factor(colab_cond),
-          net_size = factor(net_size),
           true_model = factor(true_model))
     
     #TAT PER REPLICA
     df <- df %>%
-        group_by(replica, population, network, sigma, true_model, net_size, 
-           colab_cond) %>% 
-        summarize(first_row = min(which(final_g_true > init_g_true)),
-            first_study = studies[first_row],
-            orig_agents = orig_agents[first_row],
-            switch_testing = switch_testing[first_row])
+        group_by(replica, population, network, sigma, true_model) %>% 
+        summarize(first_row = min(which(final_g_true > init_g_true)))
     
     datalist1[i] <- list(df)
   }
@@ -898,10 +629,10 @@ FPTT <- function(files){
   FPTT <- do.call("rbind", datalist1)
   
   #directory for the files: 
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/data_outcome_measures")
   
   #write csv:
-  write_csv(FPTT, "FPTT.csv")
+  write_csv(FPTT, paste0("FPTT", naming_scheme))
 
 }
 
