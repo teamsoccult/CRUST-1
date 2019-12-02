@@ -15,11 +15,17 @@ amounts of data. It takes data from "new_data" folder and outputs to "tests".
 library(pacman)
 p_load(tidyverse, tidyselect, data.table)
 
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
 ```
 
 do we have all files.
 
 ```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
 
 #Working directory of RAW data. 
 setwd("E:/data/27-11")
@@ -58,6 +64,9 @@ First chunk is a screening of the data.
 Does it pass our sanity checks & do we have all cases? 
 
 ```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
 
 #Working directory of RAW data. 
 setwd("D:/data_new1")
@@ -152,6 +161,9 @@ write the cleaned files into another directory
 
 ```{r}
 
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
 #Working directory of RAW data. 
 setwd("D:/data_new1")
 
@@ -200,15 +212,79 @@ Data preparation for model sampling:
 
 ```{r}
 
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory
+setwd("E:/data/data_prepped_27-11")
+path = "E:/data/data_prepped_27-11"
+files <- list.files(path = path, pattern = "*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+samplingFX <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "strategy",
+            "orig_type", #needed directly
+            "old_model", #needed directly
+            "selected_model") #needed directly 
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(strategy = factor(strategy),
+          orig_type = factor(orig_type),
+          old_model = factor(old_model),
+          selected_model = factor(selected_model))
+    
+    #any sampling of own models? 
+    df_errors <- df %>%
+        filter(strategy != "colab") %>%
+        group_by(orig_type) %>%
+        summarize(count = sum(old_model == selected_model))
+    
+    #sampling distributions 
+    df_sampling <- df %>%
+        filter(strategy == "research") %>%
+        group_by(orig_type, old_model, selected_model) %>%
+        summarize(count = n())
+    
+    datalist1[i] <- list(df_errors)
+    datalist2[i] <- list(df_sampling)
+  }
+    
+  df_errors <- do.call("rbind", datalist1)
+  df_sampling <- do.call("rbind", datalist2)
+  
+  #directory for the files: 
+  setwd("E:/data/dataSampling")
+  
+  #write csv:
+  write_csv(df_errors, paste0("df_errors", naming_scheme))
+  write_csv(df_sampling, paste0("df_sampling", naming_scheme))
+
+}
+
+#calling the function
+samplingFX(files)
+
 ```
-
-
 
 data preparation for "violin_extended_rework": 
 Consider including the column with final_global_true_model 
 so that we can group based on whether they sampled the true model. 
 
 ```{r}
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
 setwd("E:/data/data_prepped_27-11")
@@ -292,8 +368,10 @@ data preparation for "violin_ridges_rework":
 
 ```{r}
 
-    #create DF.
-    #working directory.
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory.
 setwd("E:/data/data_prepped_27-11")
 path = "E:/data/data_prepped_27-11"
 files <- list.files(path = path, pattern="*.csv")
@@ -386,6 +464,10 @@ violin_ridges_rework(files)
 true_false plot - only true:
 
 ```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
 #working directory. 
 setwd("E:/data/data_prepped_27-11")
 path = "E:/data/data_prepped_27-11"
@@ -427,11 +509,13 @@ true_false_rework <- function(files){
     
     #melting the variables
     naming <- colnames(df)
+    
+    #data
     df <- df %>%
-    melt(id = c(naming[1:8])) %>% #melting with proportions becoming variable and their values becoming values
-    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% #making a identifying column in order to color                                                                           for the plot
-    mutate(variable = relevel(variable, ref = "prop_true")) %>% #releveling so that proportion true is considered first
-    mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order                                           to make it the top layer in the overlay between different smooths.
+    melt(id = c(naming[1:8])) %>% 
+    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% 
+    mutate(variable = relevel(variable, ref = "prop_true")) %>% 
+    mutate(variable = fct_rev(variable)) 
     
     datalist[i] <- list(df)
   }
@@ -442,9 +526,11 @@ true_false_rework <- function(files){
   setwd("E:/data/dataPlotting")
   
   #write csv:
-  write_csv(df_final, "true_false_rework_only_true.csv")
-
+  write_csv(df_final, paste0("TF_rework_only_true", 
+                             naming_scheme))
 }
+
+
 
 #calling the function
 true_false_rework(files)
@@ -455,6 +541,9 @@ true_false with false
 NOTE: Implementing a paste0 approach. Splits up the different networks and writes the files. 
 
 ```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
 setwd("E:/data/data_prepped_27-11")
@@ -548,6 +637,10 @@ ____________________
 Data prep for "Stickiness":
 
 ```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
 #working directory. 
 setwd("E:/data/data_prepped_27-11")
 path = "E:/data/data_prepped_27-11"
@@ -617,6 +710,9 @@ stickiness_rework(files)
 Data prep for TAT_TAT50_rework.Rmd 
 
 ```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
 setwd("E:/data/data_prepped_27-11")
@@ -694,6 +790,9 @@ TAT50(files)
 Data prep for TAT_C_rework.Rmd
 
 ```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
 setwd("E:/data/data_prepped_27-11")
@@ -804,6 +903,9 @@ TATC(files)
 First passage (true accept): 
 
 ```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
 setwd("E:/data/data_prepped_27-11")
