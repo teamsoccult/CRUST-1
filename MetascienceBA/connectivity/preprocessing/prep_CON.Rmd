@@ -354,8 +354,8 @@ violin_extended_rework <- function(files){
   setwd("E:/data/dataPlotting")
   
   #write csv:
-  write_csv(df, "violin_extended.csv")
-  write_csv(df_strat, "violin_extended_bystrat.csv")
+  write_csv(df, paste0("violin_extended", naming_scheme))
+  write_csv(df_strat, paste0("violin_extended_bystrat", naming_scheme))
 
 }
 
@@ -423,36 +423,35 @@ violin_ridges_rework <- function(files){
 
     #replication rate & TAT (for )
     #legit to compute TAT for the subset?
-    RR_TAT_TF <- df %>%
+    RR_TF <- df %>%
     group_by(prop_t_mod, replica, network, population, sigma, true_model, 
              net_size, colab_cond) %>%
-    summarize(RR = sum(switch_rep) / sum(switch_rep_study),
-              TAT = mean(prop_true))
+    summarize(RR = sum(switch_rep) / sum(switch_rep_study))
     
     #grouped by strategy:
-    RR_TAT_BYSTRAT <- df %>%
+    RR_TF_BYSTRAT <- df %>%
     group_by(replica, prop_t_mod, network, 
              population, sigma, true_model, 
              net_size, colab_cond, strategy) %>%
-    summarize(RR = sum(switch_rep) / sum(switch_rep_study),
-              TAT = mean(prop_true))
+    summarize(RR = sum(switch_rep) / sum(switch_rep_study))
     
     datalist1[i] <- list(RR_TAT)
-    datalist2[i] <- list(RR_TAT_TF)
-    datalist3[i] <- list(RR_TAT_BYSTRAT)
+    datalist2[i] <- list(RR_TF)
+    datalist3[i] <- list(RR_TF_BYSTRAT)
   }
     
   RR_TAT <- do.call("rbind", datalist1)
-  RR_TAT_TF <- do.call("rbind", datalist2)
-  RR_TAT_BYSTRAT <- do.call("rbind", datalist3)
+  RR_TF <- do.call("rbind", datalist2)
+  RR_TF_BYSTRAT <- do.call("rbind", datalist3)
  
   #directory for the files:
   setwd("E:/data/dataPlotting")
  
+    
   #write csv:
-  write_csv(RR_TAT, "violin_ridges_RR.csv")
-  write_csv(RR_TAT_TF, "violin_ridges_TF.csv")
-  write_csv(RR_TAT_BYSTRAT, "violin_ridges_BYSTRAT.csv")
+  write_csv(RR_TAT, paste0("violin_ridges_RR.csv", naming_scheme))
+  write_csv(RR_TF, paste0("violin_ridges_TF.csv", naming_scheme))
+  write_csv(RR_TF_BYSTRAT, paste0("violin_ridges_BYSTRAT.csv", naming_scheme))
 
 }
 
@@ -554,7 +553,7 @@ path = "E:/data/data_prepped_27-11"
 datalist <- list()
 
 true_false_CON <- function(files, identifier){
-  
+
   #selecting cols (check )
     mycols <- c("population", 
             "sigma",
@@ -601,10 +600,10 @@ true_false_CON <- function(files, identifier){
     #melting the variables
     naming <- colnames(df)
     df <- df %>%
-    melt(id = c(naming[1:8])) %>% #melting with proportions becoming variable and their values becoming values
-    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% #making a identifying column in order to color                                                                           for the plot
-    mutate(variable = relevel(variable, ref = "prop_true")) %>% #releveling so that proportion true is considered first
-    mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order                                           to make it the top layer in the overlay between different smooths.
+    melt(id = c(naming[1:8])) %>%
+    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% 
+    mutate(variable = relevel(variable, ref = "prop_true")) %>% 
+    mutate(variable = fct_rev(variable)) 
     
     datalist[i] <- list(df)
   }
@@ -615,14 +614,20 @@ true_false_CON <- function(files, identifier){
   setwd("E:/data/dataPlotting")
   
   #write csv:
-  write_csv(df_final, paste0(identifier, "_true_false_CON.csv"))
+  write_csv(df_final, paste0(identifier, "_true_false_CON",
+                             naming_scheme))
 
 }
 
 #WHAT NETWORKS ARE YOU SUBSETTING:
-subset_variables <- c("Lattice", "Small", "PT") #or TOM
+subset_variables <- c("Lattice", "Small", "PT", "TOM") #or TOM
 
 for (i in subset_variables){
+  
+  #update working directory 
+  setwd("E:/data/data_prepped_27-11")
+  path = "E:/data/data_prepped_27-11"
+  
   files <- list.files(path = path, pattern=paste0("^", i, ".*.csv"))
   
   true_false_CON(files, i)
@@ -699,7 +704,8 @@ stickiness_rework <- function(files){
   setwd("E:/data/dataOutcomeMeasures")
   
   #write csv:
-  write_csv(df_final, "stickiness_rework.csv")
+  write_csv(df_final, paste0("stickiness_rework",
+                             naming_scheme))
 
 }
 
@@ -733,7 +739,6 @@ TAT50 <- function(files){
                 "net_size",
                 "colab_cond",
                 "true_model",
-                "base_SS",
                 "prop_true")
   
   for(i in files){
@@ -753,16 +758,16 @@ TAT50 <- function(files){
     #TAT PER REPLICA
     TAT <- df %>%  
       mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-      group_by(replica, network, population, true_model, sigma, net_size, 
-               base_SS, colab_cond) %>% 
+      group_by(replica, network, population, true_model, 
+               sigma, net_size, colab_cond) %>% 
       summarise(TAT = mean(prop_true),
                 TAT50 = mean(TAT_50)) 
         
     #TAT AVG. OVER REP. 
     TAT_AVG <- df %>%  
       mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-      group_by(network, population, true_model, sigma, net_size, 
-               base_SS, colab_cond) %>% 
+      group_by(network, population, true_model, sigma, net_size,
+               colab_cond) %>% 
       summarise(TAT = mean(prop_true),
                 TAT50 = mean(TAT_50)) 
     
@@ -777,8 +782,8 @@ TAT50 <- function(files){
   setwd("E:/data/dataOutcomeMeasures")
   
   #write csv:
-  write_csv(TAT, "TAT_TAT50.csv")
-  write_csv(TAT_AVG, "TAT_TAT50_AVG.csv")
+  write_csv(TAT, paste0("TAT_TAT50", naming_scheme))
+  write_csv(TAT_AVG, paste0("TAT_TAT50_AVG", naming_scheme))
 
 }
 
@@ -965,7 +970,7 @@ FPTT <- function(files){
   setwd("E:/data/dataOutcomeMeasures")
   
   #write csv:
-  write_csv(FPTT, "FPTT.csv")
+  write_csv(FPTT, paste0("FPTT", naming_scheme))
 
 }
 
