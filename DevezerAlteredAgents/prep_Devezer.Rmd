@@ -22,9 +22,8 @@ naming_scheme <- "_Devezer_fixed.csv"
 
 ### TEST SECTION ###
 
-
 ```{r}
-setwd("D:/data/Raw data from Computer Room/02-12/raw")
+setwd("D:/data/Raw data from Computer Room/03-12/raw")
 
 Bo <- read_csv("Bo_0.5_BIC_100_13.csv")
 Mave <- read_csv("Mave_0.8_AIC_100_2.csv")
@@ -110,7 +109,7 @@ Relabeling orig_type & modelcompare
 naming_scheme <- "_Devezer_fixed.csv"
 
 #Working directory of RAW data. 
-setwd("D:/data/Raw data from Computer Room/02-12/raw")
+setwd("D:/data/Raw data from Computer Room/03-12/raw")
 
 #your files 
 files = list.files(pattern=c("*.csv"), full.names=TRUE)
