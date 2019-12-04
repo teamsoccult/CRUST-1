@@ -116,11 +116,11 @@ g
 
 #running the function 
 colnames(df)
-RR_FUN(df, population)
+RR_FUN(df, population) 
 RR_FUN(df, sigma)
-RR_FUN(df, network)
 RR_FUN(df, true_model) #looks terrible
-RR_FUN(df, net_size) #looks terrible. 
+RR_FUN(df, modelcompare) #AIC is much worse than BIC
+RR_FUN(df, base_SS)
 
 ```
 
@@ -165,11 +165,10 @@ g
 #running the function 
 colnames(df)
 RR_FUN2(df, population)
-RR_FUN2(df_RR, sigma)
-RR_FUN2(df_RR, network)
-RR_FUN2(df_RR, true_model) #looks terrible
-RR_FUN2(df_RR, colab_cond) #looks terrible 
-RR_FUN2(df_RR, net_size)
+RR_FUN2(df, sigma)
+RR_FUN2(df, true_model) #looks terrible
+RR_FUN2(df, modelcompare)
+RR_FUN2(df, base_SS)
 
 ```
 
@@ -218,28 +217,25 @@ RR_FUN3 <- function(.df, .var1, .var2){
 colnames(df)
 
 #population vs. everything: 
-RR_FUN3(df, population, network) #tom is lower for all. 
-RR_FUN3(df, population, sigma) #some interaction w. BO vs. everyone else. 
+RR_FUN3(df, population, sigma) #no real effect
 RR_FUN3(df, population, true_model) #no real effect. 
-RR_FUN3(df, population, net_size) #no effect. 
-
-#network vs. everything 
-RR_FUN3(df, network, population) #TOM does worst overall. 
-RR_FUN3(df, network, sigma) #TOM does worst overall 
-RR_FUN3(df, network, true_model) #TOM does worst overall. 
-RR_FUN3(df, network, net_size) #same. 
+RR_FUN3(df, population, modelcompare) #no effect. 
+RR_FUN3(df, population, base_SS) #no effect. 
 
 #sigma vs. everything
-RR_FUN3(df, sigma, network) #TOM worst, more spread for 0.2
-RR_FUN3(df, sigma, population) #big Tess & Bo effects (unsurprisingly)
+RR_FUN3(df, sigma, population) #Tess works wonders in low sigma, Bo becomes like the rest in high sigma
 RR_FUN3(df, sigma, true_model) #Very funky - model 13 switches from being the best in replication to step by step go down from the top. It seems like this pattern is also found in the new data. Puzzling. 
-RR_FUN3(df, sigma, net_size) #nothing. 
+RR_FUN3(df, sigma, modelcompare) #In 0.8 conditions, AIC replicates at a much lower rate than BIC.
+RR_FUN3(df, sigma, base_SS)
 
 #true model vs. everything 
 RR_FUN3(df, true_model, population) #guarding against worst outcomes in All
-RR_FUN3(df, true_model, network) #least action/change/diff in TOM
+RR_FUN3(df, true_model, modelcompare) #least action/change/diff in TOM
 RR_FUN3(df, true_model, sigma) #interaction effect (same as before)
-RR_FUN3(df, true_model, net_size) #nothing. 
+RR_FUN3(df, true_model, base_SS) #nothing. 
+
+#modelcompare 
+RR_FUN3(df, modelcompare, base_SS)
 
 ```
 
@@ -341,6 +337,19 @@ violin <- na.omit(violin)
 df <- violin
 ```
 
+Main effect of the replication rate of the true model.
+
+```{r}
+
+#running the function 
+colnames(df)
+RR_FUN(df, population) 
+RR_FUN(df, sigma)
+RR_FUN(df, true_model) #looks terrible
+RR_FUN(df, modelcompare) #AIC is much worse than BIC
+RR_FUN(df, base_SS)
+```
+
 
 Potentially create chunk for plots based on true/false replication
 
@@ -383,6 +392,6 @@ RR_FUN4 <- function(.df, .var1, .var2){
 ```{r}
 #population vs. everything: 
 RR_FUN4(df, sigma, true_model) #some interaction w. BO vs. everyone else. 
-RR_FUN4(df, prop_t_mod, true_model) #no real effect. 
+RR_FUN4(df, population, true_model) #no real effect. 
 ```
 
