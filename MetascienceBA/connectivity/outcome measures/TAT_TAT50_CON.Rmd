@@ -56,12 +56,10 @@ TAT_FX <- function(.df, .grouping){
   
   df <- .df %>%
   group_by(UQ(grouping)) %>%
-  summarize(TAT_median = round(median(TAT),2),
-            TAT_mean = round(mean(TAT),2),
-            TAT_IQR = round(IQR(TAT),2),
-            TAT50_median = round(median(TAT50),2),
-            TAT50_mean = round(mean(TAT50),2),
-            TAT50_IQR = round(IQR(TAT50),2))
+  summarize(TAT_median = median(TAT),
+            TAT_mean = mean(TAT),
+            TAT_IQR = IQR(TAT),
+            TAT_SD = sd(TAT))
   
   return(df)
   
@@ -71,11 +69,35 @@ colnames(TAT)
 
 #replication rates: 
 TAT_FX(TAT, network)
-TAT_FX(TAT, population)
+TAT_POP <- TAT_FX(TAT, population) #what we write. 
 TAT_FX(TAT, sigma)
 TAT_FX(TAT, true_model)
 TAT_FX(TAT, net_size)
 TAT_FX(TAT, colab_cond)
+
+#TAT 50
+TAT_50 <- function(.df, .grouping){
+
+  grouping <- enquo(.grouping)
+  
+  df <- .df %>%
+  group_by(UQ(grouping)) %>%
+  summarize(TAT50_median = median(TAT50),
+            TAT50_mean = mean(TAT50),
+            TAT50_IQR = IQR(TAT50),
+            TAT50_SD = sd(TAT50))
+  
+  return(df)
+  
+}
+
+#replication rates: 
+TAT_50(TAT, network)
+TAT50_POP <- TAT_50(TAT, population) #what we write. 
+TAT_50(TAT, sigma)
+TAT_50(TAT, true_model)
+TAT_50(TAT, net_size)
+TAT_50(TAT, colab_cond)
 
 ```
 
@@ -116,7 +138,9 @@ write csv
 
 ```{r}
 
-
+setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
+write_csv(TAT_POP, "TAT_POP.csv")
+write_csv(TAT50_POP, "TAT50_POP.csv")
 
 ```
 

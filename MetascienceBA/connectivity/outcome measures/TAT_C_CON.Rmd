@@ -47,9 +47,10 @@ TAT_FX <- function(.df, .grouping){
   
   df <- .df %>%
     group_by(UQ(grouping)) %>%
-    summarize(TAT_median = round(median(TAT_C),2),
-            TAT_mean = round(mean(TAT_C),2),
-            TAT_IQR = round(IQR(TAT_C),2))
+    summarize(TAT_median = median(TAT_C),
+            TAT_mean = mean(TAT_C),
+            TAT_IQR = IQR(TAT_C),
+            TAT_SD = sd(TAT_C))
   return(df)
 }
 
@@ -57,7 +58,7 @@ colnames(TAT_C_REP)
 
 #replication consensus. 
 TAT_FX(TAT_C_REP, network)
-TAT_FX(TAT_C_REP, population)
+TATC_POP <- TAT_FX(TAT_C_REP, population) #what we write. 
 TAT_FX(TAT_C_REP, sigma)
 TAT_FX(TAT_C_REP, true_model)
 TAT_FX(TAT_C_REP, net_size)
@@ -101,6 +102,8 @@ write csv.
 
 ```{r}
 
+setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
+write_csv(TATC_POP, "TATC_POP.csv")
 
 ```
 

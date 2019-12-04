@@ -51,10 +51,10 @@ STICK_ORIG_FX <- function(.df, .grouping, .measure){
   
   df <- .df %>%
     group_by(UQ(grouping)) %>%
-    summarize(stickiness_median = round(median(UQ(measure)),2),
-              stickiness_mean = round(mean(UQ(measure)),2),
-              stickiness_IQR = round(IQR(UQ(measure)),2),
-              stickiness_SD = round(sd(UQ(measure)),2))
+    summarize(stickiness_median = median(UQ(measure)),
+              stickiness_mean = mean(UQ(measure)),
+              stickiness_IQR = IQR(UQ(measure)),
+              stickiness_SD = sd(UQ(measure)))
   
   return(df)
 
@@ -65,7 +65,7 @@ colnames(STICK)
 
 #checking main effects (overall)
 STICK_ORIG_FX(STICK, sigma, stickiness_overall)
-STICK_ORIG_FX(STICK, population, stickiness_overall)
+STICK_POP <- STICK_ORIG_FX(STICK, population, stickiness_overall) #what we write
 STICK_ORIG_FX(STICK, network, stickiness_overall)
 STICK_ORIG_FX(STICK, true_model, stickiness_overall)
 STICK_ORIG_FX(STICK, colab_cond, stickiness_overall)
@@ -140,6 +140,9 @@ TRUEPOP <- STICK_ORIG_INT(STICK, stickiness_overall, true_model, population)
 write csv 
 
 ```{r}
+
+setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
+write_csv(STICK_POP, "STICK_POP.csv")
 
 ```
 

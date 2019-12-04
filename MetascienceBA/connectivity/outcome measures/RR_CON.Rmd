@@ -50,10 +50,10 @@ RR_FX <- function(.df, .grouping){
   
   df <- .df %>%
     group_by(UQ(grouping)) %>%
-    summarize(RR_median = round(median(RR),2),
-              RR_mean = round(mean(RR),2),
-              RR_median = round(median(RR),2),
-              RR_mean = round(mean(RR),2))
+    summarize(RR_median = median(RR),
+              RR_mean = mean(RR),
+              RR_IQR = IQR(RR),
+              RR_SD = sd(RR))
   
   return(df)
 
@@ -64,7 +64,7 @@ colnames(RR)
 
 #cols to group over
 RR_FX(RR, network)
-RR_FX(RR, population)
+RR_POP <- RR_FX(RR, population) #what we write. 
 RR_FX(RR, sigma)
 RR_FX(RR, true_model) #note that rep. is highest for tm 13, yet stickiness
                       #is low in this condition & TAT as well.
@@ -86,10 +86,10 @@ RR_TF_FX <- function(.df, .grouping){
   df <- .df %>%
     filter(prop_t_mod == 1) %>%
     group_by(UQ(grouping)) %>%
-    summarize(RR_median = round(median(RR, na.rm = TRUE),2),
-              RR_mean = round(mean(RR, na.rm = TRUE),2),
-              RR_IQR = round(IQR(RR, na.rm = TRUE),2),
-              RR_SD = round(sd(RR, na.rm = TRUE),2))
+    summarize(RR_median = median(RR, na.rm = TRUE),
+              RR_mean = mean(RR, na.rm = TRUE),
+              RR_IQR = IQR(RR, na.rm = TRUE),
+              RR_SD = sd(RR, na.rm = TRUE))
   
   return(df)
 
@@ -100,7 +100,7 @@ colnames(RR_TF)
 
 #cols to group over
 RR_TF_FX(RR_TF, network)
-RR_TF_FX(RR_TF, population)
+RR_TF_POP <- RR_TF_FX(RR_TF, population) #what we write. 
 RR_TF_FX(RR_TF, sigma)
 RR_TF_FX(RR_TF, true_model) #note that rep. is highest for tm 13, yet stick
                       #is low in this condition & TAT as well.
@@ -142,6 +142,10 @@ TRUEPOP <- RR_INT(RR, true_model, population) #not clear
 write.csv
 
 ```{r}
+
+setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
+write_csv(RR_POP, "RR_POP.csv")
+write_csv(RR_TF_POP, "RR_TF_POP.csv")
 
 
 ```

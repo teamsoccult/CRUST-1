@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 #set working directory
-setwd("E:/data_outcome_measures")
+setwd("E:/data/dataOutcomeMeasures")
 
 #packages 
 library(pacman)
@@ -23,7 +23,7 @@ loading data & early prep.
 ```{r}
 
 #read data 
-df <- read_csv("FPTT.csv")
+df <- read_csv("FPTT_MetascienceBA.csv")
 
 #as factor
 df <- df %>%
@@ -110,7 +110,7 @@ FPTT over variables
 
 ```{r}
 
-overview <- function(.dataframe, .var1){
+FPTT_NO_NA <- function(.dataframe, .var1){
   
   var1 <- enquo(.var1)
   
@@ -128,12 +128,12 @@ overview <- function(.dataframe, .var1){
 #what can I group over?
 colnames(df_clean)
 
-populations <- overview(df_clean, population)
-networks <- overview(df_clean, network)
-sigma <- overview(df_clean, sigma)
-true_model <- overview(df_clean, true_model)
-net_size <- overview(df_clean, net_size)
-colab_cond <- overview(df_clean, colab_cond)
+populations <- FPTT_NO_NA(df_clean, population) #what we write. 
+networks <- FPTT_NO_NA(df_clean, network)
+sigma <- FPTT_NO_NA(df_clean, sigma)
+true_model <- FPTT_NO_NA(df_clean, true_model)
+net_size <- FPTT_NO_NA(df_clean, net_size)
+colab_cond <- FPTT_NO_NA(df_clean, colab_cond)
 
 ```
 
@@ -146,8 +146,8 @@ df_NA <- df %>%
   mutate(extra_agents = orig_agents - 1,
          FPTT = first_study - ((extra_agents / 2) + switch_testing))
 
-#summarize 
-overview <- function(.dataframe, .var1){
+#function
+FPTT_OVERALL <- function(.dataframe, .var1){
   
   var1 <- enquo(.var1)
   
@@ -163,17 +163,51 @@ overview <- function(.dataframe, .var1){
   
 }
 
-populations <- overview(df_NA, population)
-networks <- overview(df_NA, network)
-sigma <- overview(df_NA, sigma)
-true_model <- overview(df_NA, true_model)
-net_size <- overview(df_NA, net_size)
-colab_cond <- overview(df_NA, colab_cond)
-
-
+populations <- FPTT_OVERALL(df_NA, population) 
+networks <- FPTT_OVERALL(df_NA, network)
+sigma <- FPTT_OVERALL(df_NA, sigma)
+true_model <- FPTT_OVERALL(df_NA, true_model)
+net_size <- FPTT_OVERALL(df_NA, net_size)
+colab_cond <- FPTT_OVERALL(df_NA, colab_cond)
 
 ```
 
+Interactions: 
+
+```{r}
+
+#function 
+FPTT_INT <- function(.dataframe, ...){
+  
+  vars <- enquos(...)
+  
+  df <- .dataframe %>%
+  group_by(!!! vars) %>%
+  summarise(FPTT_mean = mean(first_study, na.rm = TRUE),
+            FPTT_median = median(first_study, na.rm = TRUE),
+            FPTT_IQR = IQR(first_study, na.rm = TRUE),
+            FPTT_SD = sd(first_study, na.rm = TRUE),
+            FPTT_NA = sum(is.na(first_study)))
+  
+  return(df)
+  
+}
+
+POPMOD <- FPTT_INT(df_NA, population, true_model) #good way to see samp. !!
+POPSIG <- FPTT_INT(df_NA, population, sigma) #quite similar to mod (above) !!
+SIGMOD <- FPTT_INT(df_NA, sigma, true_model) #high sigma = high difference. 
+
+```
+
+
+write csv 
+
+```{r}
+
+setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
+write_csv(populations, "FPTT_POP.csv")
+
+```
 
 
 plotting? 
