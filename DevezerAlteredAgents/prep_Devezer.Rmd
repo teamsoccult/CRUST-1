@@ -236,7 +236,7 @@ violin_ridges_rework <- function(files){
     RR <- df %>%
     filter(orig_type == "Rey") %>%
     group_by(replica, network, population, sigma, true_model, modelcompare, base_SS) %>%
-    summarize(RR = mean(replicated))
+    summarize(RR = mean(replicated) * 100)
 
     RR_TAT <- merge(TAT, RR)
     
