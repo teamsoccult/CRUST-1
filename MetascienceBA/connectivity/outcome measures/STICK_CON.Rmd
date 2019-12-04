@@ -1,0 +1,146 @@
+---
+title: "stickiness"
+author: "Mikkel Werling"
+date: "5/19/2019"
+output: html_document
+---
+
+
+```{r}
+
+#set working directory
+setwd("E:/data/dataOutcomeMeasures")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+Reading data 
+
+```{r}
+
+#read stuff
+df <- read_csv("stickiness_rework_MetascienceBA.csv")
+
+```
+
+Preprocessing of stickiness: 
+
+```{r}
+
+#preprocessing (adding stickiness)
+STICK <- df %>%
+  mutate(stickiness_agent = 1 - (agent_away / agent_total),
+         stickiness_switch = 1 - (switch_away / switch_total),
+         lose_global = agent_away + switch_away,
+         all_global = agent_total + switch_total,
+         stickiness_overall = 1 - (lose_global / all_global)) %>%
+  select(-c(lose_global, all_global))
+
+```
+
+Main effects: 
+
+```{r}
+
+STICK_ORIG_FX <- function(.df, .grouping, .measure){
+  
+  grouping <- enquo(.grouping)
+  measure <- enquo(.measure)
+  
+  df <- .df %>%
+    group_by(UQ(grouping)) %>%
+    summarize(stickiness_median = round(median(UQ(measure)),2),
+              stickiness_mean = round(mean(UQ(measure)),2),
+              stickiness_IQR = round(IQR(UQ(measure)),2),
+              stickiness_SD = round(sd(UQ(measure)),2))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(STICK)
+
+#checking main effects (overall)
+STICK_ORIG_FX(STICK, sigma, stickiness_overall)
+STICK_ORIG_FX(STICK, population, stickiness_overall)
+STICK_ORIG_FX(STICK, network, stickiness_overall)
+STICK_ORIG_FX(STICK, true_model, stickiness_overall)
+STICK_ORIG_FX(STICK, colab_cond, stickiness_overall)
+STICK_ORIG_FX(STICK, net_size, stickiness_overall)
+
+
+```
+
+Investigating agents vs. switches
+
+```{r}
+
+STICK_SWITCHORIG <- function(.df, .grouping, .measure1, .measure2){
+  
+  grouping <- enquo(.grouping)
+  measure1 <- enquo(.measure1)
+  measure2 <- enquo(.measure2)
+  
+  df <- .df %>%
+    group_by(UQ(grouping)) %>%
+    summarize(agents_median = round(median(UQ(measure1)),2),
+              agents_mean = round(mean(UQ(measure1)),2),
+              switch_median = round(median(UQ(measure2)),2),
+              switch_mean = round(mean(UQ(measure2)),2))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(STICK)
+
+#checking agents vs. switch (just a main effect). 
+STICK_SWITCHORIG(STICK, sigma, stickiness_agent, stickiness_switch)
+STICK_SWITCHORIG(STICK, population, stickiness_agent, stickiness_switch)
+STICK_SWITCHORIG(STICK, network, stickiness_agent, stickiness_switch)
+STICK_SWITCHORIG(STICK, true_model, stickiness_agent, stickiness_switch)
+STICK_SWITCHORIG(STICK, colab_cond, stickiness_agent, stickiness_switch)
+STICK_SWITCHORIG(STICK, net_size, stickiness_agent, stickiness_switch)
+
+```
+
+Interactions
+
+```{r}
+
+STICK_ORIG_INT <- function(.df, .measure, ...){
+  
+  grouping <- enquos(...)
+  measure <- enquo(.measure)
+  
+  df <- .df %>%
+    group_by(!!! grouping) %>%
+    summarize(stickiness_median = round(median(UQ(measure)),2),
+              stickiness_mean = round(mean(UQ(measure)),2),
+              stickiness_IQR = round(IQR(UQ(measure)),2),
+              stickiness_SD = round(sd(UQ(measure)),2))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(STICK)
+
+#checking main effects (overall)
+SIGTRUE <- STICK_ORIG_INT(STICK, stickiness_overall, sigma, true_model) #interact.
+TRUEPOP <- STICK_ORIG_INT(STICK, stickiness_overall, true_model, population)
+
+```
+
+write csv 
+
+```{r}
+
+```
+
+

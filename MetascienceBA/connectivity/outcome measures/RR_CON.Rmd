@@ -1,0 +1,147 @@
+---
+title: "replication scaled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+```{r}
+#set working directory
+setwd("E:/data/dataPlotting")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+loading data. 
+
+```{r}
+
+df1 <- read_csv("violin_extended_MetascienceBA.csv")
+df2 <- read_csv("violin_ridges_TF_MetascienceBA.csv")
+
+#as factor
+factorize <- function(dataframe){
+  df <- dataframe %>%
+    mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         colab_cond = factor(colab_cond),
+         net_size = factor(net_size),
+         true_model = factor(true_model))
+  
+  return(df)
+}
+
+RR <- factorize(df1)
+RR_TF <- factorize(df2)
+
+```
+
+replication overall, main effects. 
+
+```{r}
+
+#RR 
+RR_FX <- function(.df, .grouping){
+  
+  grouping <- enquo(.grouping)
+  
+  df <- .df %>%
+    group_by(UQ(grouping)) %>%
+    summarize(RR_median = round(median(RR),2),
+              RR_mean = round(mean(RR),2),
+              RR_median = round(median(RR),2),
+              RR_mean = round(mean(RR),2))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(RR)
+
+#cols to group over
+RR_FX(RR, network)
+RR_FX(RR, population)
+RR_FX(RR, sigma)
+RR_FX(RR, true_model) #note that rep. is highest for tm 13, yet stickiness
+                      #is low in this condition & TAT as well.
+                      #how can stickiness be low & rep. rate high?
+RR_FX(RR, net_size)
+RR_FX(RR, colab_cond)
+
+```
+
+replication (by global). 
+
+```{r}
+
+#RR true/false 
+RR_TF_FX <- function(.df, .grouping){
+  
+  grouping <- enquo(.grouping)
+  
+  df <- .df %>%
+    filter(prop_t_mod == 1) %>%
+    group_by(UQ(grouping)) %>%
+    summarize(RR_median = round(median(RR, na.rm = TRUE),2),
+              RR_mean = round(mean(RR, na.rm = TRUE),2),
+              RR_IQR = round(IQR(RR, na.rm = TRUE),2),
+              RR_SD = round(sd(RR, na.rm = TRUE),2))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(RR_TF)
+
+#cols to group over
+RR_TF_FX(RR_TF, network)
+RR_TF_FX(RR_TF, population)
+RR_TF_FX(RR_TF, sigma)
+RR_TF_FX(RR_TF, true_model) #note that rep. is highest for tm 13, yet stick
+                      #is low in this condition & TAT as well.
+                      #how can stickiness be low & rep. rate high?
+RR_TF_FX(RR_TF, net_size)
+RR_TF_FX(RR_TF, colab_cond)
+
+```
+
+Interactions (only overall)
+
+```{r}
+
+#interaction 
+RR_INT <- function(.df, ...){
+  
+  grouping <- enquos(...)
+  
+  df <- .df %>%
+    group_by(!!! grouping) %>%
+    summarize(RR_median = round(median(RR, na.rm = TRUE),2),
+              RR_mean = round(mean(RR, na.rm = TRUE),2),
+              RR_IQR = round(IQR(RR, na.rm = TRUE),2),
+              RR_SD = round(sd(RR, na.rm = TRUE),2))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(RR)
+
+#checking interactions 
+SIGTRUE <- RR_INT(RR, sigma, true_model) #some interaction. 
+TRUEPOP <- RR_INT(RR, true_model, population) #not clear 
+
+```
+
+write.csv
+
+```{r}
+
+
+```

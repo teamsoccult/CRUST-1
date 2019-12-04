@@ -449,9 +449,9 @@ violin_ridges_rework <- function(files){
  
     
   #write csv:
-  write_csv(RR_TAT, paste0("violin_ridges_RR.csv", naming_scheme))
-  write_csv(RR_TF, paste0("violin_ridges_TF.csv", naming_scheme))
-  write_csv(RR_TF_BYSTRAT, paste0("violin_ridges_BYSTRAT.csv", naming_scheme))
+  write_csv(RR_TAT, paste0("violin_ridges_RR", naming_scheme))
+  write_csv(RR_TF, paste0("violin_ridges_TF", naming_scheme))
+  write_csv(RR_TF_BYSTRAT, paste0("violin_ridges_BYSTRAT", naming_scheme))
 
 }
 
@@ -899,8 +899,8 @@ TATC <- function(files){
   setwd("E:/data/dataOutcomeMeasures")
   
   #write csv:
-  write_csv(TAT_C_REP, paste0("TATC_REP.csv", naming_scheme))
-  write_csv(TAT_C_AVG, paste0("TATC_AVG.csv", naming_scheme))
+  write_csv(TAT_C_REP, paste0("TATC_REP", naming_scheme))
+  write_csv(TAT_C_AVG, paste0("TATC_AVG", naming_scheme))
 
 }
 
