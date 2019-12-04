@@ -22,9 +22,8 @@ naming_scheme <- "_Devezer_fixed.csv"
 
 ### TEST SECTION ###
 
-
 ```{r}
-setwd("D:/data/Raw data from Computer Room/02-12/raw")
+setwd("D:/data/Raw data from Computer Room/03-12/raw")
 
 Bo <- read_csv("Bo_0.5_BIC_100_13.csv")
 Mave <- read_csv("Mave_0.8_AIC_100_2.csv")
@@ -101,6 +100,18 @@ TAT_AVG <- all %>%
         group_by(replica, population, network, sigma, true_model) %>% 
         summarize(first_row = min(which(final_g_true > init_g_true)))
 
+ 
+ setwd("D:/data/data_prepped_02-12")
+test <- read_csv("All_0.2_AIC_20_2.csv")
+
+test <- test %>%
+  mutate(t_mod_involved = as.numeric(selected_model == true_model | old_model == true_model))
+
+does_it_work <- test %>%
+  filter(t_mod_involved == 1, orig_type == "Rey") %>%
+  summarize(mean(final_g_true))
+
+
 ```
 
 Relabeling orig_type & modelcompare
@@ -110,7 +121,7 @@ Relabeling orig_type & modelcompare
 naming_scheme <- "_Devezer_fixed.csv"
 
 #Working directory of RAW data. 
-setwd("D:/data/Raw data from Computer Room/02-12/raw")
+setwd("D:/data/Raw data from Computer Room/03-12/raw")
 
 #your files 
 files = list.files(pattern=c("*.csv"), full.names=TRUE)
@@ -207,6 +218,9 @@ violin_extended_rework <- function(files){
             "base_SS",
             "true_model",
             "orig_type",
+            "selected_model",
+            "old_model",
+            "final_g_true",
             "replicated",
             "prop_t_mod")
   
@@ -233,9 +247,10 @@ violin_extended_rework <- function(files){
         summarize(RR = sum(replicated) / n()) 
     
     df_true <- df %>%
-      filter(orig_type == "Rey", prop_t_mod == 1) %>%
+      mutate(t_mod_involved = as.numeric(selected_model == true_model | old_model == true_model)) %>%
+      filter(orig_type == "Rey", t_mod_involved == 1) %>%
         group_by(replica, network, population, sigma, true_model, modelcompare, base_SS) %>%
-        summarize(RR = sum(replicated) / n()) 
+        summarize(RR = mean(final_g_true)) 
     
     datalist1[i] <- list(df_basic)
     datalist2[i] <- list(df_true)
