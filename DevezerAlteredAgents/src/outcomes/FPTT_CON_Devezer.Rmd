@@ -99,8 +99,11 @@ write csv
 
 ```{r}
 
-setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
-write_csv(populations, "FPTT_POP.csv")
+setwd("~/CRUST-1/DevezerAlteredAgents/src/KableTable")
+write_csv(FPTT_devezer, "FPTT_devezer.csv")
+write_csv(FPTT_100_both, "FPTT_100_both.csv")
+write_csv(FPTT_20_both, "FPTT_20_both.csv")
+write_csv(FPTT_20_BIC, "FPTT_20_BIC.csv")
 
 ```
 
