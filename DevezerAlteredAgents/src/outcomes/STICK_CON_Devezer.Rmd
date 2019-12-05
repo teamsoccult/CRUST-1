@@ -5,11 +5,9 @@ date: "5/19/2019"
 output: html_document
 ---
 
-
 ```{r}
-
 #set working directory
-setwd("D:/data/data_outcome_measures")
+setwd("~/CRUST-1/DevezerAlteredAgents/data/outcome_measures")
 
 #packages 
 library(pacman)
@@ -21,25 +19,38 @@ Reading data
 ```{r}
 
 #read stuff
-df <- read_csv("stickiness_rework_Devezer_fixed.csv")
+STICK_newAgents <- read_csv("stickiness_rework_Devezer_fixed.csv")
+STICK_devezer <- read_csv("stickiness_rework_Devezer_original.csv")
 
 ```
 
-Preprocessing of stickiness: 
+SUBSETS 
 
 ```{r}
 
-#preprocessing (adding stickiness)
-STICK <- df %>%
-  mutate(stickiness_overall = 100 * (1 - (agent_away / agent_total))) 
+#new agents: sample size 100, both modcomparisons 
+STICK_100_both <- STICK_newAgents %>%
+  filter(base_SS == 100)
 
+#new agents: sample size 20, both modelcomparisons
+STICK_20_both <- STICK_newAgents %>%
+  filter(base_SS == 20)
+
+#new agents: sample size 20, only BIC 
+STICK_20_BIC <- STICK_newAgents %>%
+  filter(base_SS == 20,
+         modelcompare == "BIC")
+
+rm("STICK_newAgents")
 ```
+
+
 
 Main effects: 
 
 ```{r}
 
-STICK_ORIG_FX <- function(.df, .grouping, .measure){
+STICK <- function(.df, .grouping, .measure){
   
   grouping <- enquo(.grouping)
   measure <- enquo(.measure)
@@ -49,54 +60,18 @@ STICK_ORIG_FX <- function(.df, .grouping, .measure){
     summarize(stickiness_median = median(UQ(measure), na.rm = T),
               stickiness_mean = mean(UQ(measure), na.rm = T),
               stickiness_IQR = IQR(UQ(measure), na.rm = T),
-              stickiness_SD = sd(UQ(measure), na.rm = T),
-              stickiness_NA = sum(is.na(UQ(measure))))
+              stickiness_SD = sd(UQ(measure), na.rm = T))
   
   return(df)
 
 }
 
-#cols to group over
-colnames(STICK)
+#generate this for all the relevant subsets: 
+STICK_devezer <- STICK(STICK_devezer, population, stickiness_overall) 
+STICK_100_both <- STICK(STICK_100_both, population, stickiness_overall)
+STICK_20_both <- STICK(STICK_20_both, population, stickiness_overall)
+STICK_20_BIC <- STICK(STICK_20_BIC, population, stickiness_overall)
 
-
-
-#checking main effects (overall)
-STICK_ORIG_FX(STICK, sigma, stickiness_overall)
-STICK_POP <- STICK_ORIG_FX(STICK, population, stickiness_overall) #what we write
-STICK_ORIG_FX(STICK, network, stickiness_overall)
-STICK_ORIG_FX(STICK, true_model, stickiness_overall)
-
-
-```
-
-Interactions
-
-```{r}
-
-STICK_ORIG_INT <- function(.df, .measure, ...){
-  
-  grouping <- enquos(...)
-  measure <- enquo(.measure)
-  
-  df <- .df %>%
-    group_by(!!! grouping) %>%
-    summarize(stickiness_median = round(median(UQ(measure), na.rm = T),2),
-              stickiness_mean = round(mean(UQ(measure), na.rm = T),2),
-              stickiness_IQR = round(IQR(UQ(measure), na.rm = T),2),
-              stickiness_SD = round(sd(UQ(measure), na.rm = T),2),
-              stickiness_NA = sum(is.na(UQ(measure))))
-  
-  return(df)
-
-}
-
-#cols to group over
-colnames(STICK)
-
-#checking main effects (overall)
-SIGTRUE <- STICK_ORIG_INT(STICK, stickiness_overall, sigma, true_model) #interact.
-TRUEPOP <- STICK_ORIG_INT(STICK, stickiness_overall, true_model, population)
 
 ```
 
@@ -104,8 +79,11 @@ write csv
 
 ```{r}
 
-setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
-write_csv(STICK_POP, "STICK_POP.csv")
+setwd("~/CRUST-1/DevezerAlteredAgents/src/KableTable")
+write_csv(STICK_devezer, "STICK_devezer.csv")
+write_csv(STICK_100_both, "STICK_100_both.csv")
+write_csv(STICK_20_both, "STICK_20_both.csv")
+write_csv(STICK_20_BIC, "STICK_20_BIC.csv")
 
 ```
 
