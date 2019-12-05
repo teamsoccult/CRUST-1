@@ -79,7 +79,7 @@ write csv
 
 ```{r}
 setwd("~/CRUST-1/DevezerAlteredAgents/data/outcome_tables")
-write_csv(STICK_devezer, "STICK_devezer.csv")
+write_csv(STICK_devezer, "STICK_Devezer.csv")
 write_csv(STICK_100_both, "STICK_100_both.csv")
 write_csv(STICK_20_both, "STICK_20_both.csv")
 write_csv(STICK_20_BIC, "STICK_20_BIC.csv")
