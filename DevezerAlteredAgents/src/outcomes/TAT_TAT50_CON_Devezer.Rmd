@@ -85,7 +85,7 @@ write csv
 
 ```{r}
 
-setwd("~/CRUST-1/DevezerAlteredAgents/src/KableTable")
+setwd("~/CRUST-1/DevezerAlteredAgents/data/outcome_tables")
 write_csv(TAT_Devezer_table, "TAT_Devezer.csv")
 write_csv(TAT_100_both_table, "TAT_100_both.csv")
 write_csv(TAT_20_both_table, "TAT_20_both.csv")
