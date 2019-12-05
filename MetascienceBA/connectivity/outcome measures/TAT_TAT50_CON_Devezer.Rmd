@@ -107,12 +107,30 @@ TAT_50 <- function(.df, .grouping){
   
 }
 
-#replication rates: 
-TAT50_POP <- TAT_50(TAT, population) #what we write. 
-TAT_50(TAT, sigma)
-TAT_50(TAT, true_model)
-TAT_50(TAT, base_SS)
-TAT_50(TAT, modelcompare)
+##FOR ORIGINAL DEVEZER ##
+
+colnames(TAT_ORIG) 
+
+#TATS
+TAT50_POP_ORIG <- TAT_50(TAT_ORIG, population) #what we write. 
+TAT_50(TAT_ORIG, sigma)
+TAT_50(TAT_ORIG, true_model)
+TAT_50(TAT_ORIG, base_SS)
+TAT_50(TAT_ORIG, modelcompare)
+
+#FOR FIXED
+
+##FOR ORIGINAL DEVEZER ##
+
+colnames(TAT_ORIG) 
+
+#TATS
+TAT50_POP_FIXED <- TAT_50(TAT_FIXED, population) #what we write. 
+TAT_50(TAT_FIXED, sigma)
+TAT_50(TAT_FIXED, true_model)
+TAT_50(TAT_FIXED, base_SS)
+TAT_50(TAT_FIXED, modelcompare)
+
 ```
 
 Interaction effects: 
@@ -137,14 +155,25 @@ TAT_FX2 <- function(.df, ...){
   
 }
 
+## FOR ORIGINAL DEVEZER ## 
+
 #overview
-colnames(TAT)
+colnames(TAT_ORIG)
 
 #interactions
-SIGMOD <- TAT_FX2(TAT, sigma, true_model) #clear interaction 
-SIGPOP <- TAT_FX2(TAT, sigma, population) #nothing conclusive
-POPMOD <- TAT_FX2(TAT, population, true_model) #nothing conclusive
+SIGMOD <- TAT_FX2(TAT_ORIG, sigma, true_model) #clear interaction 
+SIGPOP <- TAT_FX2(TAT_ORIG, sigma, population) #nothing conclusive
+POPMOD <- TAT_FX2(TAT_ORIG, population, true_model) #nothing conclusive
 
+## FOR FIXED ##
+
+#overview
+colnames(TAT_ORIG)
+
+#interactions
+SIGMOD <- TAT_FX2(TAT_FIXED, sigma, true_model) #clear interaction 
+SIGPOP <- TAT_FX2(TAT_FIXED, sigma, population) #nothing conclusive
+POPMOD <- TAT_FX2(TAT_FIXED, population, true_model) #nothing conclusive
 
 ```
 
