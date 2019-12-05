@@ -10,21 +10,48 @@ Load packages & read stuff.
 ```{r}
 #basic prep 
 library(pacman)
-p_load(tidyverse, lattice, hrbrthemes, cowplot)
+p_load(tidyverse, lattice, hrbrthemes, cowplot, reshape, BBmisc)
 setwd("E:/data/dataOutcomeMeasures")
 
 #clearing & reading 
 temp = list.files(pattern="*.csv")
+
 list2env(
   lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
          read.csv), envir = .GlobalEnv)
+
+#remove unnecessary dataframes
+rm("TAT_TAT50_AVG_MetascienceBA", "TATC_AVG_MetascienceBA")
+
 ```
+
+Preprocessing of a few outcome variables
+
+```{r}
+#RR_TF: only prop_true & RR as RR_TRUE to distinguish. 
+RR_TF_MetascienceBA <- RR_TF_MetascienceBA %>%
+  filter(prop_t_mod == 1) %>%
+  mutate(RR_TRUE = RR) %>%
+  select(-RR)
+
+#FPTT: omit NA & normalize FPTT (0 to 1 scale)
+FPTT_MetascienceBA <- na.omit(FPTT_MetascienceBA)
+
+normalize <- function(x) {
+    return ((x - min(x)) / (max(x) - min(x)))
+  }
+
+FPTT_MetascienceBA$FPTT <-normalize(FPTT_MetascienceBA$FPTT)
+
+```
+
+
 
 Make a combined dataframe 
 
 ```{r}
 
-test <- TAT_TAT50_MetascienceBA %>% 
+df <- TAT_TAT50_MetascienceBA %>% 
   full_join(TATC_REP_MetascienceBA, by = c("replica", "network", "population",
                                            "true_model", "sigma", "net_size",
                                            "colab_cond")) %>%
@@ -34,10 +61,17 @@ test <- TAT_TAT50_MetascienceBA %>%
   full_join(stickiness_MetascienceBA, by = c("replica", "network", "population",
                                            "true_model", "sigma", "net_size",
                                            "colab_cond")) %>%
+  full_join(RR_MetascienceBA, by = c("replica", "network", "population",
+                                           "true_model", "sigma", "net_size",
+                                           "colab_cond")) %>%
+  full_join(RR_TF_MetascienceBA, by = c("replica", "network", "population",
+                                           "true_model", "sigma", "net_size",
+                                           "colab_cond")) %>%
   mutate(true_model = factor(true_model),
          sigma = factor(sigma)) %>%
-  select(replica, network, population, true_model, sigma, net_size,
-         colab_cond, TAT, TAT50, TAT_C, FPTT, stickiness_overall)
+  select(true_model, sigma, TAT, TAT50, TAT_C, 
+         stickiness_overall, RR, RR_TRUE, FPTT)
+
 
 ```
 
@@ -45,24 +79,19 @@ melting (plot prep).
 
 ```{r}
 #Melting 
-
-
-
-#plotting with tile
-ggplot(test, aes(true_model, sigma, fill= TAT)) + 
-    geom_tile() +
-    theme_ipsum() +
-    theme(legend.position="none")
+df_melt <- melt(df, id = c("true_model", "sigma"))
+df_melt <- na.omit(df_melt)
 
 #plotting with raster
-p1 <- ggplot(test, aes(true_model, sigma)) +
-  geom_raster(aes(fill = TAT)) 
+p1 <- ggplot(df_melt, aes(true_model, sigma)) +
+  geom_raster(aes(fill = value)) +
+  facet_wrap(~variable)
 
-p2 <- ggplot(test, aes(true_model, sigma)) +
-  geom_raster(aes(fill = TAT50))
-
-plot_grid(p1, p2, labels = c('TAT', 'TAT50'), label_size = 12)
+p1
   
 ```
 
+```{r}
+
+```
 

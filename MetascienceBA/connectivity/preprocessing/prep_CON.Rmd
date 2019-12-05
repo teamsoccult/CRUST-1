@@ -278,7 +278,7 @@ samplingFX(files)
 
 ```
 
-data preparation for "violin_extended_rework": 
+data preparation for "violin_extended_rework" (plot) & RR_CON (outcome)
 Consider including the column with final_global_true_model 
 so that we can group based on whether they sampled the true model. 
 
@@ -350,12 +350,16 @@ violin_extended_rework <- function(files){
   df <- do.call("rbind", datalist1)
   df_strat <- do.call("rbind", datalist2)
   
-  #directory for the files: 
+  #directory for the files (plotting)
   setwd("E:/data/dataPlotting")
   
   #write csv:
   write_csv(df, paste0("violin_extended", naming_scheme))
   write_csv(df_strat, paste0("violin_extended_bystrat", naming_scheme))
+  
+  #directory for files (outcome)
+  setwd("E:/data/dataOutcomeMeasures")
+  write_csv(df, paste0("RR", naming_scheme))
 
 }
 
@@ -364,7 +368,7 @@ violin_extended_rework(files)
 
 ```
 
-data preparation for "violin_ridges_rework":
+data preparation for "violin_ridges_rework" (plot) & RR_CON (outcome)
 
 ```{r}
 
@@ -421,8 +425,7 @@ violin_ridges_rework <- function(files){
     summarize(RR = sum(switch_rep) / sum(switch_rep_study),
               TAT = mean(prop_true)) 
 
-    #replication rate & TAT (for )
-    #legit to compute TAT for the subset?
+    #Replication rate true. 
     RR_TF <- df %>%
     group_by(prop_t_mod, replica, network, population, sigma, true_model, 
              net_size, colab_cond) %>%
@@ -447,11 +450,14 @@ violin_ridges_rework <- function(files){
   #directory for the files:
   setwd("E:/data/dataPlotting")
  
-    
   #write csv:
   write_csv(RR_TAT, paste0("violin_ridges_RR", naming_scheme))
   write_csv(RR_TF, paste0("violin_ridges_TF", naming_scheme))
   write_csv(RR_TF_BYSTRAT, paste0("violin_ridges_BYSTRAT", naming_scheme))
+  
+  #directory for files (outcome)
+  setwd("E:/data/dataOutcomeMeasures")
+  write_csv(RR_TF, paste0("RR_TF", naming_scheme))
 
 }
 
