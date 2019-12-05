@@ -1,0 +1,112 @@
+---
+title: "stickiness"
+author: "Mikkel Werling"
+date: "5/19/2019"
+output: html_document
+---
+
+
+```{r}
+
+#set working directory
+setwd("D:/data/data_outcome_measures")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+Reading data 
+
+```{r}
+
+#read stuff
+df <- read_csv("stickiness_rework_Devezer_fixed.csv")
+
+```
+
+Preprocessing of stickiness: 
+
+```{r}
+
+#preprocessing (adding stickiness)
+STICK <- df %>%
+  mutate(stickiness_overall = 100 * (1 - (agent_away / agent_total))) 
+
+```
+
+Main effects: 
+
+```{r}
+
+STICK_ORIG_FX <- function(.df, .grouping, .measure){
+  
+  grouping <- enquo(.grouping)
+  measure <- enquo(.measure)
+  
+  df <- .df %>%
+    group_by(!!grouping) %>%
+    summarize(stickiness_median = median(UQ(measure), na.rm = T),
+              stickiness_mean = mean(UQ(measure), na.rm = T),
+              stickiness_IQR = IQR(UQ(measure), na.rm = T),
+              stickiness_SD = sd(UQ(measure), na.rm = T),
+              stickiness_NA = sum(is.na(UQ(measure))))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(STICK)
+
+
+
+#checking main effects (overall)
+STICK_ORIG_FX(STICK, sigma, stickiness_overall)
+STICK_POP <- STICK_ORIG_FX(STICK, population, stickiness_overall) #what we write
+STICK_ORIG_FX(STICK, network, stickiness_overall)
+STICK_ORIG_FX(STICK, true_model, stickiness_overall)
+
+
+```
+
+Interactions
+
+```{r}
+
+STICK_ORIG_INT <- function(.df, .measure, ...){
+  
+  grouping <- enquos(...)
+  measure <- enquo(.measure)
+  
+  df <- .df %>%
+    group_by(!!! grouping) %>%
+    summarize(stickiness_median = round(median(UQ(measure), na.rm = T),2),
+              stickiness_mean = round(mean(UQ(measure), na.rm = T),2),
+              stickiness_IQR = round(IQR(UQ(measure), na.rm = T),2),
+              stickiness_SD = round(sd(UQ(measure), na.rm = T),2),
+              stickiness_NA = sum(is.na(UQ(measure))))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(STICK)
+
+#checking main effects (overall)
+SIGTRUE <- STICK_ORIG_INT(STICK, stickiness_overall, sigma, true_model) #interact.
+TRUEPOP <- STICK_ORIG_INT(STICK, stickiness_overall, true_model, population)
+
+```
+
+write csv 
+
+```{r}
+
+setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
+write_csv(STICK_POP, "STICK_POP.csv")
+
+```
+
+

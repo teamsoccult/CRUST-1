@@ -1,0 +1,147 @@
+---
+title: "replication scaled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+```{r}
+#set working directory
+setwd("D:/data/data_plotting")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+loading data. 
+
+```{r}
+
+df1 <- read_csv("violin_extended_Devezer_fixed.csv")
+df2 <- read_csv("violin_extended_true_Devezer_fixed.csv")
+
+#as factor
+factorize <- function(dataframe){
+  df <- dataframe %>%
+    mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         true_model = factor(true_model))
+  
+  return(df)
+}
+
+RR <- factorize(df1)
+RR_TF <- factorize(df2)
+
+```
+
+replication overall, main effects. 
+
+```{r}
+
+#RR 
+RR_FX <- function(.df, .grouping){
+  
+  grouping <- enquo(.grouping)
+  
+  df <- .df %>%
+    group_by(UQ(grouping)) %>%
+    summarize(RR_median = median(RR),
+              RR_mean = mean(RR),
+              RR_IQR = IQR(RR),
+              RR_SD = sd(RR))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(RR)
+
+#cols to group over
+RR_POP <- RR_FX(RR, population) #what we write. 
+RR_FX(RR, sigma)
+RR_FX(RR, true_model) #note that rep. is highest for tm 13, yet stickiness
+                      #is low in this condition & TAT as well.
+                      #how can stickiness be low & rep. rate high?
+
+```
+
+replication (by global). 
+
+```{r}
+##CHEKC THE VALUES - NA'S WEIRD:
+
+RR_TF <- na.omit(RR_TF)
+
+
+#RR true/false 
+RR_TF_FX <- function(.df, .grouping){
+  
+  grouping <- enquo(.grouping)
+  
+  df <- .df %>%
+    group_by(UQ(grouping)) %>%
+    summarize(RR_median = median(RR, na.rm = TRUE),
+              RR_mean = mean(RR, na.rm = TRUE),
+              RR_IQR = IQR(RR, na.rm = TRUE),
+              RR_SD = sd(RR, na.rm = TRUE))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(RR_TF)
+
+#cols to group over
+RR_TF_FX(RR_TF, network)
+RR_TF_POP <- RR_TF_FX(RR_TF, population) #what we write. 
+RR_TF_FX(RR_TF, sigma)
+RR_TF_FX(RR_TF, true_model) #note that rep. is highest for tm 13, yet stick
+                      #is low in this condition & TAT as well.
+                      #how can stickiness be low & rep. rate high?
+
+```
+
+Interactions (only overall)
+
+```{r}
+
+#interaction 
+RR_INT <- function(.df, ...){
+  
+  grouping <- enquos(...)
+  
+  df <- .df %>%
+    group_by(!!! grouping) %>%
+    summarize(RR_median = round(median(RR, na.rm = TRUE),2),
+              RR_mean = round(mean(RR, na.rm = TRUE),2),
+              RR_IQR = round(IQR(RR, na.rm = TRUE),2),
+              RR_SD = round(sd(RR, na.rm = TRUE),2))
+  
+  return(df)
+
+}
+
+#cols to group over
+colnames(RR)
+
+#checking interactions 
+SIGTRUE <- RR_INT(RR, sigma, true_model) #some interaction. 
+TRUEPOP <- RR_INT(RR, true_model, population) #not clear 
+
+```
+
+write.csv
+
+```{r}
+
+setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
+write_csv(RR_POP, "RR_POP.csv")
+write_csv(RR_TF_POP, "RR_TF_POP.csv")
+
+
+```
