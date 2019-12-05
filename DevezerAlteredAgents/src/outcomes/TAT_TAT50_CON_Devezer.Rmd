@@ -26,8 +26,6 @@ Loading & Early prep
 #reading stuff
 TAT_ORIG <- read_csv("TAT_TAT50_Devezer_original.csv")
 TAT_FIXED <- read_csv("TAT_TAT50_Devezer_fixed.csv")
-TAT_ORIG_AVG <- read_csv("TAT_TAT50_AVG_Devezer_original.csv")
-TAT_FIXED_AVG <- read_csv("TAT_TAT50_AVG_Devezer_fixed.csv")
 
 #as factor
 factorize <- function(dataframe){
@@ -44,8 +42,6 @@ factorize <- function(dataframe){
 
 TAT_ORIG <- factorize(TAT_ORIG)
 TAT_FIXED <- factorize(TAT_FIXED)
-TAT_ORIG_AVG <- factorize(TAT_ORIG_AVG)
-TAT_FIXED_AVG <- factorize(TAT_FIXED_AVG)
 
 ```
 
@@ -90,47 +86,6 @@ TAT_FX(TAT_FIXED, sigma)
 TAT_FX(TAT_FIXED, true_model)
 TAT_FX(TAT_FIXED, base_SS)
 TAT_FX(TAT_FIXED, modelcompare)
-
-#TAT 50
-TAT_50 <- function(.df, .grouping){
-
-  grouping <- enquo(.grouping)
-  
-  df <- .df %>%
-  group_by(UQ(grouping)) %>%
-  summarize(TAT50_median = median(TAT50),
-            TAT50_mean = mean(TAT50),
-            TAT50_IQR = IQR(TAT50),
-            TAT50_SD = sd(TAT50))
-  
-  return(df)
-  
-}
-
-##FOR ORIGINAL DEVEZER ##
-
-colnames(TAT_ORIG) 
-
-#TATS
-TAT50_POP_ORIG <- TAT_50(TAT_ORIG, population) #what we write. 
-TAT_50(TAT_ORIG, sigma)
-TAT_50(TAT_ORIG, true_model)
-TAT_50(TAT_ORIG, base_SS)
-TAT_50(TAT_ORIG, modelcompare)
-
-#FOR FIXED
-
-##FOR ORIGINAL DEVEZER ##
-
-colnames(TAT_ORIG) 
-
-#TATS
-TAT50_POP_FIXED <- TAT_50(TAT_FIXED, population) #what we write. 
-TAT_50(TAT_FIXED, sigma)
-TAT_50(TAT_FIXED, true_model)
-TAT_50(TAT_FIXED, base_SS)
-TAT_50(TAT_FIXED, modelcompare)
-
 ```
 
 Interaction effects: 
@@ -181,9 +136,10 @@ write csv
 
 ```{r}
 
-setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
-write_csv(TAT_POP, "TAT_POP.csv")
-write_csv(TAT50_POP, "TAT50_POP.csv")
+setwd("~/CRUST-1/DevezerAlteredAgents/src/KableTable")
+write_csv(TAT_POP_ORIG, "TAT_POP_ORIG.csv")
+write_csv(TAT_POP_FIXED, "TAT_POP_FIXED.csv")
+
 
 ```
 
