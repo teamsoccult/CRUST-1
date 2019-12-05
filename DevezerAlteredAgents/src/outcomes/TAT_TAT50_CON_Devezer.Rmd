@@ -24,8 +24,8 @@ Loading & Early prep
 ```{r}
 
 #reading stuff
-TAT_ORIG <- read_csv("TAT_TAT50_Devezer_original.csv")
-TAT_FIXED <- read_csv("TAT_TAT50_Devezer_fixed.csv")
+TAT_Devezer <- read_csv("TAT_TAT50_Devezer_original.csv")
+TAT_MOD <- read_csv("TAT_TAT50_Devezer_fixed.csv")
 
 #as factor
 factorize <- function(dataframe){
@@ -40,8 +40,17 @@ factorize <- function(dataframe){
   return(df)
 }
 
-TAT_ORIG <- factorize(TAT_ORIG)
-TAT_FIXED <- factorize(TAT_FIXED)
+TAT_Devezer <- factorize(TAT_Devezer)
+TAT_MOD <- factorize(TAT_MOD)
+
+TAT_100_both <- TAT_MOD %>%
+  filter(base_SS == 100)
+
+TAT_20_both <- TAT_MOD %>%
+  filter(base_SS == 20)
+
+TAT_20_BIC <- TAT_MOD %>%
+  filter(base_SS == 20, modelcompare == "BIC")
 
 ```
 
@@ -65,71 +74,11 @@ TAT_FX <- function(.df, .grouping){
   
 }
 
-##FOR ORIGINAL DEVEZER ##
-
-colnames(TAT_ORIG) 
-
 #TATS
-TAT_POP_ORIG <- TAT_FX(TAT_ORIG, population) #what we write. 
-TAT_FX(TAT_ORIG, sigma)
-TAT_FX(TAT_ORIG, true_model)
-TAT_FX(TAT_ORIG, base_SS)
-TAT_FX(TAT_ORIG, modelcompare)
-
-##FOR FIXED DEVEZER ##
-
-colnames(TAT_FIXED) 
-
-#TATS
-TAT_POP_FIXED <- TAT_FX(TAT_FIXED, population) #what we write. 
-TAT_FX(TAT_FIXED, sigma)
-TAT_FX(TAT_FIXED, true_model)
-TAT_FX(TAT_FIXED, base_SS)
-TAT_FX(TAT_FIXED, modelcompare)
-```
-
-Interaction effects: 
-
-```{r}
-
-#Function approach
-TAT_FX2 <- function(.df, ...){
-
-  group_var <- enquos(...)
-  
-  df <- .df %>%
-  group_by(!!! group_var) %>%
-  summarize(TAT_median = round(median(TAT),2),
-            TAT_mean = round(mean(TAT),2),
-            TAT_IQR = round(IQR(TAT),2),
-            TAT50_median = round(median(TAT50),2),
-            TAT50_mean = round(mean(TAT50),2),
-            TAT50_IQR = round(IQR(TAT50),2))
-  
-  return(df)
-  
-}
-
-## FOR ORIGINAL DEVEZER ## 
-
-#overview
-colnames(TAT_ORIG)
-
-#interactions
-SIGMOD <- TAT_FX2(TAT_ORIG, sigma, true_model) #clear interaction 
-SIGPOP <- TAT_FX2(TAT_ORIG, sigma, population) #nothing conclusive
-POPMOD <- TAT_FX2(TAT_ORIG, population, true_model) #nothing conclusive
-
-## FOR FIXED ##
-
-#overview
-colnames(TAT_ORIG)
-
-#interactions
-SIGMOD <- TAT_FX2(TAT_FIXED, sigma, true_model) #clear interaction 
-SIGPOP <- TAT_FX2(TAT_FIXED, sigma, population) #nothing conclusive
-POPMOD <- TAT_FX2(TAT_FIXED, population, true_model) #nothing conclusive
-
+TAT_Devezer_table <- TAT_FX(TAT_Devezer, population) #what we write. 
+TAT_100_both_table <- TAT_FX(TAT_100_both, population)
+TAT_20_both_table <- TAT_FX(TAT_20_both, population)
+TAT_20_BIC_table <- TAT_FX(TAT_20_BIC, population)
 ```
 
 write csv 
@@ -137,9 +86,10 @@ write csv
 ```{r}
 
 setwd("~/CRUST-1/DevezerAlteredAgents/src/KableTable")
-write_csv(TAT_POP_ORIG, "TAT_POP_ORIG.csv")
-write_csv(TAT_POP_FIXED, "TAT_POP_FIXED.csv")
-
+write_csv(TAT_Devezer_table, "TAT_Devezer.csv")
+write_csv(TAT_100_both_table, "TAT_100_both.csv")
+write_csv(TAT_20_both_table, "TAT_20_both.csv")
+write_csv(TAT_20_BIC_table, "TAT_20_BIC.csv")
 
 ```
 
