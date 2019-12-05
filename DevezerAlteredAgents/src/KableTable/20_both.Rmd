@@ -1,0 +1,169 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+
+#working directory 
+setwd("~/CRUST-1/DevezerAlteredAgents/data/outcome_tables")
+
+#libraries
+library(pacman)
+p_load(knitr, kableExtra, tidyverse, tibble, rlang)
+
+```
+
+```{r}
+#reading data 
+temp = list.files(pattern="*20_both")
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+
+
+```
+
+
+```{r}
+#making rownames
+a <- data.frame(name=c("Time at true model",  
+                      "Stickiness of the true model",
+                      "First passage time to true model",
+                      "Replication rate"), 
+                b=1:4,
+                c=1:4,
+                d=1:4)
+```
+
+
+organizing median. 
+
+```{r}
+
+medianFX <- function(.df, .ID, .measure){
+  
+  ID <- enquo(.ID)
+  measure <- enquo(.measure)
+  
+  df <- .df %>%
+    select(!!ID, !!measure) %>%
+    mutate(!!measure := round(!!measure*100,2)) %>%
+    spread(!!ID, !!measure)
+  
+  return(df)
+  
+}
+
+RR_MED <- medianFX(RR_20_both, population, RR_median)
+STICK_MED <- medianFX(STICK_20_both, population, stickiness_median)
+TAT_MED <- medianFX(TAT_20_both, population, TAT_median)
+
+#first passage (differs, so hard coded)
+FPTT_MED <- FPTT_20_both %>%
+  select(population, FPTT_median) %>%
+  spread(population, FPTT_median)
+
+#rbinding 
+OutMed <- rbind(TAT_MED,
+                STICK_MED,
+                FPTT_MED,
+                RR_MED) #time at true > 50 %
+
+#new rownames 
+rownames(OutMed) <- a$name
+
+#kable - too much space 
+OutMed %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", 
+                                      "hover", 
+                                      "condensed", 
+                                      "responsive"),
+                full_width = F) %>%
+  add_header_above(c("", "Median" = 5))
+
+```
+
+clearing environment
+
+```{r}
+
+rm(list=setdiff(ls(), c("a", "temp", "OutMed", "medianFX")))
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+
+
+
+```
+
+organizing IQR 
+
+```{r}
+
+#reusing the function
+RR_IQR <- medianFX(RR_20_both, population, RR_IQR)
+STICK_IQR <- medianFX(STICK_20_both, population, stickiness_IQR)
+TAT_IQR <- medianFX(TAT_20_both, population, TAT_IQR)
+
+
+
+#first passage (differs, so hard coded)
+FPTT_IQR <- FPTT_20_both %>%
+  select(population, FPTT_IQR) %>%
+  spread(population, FPTT_IQR)
+
+#rbinding 
+OutIQR <- rbind(TAT_IQR,
+                STICK_IQR,
+                FPTT_IQR,
+                RR_IQR)
+
+#new rownames 
+rownames(OutIQR) <- a$name
+
+```
+
+clearing environment
+
+```{r}
+
+rm(list=setdiff(ls(), c("a", "temp", "OutMed", "OutIQR")))
+
+```
+
+Kable
+
+```{r}
+
+#creating the relevant groups 
+MedIQR <- cbind(OutMed, OutIQR)
+MedIQR <- add_column(MedIQR, " " = "", .after = 5)
+
+#now we have to rename columns 
+MedIQR <- MedIQR %>%
+  rename(All = "All.1",
+         Bo = "Bo.1",
+         Mave = "Mave.1",
+         Tess = "Tess.1",
+         Rey = "Rey.1")
+
+#kable - median & IQR
+MedIQR %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", 
+                                      #"hover", 
+                                      #"condensed", 
+                                      "responsive")) %>%
+  add_header_above(c("", "Median" = 5, " " = 1, "IQR" = 5)) %>%
+  add_header_above(c(" ", "Outcome Values for Populations" = 11)) #%>%
+  #add_indent(c(2, 5)) 
+
+
+```
+
+Export the image :) 
