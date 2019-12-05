@@ -1,0 +1,154 @@
+---
+title: "sigma plots for epi 0.5 across both networks"
+author: "Mikkel Werling"
+date: "5/21/2019"
+output: html_document
+---
+
+Packages, Working directory & dataframe. 
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, ggunchained, tidyselect)
+
+setwd("E:/data/dataPlotting")
+df <- read_csv("TF_rework_only_true_MetascienceBA.csv")
+
+```
+
+as factor 
+
+```{r}
+
+df <- df %>%
+  mutate(population = factor(population),
+         sigma = factor(sigma),
+         true_model = factor(true_model),
+         network = factor(network),
+         net_size = factor(net_size),
+         colab_cond = factor(colab_cond),
+         replica = factor(replica))
+
+```
+
+For all populations (all else hard-coded)
+
+```{r}
+
+TAT_FUN <- function(.df, .sigma, .net, .tmod, .size, .colab){
+  
+  sigma <- enquo(.sigma)
+  net <- enquo(.net)
+  tmod <- enquo(.tmod)
+  size <- enquo(.size)
+  colab <- enquo(.colab)
+
+g <- .df %>%
+  filter(sigma == UQ(sigma), 
+         network == UQ(net), true_model == UQ(tmod), 
+         net_size  == UQ(size), colab_cond == UQ(colab)) %>%
+  ggplot(aes(x = studies, 
+             y = value, 
+             color = population)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "loess", 
+              se = F, 
+              alpha = 0.1, 
+              size = 1.2) +
+  geom_hline(aes(yintercept = 0.5), 
+             color = "red", 
+             linetype = "dotted", 
+             size = 1) + 
+  #labs(x = "Studies", 
+       #y = "Proportion", 
+       #color = "Proportion of different models", 
+       #title = "Proportion of agents at the true model",
+       #subtitle = paste0("Sigma:", UQ(sigma), "|", 
+                        #"Network:", UQ(net), "|", 
+                       # "True Model:", UQ(tmod), "|",
+                       # "Size:", UQ(size), "|",
+                       # "Colab:", UQ(colab), "|")) +
+  theme_janco_point()
+
+#call the plot
+g
+
+}
+
+#order to specify: 
+#1. df, 2. sigma, 3. network, 4. tmod, 5. net size, 6. colab
+#pop, network & colab should be quoted. 
+
+p1 <- TAT_FUN(df, 0.5, "Small", 7, 484, "COLAB")
+p2 <- TAT_FUN(df, 0.5, "Small", 7, 484, "NOLAB")
+
+plot_grid(p1, p2)
+
+```
+
+For all populations (avg. over network, net_size & colab). 
+
+```{r}
+
+#downsampling 
+df_downsampled <- df[seq(1, nrow(df), 10), ]
+
+#function
+TAT_FUN2 <- function(.df, .sigma, .tmod, .colab){
+  
+  sigma <- enquo(.sigma)
+  tmod <- enquo(.tmod)
+  colab <- enquo(.colab)
+
+g <- .df %>%
+  filter(sigma == UQ(sigma), 
+         true_model == UQ(tmod),
+         colab_cond == UQ(colab)) %>%
+  ggplot(aes(x = studies, 
+             y = value, 
+             color = population)) +
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "loess", 
+              alpha = 0.5, 
+              size = 1.2) +
+  geom_hline(aes(yintercept = 0.5), 
+             color = "red", 
+             linetype = "dotted", 
+             size = 1) + 
+  #labs(x = "Studies", 
+       #y = "Proportion", 
+       #color = "Proportion of different models", 
+       #title = "Proportion of agents at the true model",
+       #subtitle = paste0("Sigma:", UQ(sigma), "|", 
+                        #"Network:", UQ(net), "|", 
+                       # "True Model:", UQ(tmod), "|",
+                       # "Size:", UQ(size), "|",
+                       # "Colab:", UQ(colab), "|")) +
+  theme_janco_point()
+
+#call the plot
+g
+
+}
+
+#investigating model complexity 
+p1 <- TAT_FUN2(df_downsampled, 0.5, 7, "COLAB")
+p2 <- TAT_FUN2(df_downsampled, 0.5, 2, "COLAB")
+p3 <- TAT_FUN2(df_downsampled, 0.5, 13, "COLAB")
+
+modplot <- plot_grid(p1, p2, p3)
+
+#investigating sigma 
+p1 <- TAT_FUN2(df_downsampled, 0.2, 7, "COLAB")
+p2 <- TAT_FUN2(df_downsampled, 0.5, 7, "COLAB")
+p3 <- TAT_FUN2(df_downsampled, 0.8, 7, "COLAB")
+
+sigplot <- plot_grid(p1, p2, p3)
+
+#call the plots
+modplot
+sigplot
+
+```
+
