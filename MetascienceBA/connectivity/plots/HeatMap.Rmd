@@ -1,0 +1,68 @@
+---
+title: "HeatPlot"
+author: "Victor Møller"
+date: "December 4, 2019"
+output: html_document
+---
+
+Load packages & read stuff. 
+
+```{r}
+#basic prep 
+library(pacman)
+p_load(tidyverse, lattice, hrbrthemes, cowplot)
+setwd("E:/data/dataOutcomeMeasures")
+
+#clearing & reading 
+temp = list.files(pattern="*.csv")
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+```
+
+Make a combined dataframe 
+
+```{r}
+
+test <- TAT_TAT50_MetascienceBA %>% 
+  full_join(TATC_REP_MetascienceBA, by = c("replica", "network", "population",
+                                           "true_model", "sigma", "net_size",
+                                           "colab_cond")) %>%
+  full_join(FPTT_MetascienceBA, by = c("replica", "network", "population",
+                                           "true_model", "sigma", "net_size",
+                                           "colab_cond")) %>%
+  full_join(stickiness_MetascienceBA, by = c("replica", "network", "population",
+                                           "true_model", "sigma", "net_size",
+                                           "colab_cond")) %>%
+  mutate(true_model = factor(true_model),
+         sigma = factor(sigma)) %>%
+  select(replica, network, population, true_model, sigma, net_size,
+         colab_cond, TAT, TAT50, TAT_C, FPTT, stickiness_overall)
+
+```
+
+melting (plot prep). 
+
+```{r}
+#Melting 
+
+
+
+#plotting with tile
+ggplot(test, aes(true_model, sigma, fill= TAT)) + 
+    geom_tile() +
+    theme_ipsum() +
+    theme(legend.position="none")
+
+#plotting with raster
+p1 <- ggplot(test, aes(true_model, sigma)) +
+  geom_raster(aes(fill = TAT)) 
+
+p2 <- ggplot(test, aes(true_model, sigma)) +
+  geom_raster(aes(fill = TAT50))
+
+plot_grid(p1, p2, labels = c('TAT', 'TAT50'), label_size = 12)
+  
+```
+
+

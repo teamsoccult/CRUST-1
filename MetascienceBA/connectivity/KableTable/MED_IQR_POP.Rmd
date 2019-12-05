@@ -16,8 +16,10 @@ library(pacman)
 p_load(knitr, kableExtra, tidyverse, tibble, rlang)
 
 #clearing & reading 
-temp <- list.files(pattern="*POP")
-for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+temp = list.files(pattern="*csv")
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
 
 #making rownames
 a <- data.frame(name=c("Proportion at the true model",  
@@ -51,15 +53,15 @@ medianFX <- function(.df, .ID, .measure){
   
 }
 
-TAT_MED <- medianFX(TAT_POP.csv, population, TAT_median)
-TAT50_MED <- medianFX(TAT50_POP.csv, population, TAT50_median)
-TATC_MED <- medianFX(TATC_POP.csv, population, TAT_median)
-STICK_MED <- medianFX(STICK_POP.csv, population, stickiness_median)
-RR_MED <- medianFX(RR_POP.csv, population, RR_median)
-RRT_MED <- medianFX(RR_TF_POP.csv, population, RR_median)
+TAT_MED <- medianFX(TAT_POP, population, TAT_median)
+TAT50_MED <- medianFX(TAT50_POP, population, TAT50_median)
+TATC_MED <- medianFX(TATC_POP, population, TAT_median)
+STICK_MED <- medianFX(STICK_POP, population, stickiness_median)
+RR_MED <- medianFX(RR_POP, population, RR_median)
+RRT_MED <- medianFX(RR_TF_POP, population, RR_median)
 
 #first passage (differs, so hard coded)
-FPTT_MED <- FPTT_POP.csv %>%
+FPTT_MED <- FPTT_POP %>%
   select(population, FPTT_median) %>%
   spread(population, FPTT_median)
 
@@ -92,7 +94,9 @@ clearing environment
 ```{r}
 
 rm(list=setdiff(ls(), c("a", "temp", "OutMed")))
-for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ","))
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
 
 ```
 
@@ -101,15 +105,15 @@ organizing IQR
 ```{r}
 
 #reusing the functon 
-TAT_IQR <- medianFX(TAT_POP.csv, population, TAT_IQR)
-TAT50_IQR <- medianFX(TAT50_POP.csv, population, TAT50_IQR)
-TATC_IQR <- medianFX(TATC_POP.csv, population, TAT_IQR)
-STICK_IQR <- medianFX(STICK_POP.csv, population, stickiness_IQR)
-RR_IQR <- medianFX(RR_POP.csv, population, RR_IQR)
-RRT_IQR <- medianFX(RR_TF_POP.csv, population, RR_IQR)
+TAT_IQR <- medianFX(TAT_POP, population, TAT_IQR)
+TAT50_IQR <- medianFX(TAT50_POP, population, TAT50_IQR)
+TATC_IQR <- medianFX(TATC_POP, population, TAT_IQR)
+STICK_IQR <- medianFX(STICK_POP, population, stickiness_IQR)
+RR_IQR <- medianFX(RR_POP, population, RR_IQR)
+RRT_IQR <- medianFX(RR_TF_POP, population, RR_IQR)
 
 #first passage (differs, so hard coded)
-FPTT_IQR <- FPTT_POP.csv %>%
+FPTT_IQR <- FPTT_POP %>%
   select(population, FPTT_IQR) %>%
   spread(population, FPTT_IQR)
 

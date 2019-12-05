@@ -34,6 +34,8 @@ mutate(network = factor(network),
       net_size = factor(net_size),
       true_model = factor(true_model))
 
+
+
 ```
 
 RANDOM CHECKS & PERHAPS INTERESTING STUFF
@@ -140,11 +142,6 @@ colab_cond <- FPTT_NO_NA(df_clean, colab_cond)
 with NAs 
 
 ```{r}
-
-#subtracting 
-df_NA <- df %>%
-  mutate(extra_agents = orig_agents - 1,
-         FPTT = first_study - ((extra_agents / 2) + switch_testing))
 
 #function
 FPTT_OVERALL <- function(.dataframe, .var1){

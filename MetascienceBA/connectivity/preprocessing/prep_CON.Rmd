@@ -693,7 +693,13 @@ stickiness_rework <- function(files){
                                         final_g_true == 0)),
             agent_total = sum(as.numeric(init_g_true == 1)),
             switch_away = sum(switch_true_changing),
-            switch_total = sum(switch_true))
+            switch_total = sum(switch_true),
+            stickiness_agent = 1 - (agent_away / agent_total),
+            stickiness_switch = 1 - (switch_away / switch_total),
+            lose_global = agent_away + switch_away,
+            all_global = agent_total + switch_total,
+            stickiness_overall = 1 - (lose_global / all_global)) %>%
+      select(-c(lose_global, all_global))
     
     datalist[i] <- list(df)
   }
@@ -704,7 +710,7 @@ stickiness_rework <- function(files){
   setwd("E:/data/dataOutcomeMeasures")
   
   #write csv:
-  write_csv(df_final, paste0("stickiness_rework",
+  write_csv(df_final, paste0("stickiness",
                              naming_scheme))
 
 }
@@ -912,6 +918,7 @@ TATC(files)
 First passage (true accept): 
 
 ```{r}
+library(tidyverse)
 
 #Naming scheme:
 naming_scheme <- "_MetascienceBA.csv"
@@ -963,7 +970,9 @@ FPTT <- function(files){
         summarize(first_row = min(which(final_g_true > init_g_true)),
             first_study = studies[first_row],
             orig_agents = orig_agents[first_row],
-            switch_testing = switch_testing[first_row])
+            switch_testing = switch_testing[first_row],
+            extra_agents = orig_agents - 1,
+            FPTT = first_study - ((extra_agents / 2) + switch_testing))
     
     datalist1[i] <- list(df)
   }

@@ -21,22 +21,7 @@ Reading data
 ```{r}
 
 #read stuff
-df <- read_csv("stickiness_rework_MetascienceBA.csv")
-
-```
-
-Preprocessing of stickiness: 
-
-```{r}
-
-#preprocessing (adding stickiness)
-STICK <- df %>%
-  mutate(stickiness_agent = 1 - (agent_away / agent_total),
-         stickiness_switch = 1 - (switch_away / switch_total),
-         lose_global = agent_away + switch_away,
-         all_global = agent_total + switch_total,
-         stickiness_overall = 1 - (lose_global / all_global)) %>%
-  select(-c(lose_global, all_global))
+df <- read_csv("stickiness_MetascienceBA.csv")
 
 ```
 
