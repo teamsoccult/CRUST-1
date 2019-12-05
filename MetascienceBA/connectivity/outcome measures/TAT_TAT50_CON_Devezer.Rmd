@@ -23,9 +23,11 @@ Loading & Early prep
 
 ```{r}
 
-#reading stuff 
-TAT <- read_csv("TAT_TAT50_Devezer_fixed.csv")
-TAT_AVG <- read_csv("TAT_TAT50_AVG_Devezer_fixed.csv")
+#reading stuff
+TAT_ORIG <- read_csv("TAT_TAT50_Devezer_original.csv")
+TAT_FIXED <- read_csv("TAT_TAT50_Devezer_fixed.csv")
+TAT_ORIG_AVG <- read_csv("TAT_TAT50_AVG_Devezer_original.csv")
+TAT_FIXED_AVG <- read_csv("TAT_TAT50_AVG_Devezer_fixed.csv")
 
 #as factor
 factorize <- function(dataframe){
@@ -40,8 +42,10 @@ factorize <- function(dataframe){
   return(df)
 }
 
-TAT <- factorize(TAT)
-TAT_AVG <- factorize(TAT_AVG)
+TAT_ORIG <- factorize(TAT_ORIG)
+TAT_FIXED <- factorize(TAT_FIXED)
+TAT_ORIG_AVG <- factorize(TAT_ORIG_AVG)
+TAT_FIXED_AVG <- factorize(TAT_FIXED_AVG)
 
 ```
 
@@ -65,14 +69,27 @@ TAT_FX <- function(.df, .grouping){
   
 }
 
-colnames(TAT)
+##FOR ORIGINAL DEVEZER ##
 
-#replication rates: 
-TAT_POP <- TAT_FX(TAT, population) #what we write. 
-TAT_FX(TAT, sigma)
-TAT_FX(TAT, true_model)
-TAT_FX(TAT, base_SS)
-TAT_FX(TAT, modelcompare)
+colnames(TAT_ORIG) 
+
+#TATS
+TAT_POP_ORIG <- TAT_FX(TAT_ORIG, population) #what we write. 
+TAT_FX(TAT_ORIG, sigma)
+TAT_FX(TAT_ORIG, true_model)
+TAT_FX(TAT_ORIG, base_SS)
+TAT_FX(TAT_ORIG, modelcompare)
+
+##FOR FIXED DEVEZER ##
+
+colnames(TAT_FIXED) 
+
+#TATS
+TAT_POP_FIXED <- TAT_FX(TAT_FIXED, population) #what we write. 
+TAT_FX(TAT_FIXED, sigma)
+TAT_FX(TAT_FIXED, true_model)
+TAT_FX(TAT_FIXED, base_SS)
+TAT_FX(TAT_FIXED, modelcompare)
 
 #TAT 50
 TAT_50 <- function(.df, .grouping){

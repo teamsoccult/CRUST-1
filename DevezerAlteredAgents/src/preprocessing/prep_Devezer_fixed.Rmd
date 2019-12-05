@@ -16,7 +16,7 @@ library(pacman)
 p_load(tidyverse, tidyselect, data.table)
 
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Devezer_fixed.csv"
 
 ```
 
@@ -24,10 +24,10 @@ Relabeling orig_type & modelcompare + taking up to turn 10000
 
 ```{r}
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Devezer_fixed.csv"
 
 #Working directory of RAW data. 
-setwd("D:/data/Raw data from Computer Room/05-12/raw")
+setwd("D:/data/Raw data from Computer Room/03-12/raw")
 
 #your files 
 files = list.files(pattern=c("*.csv"), full.names=TRUE)
@@ -38,7 +38,7 @@ data_rename <- function(i){
   for(i in files){
   
   #where your raw files are:   
-  setwd("D:/data/Raw data from Computer Room/05-12/raw")
+  setwd("D:/data/Raw data from Computer Room/03-12/raw")
     
   #reading data:
   data <- read_csv(i)
@@ -52,7 +52,7 @@ data_rename <- function(i){
          modelcompare = factor(if_else(modelcompare == 4, "AIC", "BIC")))
   
   #directory for the files: 
-  setwd("D:/data/data_prepped_05-12")
+  setwd("D:/data/data_prepped_02-12")
   
   #write csv:
   write_csv(data, paste0(i))
@@ -68,7 +68,7 @@ do we have all files.
 ```{r}
 
 #Working directory of RAW data. 
-setwd("D:/data/data_prepped_05-12")
+setwd("D:/data/data_prepped_02-12")
 
 #which files do we have
 files = list.files(pattern=c("*.csv"), full.names=TRUE)
@@ -103,11 +103,11 @@ data preparation for "violin_extended_rework":
 
 ```{r}
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Devezer_fixed.csv"
 
 #working directory. 
-setwd("D:/data/data_prepped_05-12")
-path = "D:/data/data_prepped_05-12"
+setwd("D:/data/data_prepped_02-12")
+path = "D:/data/data_prepped_02-12"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -187,11 +187,11 @@ NOTE: comparing with tat doesn't make any sense when also grouping with prop_t_m
 ```{r}
 
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Devezer_fixed.csv"
 
 #working directory. 
-setwd("D:/data/data_prepped_05-12")
-path = "D:/data/data_prepped_05-12"
+setwd("D:/data/data_prepped_02-12")
+path = "D:/data/data_prepped_02-12"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list
@@ -279,11 +279,11 @@ Data prep for "Stickiness":
 
 ```{r}
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Devezer_fixed.csv"
 
 #working directory. 
-setwd("D:/data/data_prepped_05-12")
-path = "D:/data/data_prepped_05-12"
+setwd("D:/data/data_prepped_02-12")
+path = "D:/data/data_prepped_02-12"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -347,11 +347,11 @@ Data prep for TAT_TAT50_rework.Rmd
 
 ```{r}
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Devezer_fixed.csv"
 
 #working directory. 
-setwd("D:/data/data_prepped_05-12")
-path = "D:/data/data_prepped_05-12"
+setwd("D:/data/data_prepped_02-12")
+path = "D:/data/data_prepped_02-12"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -427,11 +427,11 @@ First passage (true accept):
 
 ```{r}
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Devezer_fixed.csv"
 
 #working directory. 
-setwd("D:/data/data_prepped_05-12")
-path = "D:/data/data_prepped_05-12"
+setwd("D:/data/data_prepped_02-12")
+path = "D:/data/data_prepped_02-12"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
