@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 #set working directory
-setwd("E:/data/dataOutcomeMeasures")
+setwd("~/CRUST-1/DevezerAlteredAgents/data/outcome_measures")
 
 #packages 
 library(pacman)
@@ -23,175 +23,77 @@ loading data & early prep.
 ```{r}
 
 #read data 
-df <- read_csv("FPTT_MetascienceBA.csv")
+FPTT_newAgents <- read_csv("FPTT_Devezer_fixed.csv")
+FPTT_devezer <- read_csv("FPTT_Devezer_original.csv")
 
 #as factor
-df <- df %>%
-mutate(network = factor(network),
-      population = factor(population),
-      sigma = factor(sigma),
-      colab_cond = factor(colab_cond),
-      net_size = factor(net_size),
-      true_model = factor(true_model))
+factorize <- function(dataframe){
+
+  df <- dataframe %>%
+    filter(first_row != Inf) %>%
+    mutate(network = factor(network),
+        population = factor(population),
+        sigma = factor(sigma),
+        true_model = factor(true_model),
+        base_SS = factor(base_SS),
+        modelcompare = factor(modelcompare),
+        FPTT = first_row) %>%
+    select(-first_row)
+}
+
+FPTT_newAgents <- factorize(FPTT_newAgents)
+FPTT_devezer <- factorize(FPTT_devezer)
+
+
 
 ```
 
-RANDOM CHECKS & PERHAPS INTERESTING STUFF
+SUBSETS 
 
 ```{r}
 
-#1. test infinity 
-inf_cases <- df %>%
-  filter(first_row == Inf) 
+#new agents: sample size 100, both modcomparisons 
+FPTT_100_both <- FPTT_newAgents %>%
+  filter(base_SS == 100)
 
-inf_onecond <- df %>%
-  filter(first_row == Inf,
-         population == "Tess",
-         network == "Lattice",
-         sigma == 0.8,
-         true_model == 13,
-         net_size == 413,
-         colab_cond == "yes")
+#new agents: sample size 20, both modelcomparisons
+FPTT_20_both <- FPTT_newAgents %>%
+  filter(base_SS == 20)
 
-replicas <- unlist(inf_onecond$replica)
+#new agents: sample size 20, only BIC 
+FPTT_20_BIC <- FPTT_newAgents %>%
+  filter(base_SS == 20,
+         modelcompare == "BIC")
 
-#2. test first hit 
-first_cases <- df %>%
-  filter(first_row == 1)
-
-#3. test colab vs. nolab 
-colab <- df %>%
-  filter(colab_cond == "yes") %>%
-  group_by(orig_agents) %>%
-  summarise(count = n())
-
-## actually checking stuff ##
-
-setwd("E:/data_prepped1")
-
-#1.1. loading a couple of tests 
-tess_inf <- read_csv("Lattice_Tess_0.8_BIC_413_hard_20_13-COLAB.csv")
-bo_inf <- read_csv("Lattice_Bo_0.8_BIC_413_hard_20_13-COLAB.csv")
-
-## 1.2.1 BO ## 
-## seems weird that they always loose here ## 
-
-bo_reps <- bo_inf %>%
-  filter(replica == 4, prop_t_mod == 1) 
-
-## 1.2.2 Tess ##
-## just never samples the true model ## 
-
-tess_reps <- tess_inf %>%
-  filter(replica == c(replicas))
-
-tess_true <- tess_reps %>%
-  filter(prop_t_mod == 1)
-
-rm(list=setdiff(ls(), "df")) 
-```
-
-FPTT for the clean data (non-inf). 
-Preparation
-
-```{r}
-
-#omit na
-df_clean <- df %>%
-  filter(first_row != Inf) 
-
+rm("FPTT_newAgents")
 ```
 
 FPTT over variables
 
 ```{r}
 
-FPTT_NO_NA <- function(.dataframe, .var1){
+FPTT <- function(.dataframe, .var1){
   
   var1 <- enquo(.var1)
   
   df <- .dataframe %>%
   group_by(UQ(var1)) %>%
-  summarize(FPTT_mean = mean(first_row),
-            FPTT_median = median(first_row),
-            FPTT_IQR = IQR(first_row),
-            FPTT_SD = sd(first_row))
+  summarize(FPTT_mean = mean(FPTT),
+            FPTT_median = median(FPTT),
+            FPTT_IQR = IQR(FPTT),
+            FPTT_SD = sd(FPTT))
   
   return(df)
   
 }
 
-#what can I group over?
-colnames(df_clean)
-
-populations <- FPTT_NO_NA(df_clean, population) #what we write. 
-sigma <- FPTT_NO_NA(df_clean, sigma)
-true_model <- FPTT_NO_NA(df_clean, true_model)
-modelcompare <- FPTT_NO_NA(df_clean, modelcompare)
-base_SS <- FPTT_NO_NA(df_clean, base_SS)
-```
-
-with NAs 
-
-```{r}
-
-#subtracting 
-df_NA <- df
-
-#function
-FPTT_OVERALL <- function(.dataframe, .var1){
-  
-  var1 <- enquo(.var1)
-  
-  df <- .dataframe %>%
-  group_by(UQ(var1)) %>%
-    mutate(inf_cases = sum(as.numeric(first_row == Inf))) %>%
-    filter(first_row != Inf) %>%
-  summarise(FPTT_mean = mean(first_row, na.rm = TRUE),
-            FPTT_median = median(first_row, na.rm = TRUE),
-            FPTT_IQR = IQR(first_row, na.rm = TRUE),
-            FPTT_SD = sd(first_row, na.rm = TRUE),
-            FPTT_NA = mean(inf_cases))
-  
-  return(df)
-  
-}
-
-populations <- FPTT_OVERALL(df_NA, population) 
-sigma <- FPTT_OVERALL(df_NA, sigma)
-true_model <- FPTT_OVERALL(df_NA, true_model)
+#generate this for all the relevant subsets: 
+FPTT_devezer <- FPTT(FPTT_devezer, population) 
+FPTT_100_both <- FPTT(FPTT_100_both, population)
+FPTT_20_both <- FPTT(FPTT_20_both, population)
+FPTT_20_BIC <- FPTT(FPTT_20_BIC, population)
 
 ```
-
-Interactions: 
-
-```{r}
-
-#function 
-FPTT_INT <- function(.dataframe, ...){
-  
-  vars <- enquos(...)
-  
-  df <- .dataframe %>%
-  group_by(!!! vars) %>%
-    mutate(inf_cases = sum(as.numeric(first_row == Inf))) %>%
-    filter(first_row != Inf) %>%
-  summarise(FPTT_mean = mean(first_row, na.rm = TRUE),
-            FPTT_median = median(first_row, na.rm = TRUE),
-            FPTT_IQR = IQR(first_row, na.rm = TRUE),
-            FPTT_SD = sd(first_row, na.rm = TRUE),
-            FPTT_NA = mean(inf_cases))
-  
-  return(df)
-  
-}
-
-POPMOD <- FPTT_INT(df_NA, population, true_model) #good way to see samp. !!
-POPSIG <- FPTT_INT(df_NA, population, sigma) #quite similar to mod (above) !!
-SIGMOD <- FPTT_INT(df_NA, sigma, true_model) #high sigma = high difference. 
-
-```
-
 
 write csv 
 
@@ -199,87 +101,6 @@ write csv
 
 setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
 write_csv(populations, "FPTT_POP.csv")
-
-```
-
-
-plotting? 
-
-```{r}
-
-p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
-       viridis, ggridges, ggunchained, rlang)
-
-#preparing raincloud (can be customized)
-raincloud_theme = theme(
-text = element_text(size = 10),
-axis.title.x = element_text(size = 16),
-axis.title.y = element_text(size = 16),
-axis.text = element_text(size = 14),
-axis.text.x = element_text(vjust = 0.5),
-legend.title=element_text(size=16),
-legend.text=element_text(size=16),
-legend.position = "right",
-plot.title = element_text(lineheight=.8, face="bold", size = 16),
-panel.border = element_blank(),
-panel.grid.minor = element_blank(),
-panel.grid.major = element_blank(),
-axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
-axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
-```
-
-new directory & loading flatViolin
-
-```{r}
-
-setwd("~/CRUST-1")
-baseDir <- "."
-scriptDir <- paste0(baseDir, "/src/functions")
-inputDir <- paste0(baseDir, "/data")
-outputDir <- paste0(baseDir, "/data")
-source(paste0(scriptDir, "/flatViolin.R"))
-
-```
-
-
-```{r}
-#raincloud plot
-
-FPTT_FUN <- function(df, .var){
-  
-  var <- enquo(.var)
-
-g <- df %>%
-  filter(FPTT < 500) %>%
-  ggplot(aes(x = UQ(var), 
-             y = FPTT, fill = UQ(var))) +
-  geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .8) +
-  geom_point(aes(y = FPTT, color = UQ(var)), 
-                  position = position_jitter(width = .15), 
-                  size = .5, alpha = 0.8) +
-  geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
-  expand_limits(x = 3) +
-  guides(fill = FALSE) + 
-  guides(color = FALSE) +
-  scale_fill_tableau() +
-  scale_color_tableau() +
-  coord_flip() +
-  theme_bw() +
-  labs(title = paste0("FPTT for ", as_label(var), "s"), #with s?
-       subtitle = "Averaged over all other grouping variables",
-       x = paste0(as_label(var), "s"), #with s?
-       y = "FPTT") +
-  raincloud_theme
-
-#call the plot
-g
-
-}
-
-FPTT_FUN(df_clean, network)
-FPTT_FUN(df_clean, population)
-FPTT_FUN(df_clean, sigma)
-FPTT_FUN(df_clean, true_model)
 
 ```
 
