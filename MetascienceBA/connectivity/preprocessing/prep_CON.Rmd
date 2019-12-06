@@ -739,7 +739,6 @@ files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
 datalist1 <- list()
-datalist2 <- list()
 
 TAT50 <- function(files){
   
@@ -774,28 +773,17 @@ TAT50 <- function(files){
                sigma, net_size, colab_cond) %>% 
       summarise(TAT = mean(prop_true),
                 TAT50 = mean(TAT_50)) 
-        
-    #TAT AVG. OVER REP. 
-    TAT_AVG <- df %>%  
-      mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-      group_by(network, population, true_model, sigma, net_size,
-               colab_cond) %>% 
-      summarise(TAT = mean(prop_true),
-                TAT50 = mean(TAT_50)) 
     
     datalist1[i] <- list(TAT)
-    datalist2[i] <- list(TAT_AVG)
   }
     
   TAT <- do.call("rbind", datalist1)
-  TAT_AVG <- do.call("rbind", datalist2)
   
   #directory for the files: 
   setwd("E:/data/dataOutcomeMeasures")
   
   #write csv:
   write_csv(TAT, paste0("TAT_TAT50", naming_scheme))
-  write_csv(TAT_AVG, paste0("TAT_TAT50_AVG", naming_scheme))
 
 }
 
@@ -888,31 +876,23 @@ TATC <- function(files){
       mutate(TAT_C = ifelse(maxprop == "prop_true", 1, 0))
     
     #per replica
-    TAT_C_REP <- df %>%
+    TAT_C <- df %>%
       group_by(replica, network, population, sigma, net_size, 
                colab_cond, true_model) %>%
       summarise(TAT_C = round(mean(TAT_C),2)) 
     
-    #avg. over rep. 
-    TAT_C_AVG <- df %>%
-      group_by(network, population, sigma, net_size, colab_cond, true_model) %>%
-      summarise(TAT_C = round(mean(TAT_C),2)) 
-    
     #putting into lists
-    datalist1[i] <- list(TAT_C_REP)
-    datalist2[i] <- list(TAT_C_AVG)
+    datalist1[i] <- list(TAT_C)
     
   }
     
-  TAT_C_REP <- do.call("rbind", datalist1)
-  TAT_C_AVG <- do.call("rbind", datalist2)
+  TAT_C <- do.call("rbind", datalist1)
   
   #directory for the files: 
   setwd("E:/data/dataOutcomeMeasures")
   
   #write csv:
-  write_csv(TAT_C_REP, paste0("TATC_REP", naming_scheme))
-  write_csv(TAT_C_AVG, paste0("TATC_AVG", naming_scheme))
+  write_csv(TAT_C, paste0("TATC", naming_scheme))
 
 }
 
