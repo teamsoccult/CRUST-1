@@ -9,7 +9,7 @@ output: html_document
 ```{r setup, include=FALSE}
 
 #working directory 
-setwd("~/CRUST-1/MetascienceBA/data")
+setwd("~/CRUST-1/MetascienceBA/data/outcome_tables")
 
 #libraries
 library(pacman)
@@ -20,7 +20,7 @@ p_load(knitr, kableExtra, tidyverse, tibble, rlang)
 
 ```{r}
 #clearing & reading 
-temp = list.files(pattern="*csv")
+temp = list.files(pattern="*SMALL_413_NOLAB.csv")
 list2env(
   lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
          read.csv), envir = .GlobalEnv)
@@ -61,15 +61,15 @@ medianFX <- function(.df, .ID, .measure){
   
 }
 
-TAT_MED <- medianFX(TAT_POP, population, TAT_median)
-TAT50_MED <- medianFX(TAT50_POP, population, TAT50_median)
-TATC_MED <- medianFX(TATC_POP, population, TAT_median)
-STICK_MED <- medianFX(STICK_POP, population, stickiness_median)
-RR_MED <- medianFX(RR_POP, population, RR_median)
-RRT_MED <- medianFX(RR_TF_POP, population, RR_median)
+TAT_MED <- medianFX(TAT_SMALL_413_NOLAB, population, TAT_median)
+TAT50_MED <- medianFX(TAT50_SMALL_413_NOLAB, population, TAT50_median)
+TATC_MED <- medianFX(TATC_SMALL_413_NOLAB, population, TATC_median)
+STICK_MED <- medianFX(stickiness_SMALL_413_NOLAB, population, stickiness_median)
+RR_MED <- medianFX(RR_SMALL_413_NOLAB, population, RR_median)
+RRT_MED <- medianFX(RRT_SMALL_413_NOLAB, population, RRT_median)
 
 #first passage (differs, so hard coded)
-FPTT_MED <- FPTT_POP %>%
+FPTT_MED <- FPTT_SMALL_413_NOLAB %>%
   select(population, FPTT_median) %>%
   spread(population, FPTT_median)
 
@@ -115,15 +115,15 @@ organizing IQR
 ```{r}
 
 #reusing the functon 
-TAT_IQR <- medianFX(TAT_POP, population, TAT_IQR)
-TAT50_IQR <- medianFX(TAT50_POP, population, TAT50_IQR)
-TATC_IQR <- medianFX(TATC_POP, population, TAT_IQR)
-STICK_IQR <- medianFX(STICK_POP, population, stickiness_IQR)
-RR_IQR <- medianFX(RR_POP, population, RR_IQR)
-RRT_IQR <- medianFX(RR_TF_POP, population, RR_IQR)
+TAT_IQR <- medianFX(TAT_SMALL_413_NOLAB, population, TAT_IQR)
+TAT50_IQR <- medianFX(TAT50_SMALL_413_NOLAB, population, TAT50_IQR)
+TATC_IQR <- medianFX(TATC_SMALL_413_NOLAB, population, TATC_IQR)
+STICK_IQR <- medianFX(stickiness_SMALL_413_NOLAB, population, stickiness_IQR)
+RR_IQR <- medianFX(RR_SMALL_413_NOLAB, population, RR_IQR)
+RRT_IQR <- medianFX(RRT_SMALL_413_NOLAB, population, RRT_IQR)
 
 #first passage (differs, so hard coded)
-FPTT_IQR <- FPTT_POP %>%
+FPTT_IQR <- FPTT_SMALL_413_NOLAB %>%
   select(population, FPTT_IQR) %>%
   spread(population, FPTT_IQR)
 
@@ -172,39 +172,9 @@ MedIQR %>%
                                       #"condensed", 
                                       "responsive")) %>%
   add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
-  add_header_above(c(" ", "Outcome Values for Populations" = 9)) #%>%
+  add_header_above(c(" ", "Small-world, 413 labs, no collaborations" = 9)) #%>%
   #add_indent(c(2, 5)) 
 
-
-```
-
-
-plotting can get more crazy. 
-https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
-
-```{r}
-
-#plot for another time 
-lattice_mean %>%
-  mutate(
-    measures = rownames(.),
-    Bo = cell_spec(Bo, "html", color = "red"),
-    Mave = cell_spec(Mave, "html", color = "blue"),
-    Tess = cell_spec(Tess, "html", color = "green"),
-    All = cell_spec(All, "html", color = "purple")) %>%
-  select(measures, Bo, Mave, Tess, All) %>%
-  kable(format = "html", escape = F) %>%
-  kable_styling("striped", full_width = F)
-
-#footnote
-  #footnote(general = "Here is a general comments of the table. ", #we can add notes. 
-           #number = c("Footnote 1; ", "Footnote 2; "),
-           #alphabet = c("Footnote A; ", "Footnote B; "),
-           #symbol = c("Footnote Symbol 1; ", "Footnote Symbol 2"),
-           #general_title = "General: ", number_title = "Type I: ",
-           #alphabet_title = "Type II: ", symbol_title = "Type III: ",
-           #footnote_as_chunk = T, title_format = c("italic", "underline")
-           #)
 
 ```
 

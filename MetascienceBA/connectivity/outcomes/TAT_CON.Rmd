@@ -45,19 +45,77 @@ TAT <- factorize(TAT)
 
 ```
 
-Main effects: 
+
+Subsets
 
 ```{r}
 
-#Function approach
-TAT_FX <- function(.df, .grouping){
-
-  grouping <- enquo(.grouping)
+#those where we group over three IDs. 
+group3 <- function(.df, .net, .size, .colab){
   
-  df <- .df %>%
-  group_by(UQ(grouping)) %>%
-  summarize(TAT_median = median(TAT),
-            TAT_mean = mean(TAT),
+  net <- enquo(.net)
+  size <- enquo(.size)
+  colab <- enquo(.colab)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net),
+           net_size == UQ(size),
+           colab_cond == UQ(colab))
+ 
+  return(dataframe) 
+}
+
+TAT_LATTICE_413_NOLAB <- group3(TAT, "Lattice", 413, "NOLAB")
+TAT_SMALL_413_NOLAB <- group3(TAT, "Small", 413, "NOLAB")
+TAT_LATTICE_484_NOLAB <- group3(TAT, "Lattice", 484, "NOLAB")
+TAT_SMALL_484_NOLAB <- group3(TAT, "Small", 484, "NOLAB")
+
+#those where we group over two IDs. 
+group2 <- function(.df, .net, .colab){
+  
+  net <- enquo(.net)
+  colab <- enquo(.colab)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net),
+           colab_cond == UQ(colab))
+ 
+  return(dataframe) 
+}
+
+TAT_LATTICE_NOLAB <- group2(TAT, "Lattice", "NOLAB")
+TAT_SMALL_NOLAB <- group2(TAT, "Small", "NOLAB")
+TAT_LATTICE_COLAB <- group2(TAT, "Lattice", "COLAB")
+TAT_SMALL_COLAB <- group2(TAT, "Small", "COLAB")
+TAT_TOM_COLAB <- group2(TAT, "TOM", "COLAB")
+TAT_PT_COLAB <- group2(TAT, "PT", "COLAB")
+
+#those where we group over one ID.  
+group1 <- function(.df, .net1, .net2){
+  
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net1) | network == UQ(net2))
+ 
+  return(dataframe) 
+}
+
+TAT_CITATION_COLAB <- group1(TAT, "TOM", "PT")
+
+```
+
+
+```{r}
+TAT_FUN <- function(.dataframe, .var1){
+  
+  var1 <- enquo(.var1)
+  
+  df <- .dataframe %>%
+  group_by(UQ(var1)) %>%
+  summarize(TAT_mean = mean(TAT),
+            TAT_median = median(TAT),
             TAT_IQR = IQR(TAT),
             TAT_SD = sd(TAT))
   
@@ -65,82 +123,46 @@ TAT_FX <- function(.df, .grouping){
   
 }
 
-colnames(TAT)
+#Do it for all 11 dataframes. 
+TAT_LATTICE_413_NOLAB <- TAT_FUN(TAT_LATTICE_413_NOLAB, population)
+TAT_SMALL_413_NOLAB <- TAT_FUN(TAT_SMALL_413_NOLAB, population)
+TAT_LATTICE_484_NOLAB <- TAT_FUN(TAT_LATTICE_484_NOLAB, population)
+TAT_SMALL_484_NOLAB <- TAT_FUN(TAT_SMALL_484_NOLAB, population)
+TAT_LATTICE_NOLAB <- TAT_FUN(TAT_LATTICE_NOLAB, population)
+TAT_SMALL_NOLAB <- TAT_FUN(TAT_SMALL_NOLAB, population)
+TAT_LATTICE_COLAB <- TAT_FUN(TAT_LATTICE_COLAB, population)
+TAT_SMALL_COLAB <- TAT_FUN(TAT_SMALL_COLAB, population)
+TAT_TOM_COLAB <- TAT_FUN(TAT_TOM_COLAB, population)
+TAT_PT_COLAB <- TAT_FUN(TAT_PT_COLAB, population)
+TAT_CITATION_COLAB <- TAT_FUN(TAT_CITATION_COLAB, population)
 
-#replication rates: 
-TAT_FX(TAT, network)
-TAT_POP <- TAT_FX(TAT, population) #what we write. 
-TAT_FX(TAT, sigma)
-TAT_FX(TAT, true_model)
-TAT_FX(TAT, net_size)
-TAT_FX(TAT, colab_cond)
-
-#TAT 50
-TAT_50 <- function(.df, .grouping){
-
-  grouping <- enquo(.grouping)
-  
-  df <- .df %>%
-  group_by(UQ(grouping)) %>%
-  summarize(TAT50_median = median(TAT50),
-            TAT50_mean = mean(TAT50),
-            TAT50_IQR = IQR(TAT50),
-            TAT50_SD = sd(TAT50))
-  
-  return(df)
-  
-}
-
-#replication rates: 
-TAT_50(TAT, network)
-TAT50_POP <- TAT_50(TAT, population) #what we write. 
-TAT_50(TAT, sigma)
-TAT_50(TAT, true_model)
-TAT_50(TAT, net_size)
-TAT_50(TAT, colab_cond)
-
-```
-
-Interaction effects: 
-
-```{r}
-
-#Function approach
-TAT_FX2 <- function(.df, ...){
-
-  group_var <- enquos(...)
-  
-  df <- .df %>%
-  group_by(!!! group_var) %>%
-  summarize(TAT_median = round(median(TAT),2),
-            TAT_mean = round(mean(TAT),2),
-            TAT_IQR = round(IQR(TAT),2),
-            TAT50_median = round(median(TAT50),2),
-            TAT50_mean = round(mean(TAT50),2),
-            TAT50_IQR = round(IQR(TAT50),2))
-  
-  return(df)
-  
-}
-
-#overview
-colnames(TAT)
-
-#interactions
-SIGMOD <- TAT_FX2(TAT, sigma, true_model) #clear interaction 
-SIGPOP <- TAT_FX2(TAT, sigma, population) #nothing conclusive
-POPMOD <- TAT_FX2(TAT, population, true_model) #nothing conclusive
-
-
+rm(TAT, TAT_FUN, group1, group2, group3)
 ```
 
 write csv 
 
 ```{r}
 
-setwd("~/CRUST-1/MetascienceBA/connectivity/KableTable")
-write_csv(TAT_POP, "TAT_POP.csv")
-write_csv(TAT50_POP, "TAT50_POP.csv")
+setwd("~/CRUST-1/MetascienceBA/data/outcome_tables")
+
+writeFUN <- function(df){
+  
+  df_name <- deparse(substitute(df))
+  write_csv(df, paste0(df_name, ".csv"))
+  
+}
+
+writeFUN(TAT_LATTICE_413_NOLAB)
+writeFUN(TAT_SMALL_413_NOLAB)
+writeFUN(TAT_LATTICE_484_NOLAB)
+writeFUN(TAT_SMALL_484_NOLAB)
+writeFUN(TAT_LATTICE_NOLAB)
+writeFUN(TAT_SMALL_NOLAB)
+writeFUN(TAT_LATTICE_COLAB)
+writeFUN(TAT_SMALL_COLAB)
+writeFUN(TAT_TOM_COLAB)
+writeFUN(TAT_PT_COLAB)
+writeFUN(TAT_CITATION_COLAB)
 
 ```
 
