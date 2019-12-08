@@ -1,0 +1,246 @@
+---
+title: "TAT_rep"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+set-up
+
+```{r}
+#set working directory
+setwd("D:/data/data_plotting")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained, cowplot, ggcorrplot) 
+```
+
+loading data. 
+
+```{r}
+
+#reading 
+#set working directory
+setwd("D:/data/data_plotting")
+
+path <- "D:/data/data_plotting"
+
+temp <- list.files(path = path, pattern="violin_ridges_RR_") #if possible. 
+
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+
+#reading 
+setwd("~/CRUST-1/DevezerAlteredAgents/data/outcome_measures")
+
+path <- "~/CRUST-1/DevezerAlteredAgents/data/outcome_measures"
+
+temp <- list.files(path = path, pattern="Devezer") #if possible. 
+
+temp <- temp[c(1:4, 7:8)]
+
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+```
+
+Preparing the main dataframes
+
+```{r}
+
+MyMerge <- function(x, y){
+  df <- merge(x, y, by = c("replica", "network", "population", "true_model", "sigma", "base_SS", "modelcompare"))
+  return(df)
+}
+
+df_fixed <- Reduce(MyMerge, list(FPTT_Devezer_fixed, 
+                                 stickiness_rework_Devezer_fixed, 
+                                 TAT_TAT50_Devezer_fixed,
+                                 violin_ridges_RR_Devezer_fixed))
+
+df_original <- Reduce(MyMerge, list(FPTT_Devezer_original, 
+                                 stickiness_rework_Devezer_original, 
+                                 TAT_TAT50_Devezer_original,
+                                 violin_ridges_RR_Devezer_original))
+```
+
+Preparing for the contrast
+
+```{r}
+df_fixed <- df_fixed %>%
+  filter(base_SS == 100) %>%
+  mutate(condition = factor("Modified"))
+
+df_original <- df_original %>%
+  mutate(condition = factor("Original"))
+
+df <- rbind(df_fixed, df_original)
+
+df <- df %>%
+  mutate(condition = relevel(condition, ref = "Original"),
+         population = relevel(population, ref = "Bo"),
+         true_model = factor(true_model)) %>%
+  select(-c(agent_away, agent_total, TAT.y)) %>%
+  rename(TAT = "TAT.x",
+         FPTT = "first_row",
+         Stickiness = "stickiness_overall")
+```
+
+Start plotting. 
+
+```{r}
+RR_FUN <- function(.df, .measure){
+  
+  measure <- enquo(.measure)
+
+g <- .df %>%
+  ggplot(aes(x = RR, 
+             y = UQ(measure), 
+             color = condition)) +
+  geom_point(alpha = 0.4) +
+stat_smooth(method="lm",fullrange=T, size = 1.2) + 
+  ylim(0,1)+
+guides(alpha = F)+
+  labs(title = "RR & TAT for original agents compared to modified agents ", 
+       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  theme_janco_point()
+
+#call the plot
+g
+
+}
+```
+
+```{r}
+RR_FUN(df, TAT)
+RR_FUN(df, Stickiness)
+```
+
+checking populations
+
+```{r}
+RR_FUN_POP <- function(.df, .measure){
+  
+  measure <- enquo(.measure)
+
+g <- .df %>%
+  ggplot(aes(x = RR, 
+             y = UQ(measure), 
+             color = condition)) +
+  geom_point(alpha = 0.4) +
+stat_smooth(method="lm",fullrange=T, size = 1.2) + 
+  ylim(0,1)+
+guides(alpha = F)+
+  labs(title = "RR & TAT for original agents compared to modified agents ", 
+       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  theme_janco_point()+
+  facet_wrap(~population)
+
+#call the plot
+g
+
+}
+
+RR_FUN_POP(df, TAT)
+RR_FUN_POP(df, Stickiness)
+
+```
+
+
+checking FPTT
+
+```{r}
+df_FPTT <- df %>%
+  filter(FPTT != Inf)
+
+RR_FPPT <- function(.df, .measure){
+  
+  measure <- enquo(.measure)
+
+g <- .df %>%
+  ggplot(aes(x = RR, 
+             y = UQ(measure), 
+             color = condition)) +
+  geom_point(alpha = 0.4) +
+stat_smooth(method="lm",fullrange=T, size = 1.2) + 
+  ylim(0,10000)+
+guides(alpha = F)+
+  labs(title = "RR & FPTT for original agents compared to modified agents ", 
+       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  theme_janco_point()
+
+#call the plot
+g
+
+}
+
+RR_FPPT(df_FPTT, FPTT)
+
+```
+
+checking populations
+
+```{r}
+
+RR_FPPT_POP <- function(.df, .measure){
+  
+  measure <- enquo(.measure)
+
+g <- .df %>%
+  ggplot(aes(x = RR, 
+             y = UQ(measure), 
+             color = condition)) +
+  geom_point(alpha = 0.4) +
+stat_smooth(method="lm",fullrange=T, size = 1.2) + 
+  ylim(0,10000)+
+guides(alpha = F)+
+  labs(title = "RR & FPTT for original agents compared to modified agents ", 
+       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  theme_janco_point()+
+  facet_wrap(~population)
+
+#call the plot
+g
+
+}
+
+RR_FPPT_POP(df_FPTT, FPTT)
+```
+
+Corr plot:
+
+```{r}
+
+cor <- df_FPTT %>%
+  select(RR, TAT, Stickiness, FPTT, condition)
+
+cor_original <- cor %>%
+  filter(condition == "Original")
+
+cor_modified <- cor %>%
+  filter(condition == "Modified")
+
+cor_original <- cor_original %>%
+  select(RR, TAT, Stickiness, FPTT)
+
+cor_modified <- cor_modified %>%
+  select(RR, TAT, Stickiness, FPTT)
+
+corr_original <- round(cor(cor_original, method = "spearman"), 2)
+corr_modified <- round(cor(cor_modified, method = "spearman"), 2)
+
+cor_original <- ggcorrplot(corr_original, hc.order = F, type = "lower",
+   lab = TRUE, outline.color = "white",
+   ggtheme = theme_minimal(), 
+   title = "Original agents")
+
+cor_modified <- ggcorrplot(corr_modified, hc.order = F, type = "lower",
+   lab = TRUE, outline.color = "white",
+   ggtheme = theme_minimal(), 
+   title = "Modified agents")
+
+plot_grid(cor_original, cor_modified)
+```
+
