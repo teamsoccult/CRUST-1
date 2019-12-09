@@ -21,12 +21,12 @@ loading data (come back)
 ```{r}
 
 #loading data
-setwd("E:/data/data_plotting")
+setwd("E:/data/dataPlotting")
 
 #new files 
-RR <- read_csv("violin_ridges_RR.csv")
-TF <- read_csv("violin_ridges_TF.csv")
-bystrat <- read_csv("violin_ridges_bystrat.csv")
+RR <- read_csv("violin_ridges_RR_MetascienceBA.csv")
+TF <- read_csv("violin_ridges_TF_MetascienceBA.csv")
+bystrat <- read_csv("violin_ridges_BYSTRAT_MetascienceBA.csv")
 
 #strategy into the old files (temporary)
 RR <- RR %>%
@@ -70,7 +70,7 @@ bystrat$prop_t_mod <- ifelse(bystrat$prop_t_mod == "1", "True", "False")
 RR_TOTAL <- rbind(RR, TF, bystrat)
 
 #Factorizing & Renaming 
-RR_TOTAL <- RR_TOTAL %>%
+RR_TOTAL <- RR %>%
   mutate(prop_t_mod = factor(prop_t_mod), 
          sigma = factor(sigma), 
          true_model = factor(true_model)) %>%
