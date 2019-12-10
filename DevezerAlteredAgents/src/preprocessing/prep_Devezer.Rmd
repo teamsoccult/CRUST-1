@@ -99,6 +99,72 @@ print(paste0(value, ": ", i))
 
 ```
 
+Sampling:
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_Devezer_original.csv"
+
+#working directory
+setwd("D:/data/data_prepped_05-12")
+path = "D:/data/data_prepped_05-12"
+files <- list.files(path = path, pattern = "*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+samplingFX <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "orig_type", #needed directly
+            "old_model", #needed directly
+            "selected_model") #needed directly 
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(orig_type = factor(orig_type),
+          old_model = factor(old_model),
+          selected_model = factor(selected_model))
+    
+    #any sampling of own models? 
+    df_errors <- df %>%
+        group_by(orig_type, old_model) %>%
+        summarize(count = sum(old_model == selected_model))
+    
+    #sampling distributions 
+    df_sampling <- df %>%
+        group_by(orig_type, old_model, selected_model) %>%
+        summarize(count = n())
+    
+    datalist1[i] <- list(df_errors)
+    datalist2[i] <- list(df_sampling)
+  }
+    
+  df_errors <- do.call("rbind", datalist1)
+  df_sampling <- do.call("rbind", datalist2)
+  
+  #directory for the files: 
+  setwd("D:/data/dataSampling")
+  
+  #write csv:
+  write_csv(df_errors, paste0("df_errors", naming_scheme))
+  write_csv(df_sampling, paste0("df_sampling", naming_scheme))
+
+}
+
+#calling the function
+samplingFX(files)
+```
+
+
 data preparation for "violin_extended_rework": 
 
 ```{r}
