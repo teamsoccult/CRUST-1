@@ -28,26 +28,106 @@ df <- df %>%
          network = factor(network),
          net_size = factor(net_size),
          colab_cond = factor(colab_cond),
-         replica = factor(replica))
+         replica = factor(replica),
+         colab_cond = recode(colab_cond,
+                             NOLAB = "No",
+                             COLAB = "Yes")) #should only be done when testing stuff. 
 
 ```
 
-For all populations (all else hard-coded)
+For all populations.
+Sigma & true model hard coded. 
+Downsampling to 50% (for computational feasibility)
 
 ```{r}
 
-TAT_FUN <- function(.df, .sigma, .net, .tmod, .size, .colab){
+TAT_FUN <- function(.df, .sigma, .tmod, .colab, .net1, .net2){
   
   sigma <- enquo(.sigma)
-  net <- enquo(.net)
   tmod <- enquo(.tmod)
-  size <- enquo(.size)
   colab <- enquo(.colab)
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
 
 g <- .df %>%
   filter(sigma == UQ(sigma), 
-         network == UQ(net), true_model == UQ(tmod), 
-         net_size  == UQ(size), colab_cond == UQ(colab)) %>%
+         true_model == UQ(tmod),
+         colab_cond == UQ(colab), 
+         network == UQ(net1) | network == UQ(net2)) %>%
+  sample_frac(0.3) %>%
+  ggplot(aes(x = studies, 
+             y = value, 
+             color = population)) +
+  geom_point(alpha = 0.05) +
+  geom_smooth(method = "loess", 
+              se = T, 
+              alpha = 0.5, 
+              size = 1.2) +
+  geom_hline(aes(yintercept = 0.5), 
+             color = "red", 
+             linetype = "dotted", 
+             size = 1) + 
+  labs(x = "Studies", 
+       y = "Proportion", 
+       color = "Proportion of true model for:", 
+       titles = paste0("Time at true model, Colab: ", quo_name(colab)),
+       subtitle = paste0("Colab: ", quo_name(colab), " | ",
+                         "Sigma: ", quo_name(sigma), " | ", 
+                        "True Model: ", quo_name(tmod), " | ",
+                        "Networks: ", quo_name(net1), " & ",
+                         quo_name(net2))) +
+  ylim(0,1) +
+  theme_janco_point()
+
+#call the plot
+g
+
+}
+
+
+```
+
+Running the function: 
+
+```{r}
+
+#for main paper: (showing an effect).
+p1 <- TAT_FUN(df, 0.5, 7, "No", "Small", "Lattice") 
+p2 <- TAT_FUN(df, 0.5, 7, "Yes", "Small", "Lattice") 
+plot_grid(p1, p2)
+
+rm(p1, p2)
+
+#for appendix: (showing no effect)
+p3 <- TAT_FUN(df, 0.8, 7, "No", "Small", "Lattice")
+p4 <- TAT_FUN(df, 0.8, 7, "Yes", "Small", "Lattice")
+plot_grid(p3, p4)
+
+rm(p3, p4)
+
+#for appendix: (showing no effect)
+p5 <- TAT_FUN(df, 0.2, 7, "No", "Small", "Lattice") #this one sample_frac(0.3)
+p6 <- TAT_FUN(df, 0.2, 7, "Yes", "Small", "Lattice")
+plot_grid(p5, p6)
+
+rm(p5, p6)
+
+```
+
+
+WE DON't USE THE REST FOR NOW (BELOW CODE): 
+only hard-coding sigma. 
+
+```{r}
+
+TAT_FUN <- function(.df, .sigma){
+  
+  sigma <- enquo(.sigma)
+  
+  print(sigma)
+
+g <- .df %>%
+  filter(sigma == UQ(sigma)) %>%
   ggplot(aes(x = studies, 
              y = value, 
              color = population)) +
@@ -60,15 +140,12 @@ g <- .df %>%
              color = "red", 
              linetype = "dotted", 
              size = 1) + 
-  #labs(x = "Studies", 
-       #y = "Proportion", 
-       #color = "Proportion of different models", 
-       #title = "Proportion of agents at the true model",
-       #subtitle = paste0("Sigma:", UQ(sigma), "|", 
-                        #"Network:", UQ(net), "|", 
-                       # "True Model:", UQ(tmod), "|",
-                       # "Size:", UQ(size), "|",
-                       # "Colab:", UQ(colab), "|")) +
+  labs(x = "Studies", 
+       y = "Proportion", 
+       color = "Proportion of different models", 
+       title = "Proportion of agents at the true model",
+       subtitle = paste0(#"Size:", UQ(size), "|",
+                        "Colab:", "COLAB", "|")) +
   theme_janco_point()
 
 #call the plot
@@ -80,12 +157,19 @@ g
 #1. df, 2. sigma, 3. network, 4. tmod, 5. net size, 6. colab
 #pop, network & colab should be quoted. 
 
-p1 <- TAT_FUN(df, 0.5, "Small", 7, 484, "COLAB")
-p2 <- TAT_FUN(df, 0.5, "Small", 7, 484, "NOLAB")
+TAT_FUN(baselines_nolab, 0.5)
+TAT_FUN(baselines_colab, 0.5)
 
 plot_grid(p1, p2)
-
 ```
+
+
+
+
+
+
+
+
 
 For all populations (avg. over network, net_size & colab). 
 
