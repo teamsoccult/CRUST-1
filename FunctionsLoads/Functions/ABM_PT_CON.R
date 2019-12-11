@@ -38,16 +38,13 @@ ABM_PT <- function(replications, turns, models, k,
       V(g)$type <- sample(c("Bo", "Mave", "Tess"))
     }
     else if(pop_type == "Bo"){ #bo --> Bo 
-      V(g)$type <- rep(c("Bo", "Mave", "Tess"), 
-                       round(c(net_size*0.98, net_size*0.01, net_size*0.01)))
+      V(g)$type <- sample(c("Bo", "Mave", "Tess"), net_size, replace = T, prob = c(0.99, 0.005, 0.005))
     }
     else if(pop_type == "Tess"){ #tess --> Tess
-      V(g)$type <- rep(c("Tess", "Bo", "Mave"), 
-                       round(c(net_size*0.98, net_size*0.01, net_size*0.01)))
+      V(g)$type <- sample(c("Tess", "Mave", "Bo"), net_size, replace = T, prob = c(0.99, 0.005, 0.005))
     }
     else if(pop_type == "Mave"){ #mave --> Mave
-      V(g)$type <- rep(c("Mave", "Bo", "Tess"), 
-                       round(c(net_size*0.98, net_size*0.01, net_size*0.01)))
+      V(g)$type <- sample(c("Mave", "Bo", "Tess"), net_size, replace = T, prob = c(0.99, 0.005, 0.005))
     }
     
     # Sampling agents 
