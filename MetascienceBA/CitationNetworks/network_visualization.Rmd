@@ -1,0 +1,87 @@
+---
+title: "citation visualization"
+author: "Mikkel Werling"
+date: "12/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(pacman)
+p_load(igraph, ggraph, networkD3, visNetwork)
+```
+
+
+```{r}
+
+setwd("~/CRUST-1/MetascienceBA/CitationNetworks")
+
+TOM <- readRDS("theory_of_mind.rds")
+
+#V(TOM)$type <- sample(c("Tess", "Bo", "Mave"))
+
+#V(TOM)$name <- make.unique(V(TOM)$type)
+
+PT <- readRDS("prospect_theory.rds")
+
+net_size <- 484
+
+scale_free <- sample_pa(net_size, directed = F, m = 2, power = 1)
+
+lattice <- make_lattice(length = 50, dim = 1, 
+                        nei = 4, circular = T, directed = F)
+
+small <- sample_smallworld(1, 50, 4, 0.05)
+
+```
+
+```{r}
+tom_graph <- ggraph(TOM, "circle")+
+  geom_node_point(aes(size = degree(TOM), alpha = degree(TOM)))+
+  geom_edge_diagonal(alpha = 0.05)+
+  labs(title = "Theory of Mind",
+       caption = "Based on 1041 articles concerning Theory of Mind from 2018-2019. \n Articles downloaded from the Web of Science (WOS) data-base. ",
+       size = "Degree",
+       alpha = "Degree") + 
+  theme_graph()
+
+pt_graph <- ggraph(PT, "circle")+
+  geom_node_point(aes(size = degree(PT), alpha = degree(PT)))+
+  geom_edge_diagonal(alpha = 0.05)+
+  labs(title = "Prospect Theory",
+       caption = "Based on 958 articles concerning Prospect Theory from 2018-2019. \n Articles downloaded from the Web of Science (WOS) data-base. ",
+       size = "Degree",
+       alpha = "Degree") + 
+  theme_graph()
+
+lattice_graph <- ggraph(lattice, "circle")+
+  geom_node_point(aes(size = degree(lattice), alpha = degree(lattice)))+
+  geom_edge_diagonal(alpha = 0.4)+
+  labs(title = "Lattice",
+       caption = "Simplified lattice with K = 4. \n This lattice has only 50 vertices. The lattices used in the simulation has either 413 or 484 vertices.",
+       size = "Degree",
+       alpha = "Degree") + 
+  theme_graph()
+
+small_graph <- ggraph(small, "circle")+
+  geom_node_point(aes(size = degree(small), alpha = degree(small)))+
+  geom_edge_diagonal(alpha = 0.4)+
+  labs(title = "Small-world",
+       caption = "Simplified small-world with K = 4 and rewiring-probability = 0.05. \n This network has only 50 vertices. The lattices used in the simulation has either 413 or 484 vertices.",
+       size = "Degree",
+       alpha = "Degree") + 
+  theme_graph()
+
+small_lattice <- plot_grid(lattice_graph, small_graph, nrow = 2)
+
+citation_networks <- plot_grid(pt_graph, tom_graph, nrow = 2)
+
+small_lattice
+
+citation_networks
+
+```
+
