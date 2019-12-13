@@ -216,8 +216,8 @@ Data preparation for model sampling:
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern = "*.csv")
 
 #initializing empty list 
@@ -265,7 +265,7 @@ samplingFX <- function(files){
   df_sampling <- do.call("rbind", datalist2)
   
   #directory for the files: 
-  setwd("E:/data/dataSampling")
+  setwd("D:/data/MetaScience_BA_FINAL/dataSampling")
   
   #write csv:
   write_csv(df_errors, paste0("df_errors", naming_scheme))
@@ -287,8 +287,8 @@ so that we can group based on whether they sampled the true model.
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern="*.csv")
 
 
@@ -351,14 +351,14 @@ violin_extended_rework <- function(files){
   df_strat <- do.call("rbind", datalist2)
   
   #directory for the files (plotting)
-  setwd("E:/data/dataPlotting")
+  setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
   
   #write csv:
   write_csv(df, paste0("violin_extended", naming_scheme))
   write_csv(df_strat, paste0("violin_extended_bystrat", naming_scheme))
   
   #directory for files (outcome)
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
   write_csv(df, paste0("RR", naming_scheme))
 
 }
@@ -376,8 +376,8 @@ data preparation for "violin_ridges_rework" (plot) & RR_CON (outcome)
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory.
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list
@@ -448,7 +448,7 @@ violin_ridges_rework <- function(files){
   RR_TF_BYSTRAT <- do.call("rbind", datalist3)
  
   #directory for the files:
-  setwd("E:/data/dataPlotting")
+  setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
  
   #write csv:
   write_csv(RR_TAT, paste0("violin_ridges_RR", naming_scheme))
@@ -456,7 +456,7 @@ violin_ridges_rework <- function(files){
   write_csv(RR_TF_BYSTRAT, paste0("violin_ridges_BYSTRAT", naming_scheme))
   
   #directory for files (outcome)
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
   write_csv(RR_TF, paste0("RR_TF", naming_scheme))
 
 }
@@ -474,8 +474,8 @@ true_false plot - only true:
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -528,17 +528,16 @@ true_false_rework <- function(files){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("E:/data/dataPlotting")
+  setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
   
   #write csv:
-  write_csv(df_final, paste0("TF_rework_only_true", 
+  write_csv(df_final, paste0("TF_only_true", 
                              naming_scheme))
 }
 
-
-
 #calling the function
 true_false_rework(files)
+
 ```
 
 true_false with false 
@@ -551,9 +550,8 @@ NOTE: Implementing a paste0 approach. Splits up the different networks and write
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
-#files <- list.files(path = path, pattern="^PT.*.csv") #USING REGEX TO INDICATE THE SUBSET
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 
 #initializing empty list 
 datalist <- list()
@@ -617,7 +615,7 @@ true_false_CON <- function(files, identifier){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("E:/data/dataPlotting")
+  setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
   
   #write csv:
   write_csv(df_final, paste0(identifier, "_true_false_CON",
@@ -626,13 +624,13 @@ true_false_CON <- function(files, identifier){
 }
 
 #WHAT NETWORKS ARE YOU SUBSETTING:
-subset_variables <- c("Lattice", "Small", "PT", "TOM") #or TOM
+subset_variables <- c("Lattice", "Small", "PT", "TOM")
 
 for (i in subset_variables){
   
   #update working directory 
-  setwd("E:/data/data_prepped_27-11")
-  path = "E:/data/data_prepped_27-11"
+  setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+  path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
   
   files <- list.files(path = path, pattern=paste0("^", i, ".*.csv"))
   
@@ -653,8 +651,8 @@ Data prep for "Stickiness":
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -705,7 +703,8 @@ stickiness_rework <- function(files){
             lose_global = agent_away + switch_away,
             all_global = agent_total + switch_total,
             stickiness_overall = 1 - (lose_global / all_global)) %>%
-      select(-c(lose_global, all_global))
+      select(-c(lose_global, all_global, agent_away, agent_total,
+                switch_away, switch_total))
     
     datalist[i] <- list(df)
   }
@@ -713,7 +712,7 @@ stickiness_rework <- function(files){
   df_final <- do.call("rbind", datalist)
   
   #directory for the files: 
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
   
   #write csv:
   write_csv(df_final, paste0("stickiness",
@@ -725,7 +724,7 @@ stickiness_rework <- function(files){
 stickiness_rework(files)
 ```
 
-Data prep for TAT_TAT50_rework.Rmd 
+Data prep for TAT & TAT50 
 
 ```{r}
 
@@ -733,12 +732,13 @@ Data prep for TAT_TAT50_rework.Rmd
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
 datalist1 <- list()
+datalist2 <- list()
 
 TAT50 <- function(files){
   
@@ -768,22 +768,28 @@ TAT50 <- function(files){
     
     #TAT PER REPLICA
     TAT <- df %>%  
+      group_by(replica, network, population, true_model,
+               sigma, net_size, colab_cond) %>%
+      summarise(TAT = mean(prop_true))
+    
+    TAT50 <- df %>%
       mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-      group_by(replica, network, population, true_model, 
-               sigma, net_size, colab_cond) %>% 
-      summarise(TAT = mean(prop_true),
-                TAT50 = mean(TAT_50)) 
+      group_by(replica, network, population, true_model) %>%
+      summarise(TAT50 = mean(TAT_50)) 
     
     datalist1[i] <- list(TAT)
+    datalist2[i] <- list(TAT50)
   }
     
   TAT <- do.call("rbind", datalist1)
+  TAT50 <- do.call("rbind", datalist2)
   
   #directory for the files: 
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
   
   #write csv:
-  write_csv(TAT, paste0("TAT_TAT50", naming_scheme))
+  write_csv(TAT, paste0("TAT", naming_scheme))
+  write_csv(TAT50, paste0("TAT50", naming_scheme))
 
 }
 
@@ -800,13 +806,9 @@ Data prep for TAT_C_rework.Rmd
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern="*.csv")
-
-library(tidyverse)
-
-test <- read_csv("Lattice_All_0.2_BIC_413_hard_20_2_COLAB.csv")
 
 #initializing empty list 
 datalist1 <- list()
@@ -889,7 +891,7 @@ TATC <- function(files){
   TAT_C <- do.call("rbind", datalist1)
   
   #directory for the files: 
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
   
   #write csv:
   write_csv(TAT_C, paste0("TATC", naming_scheme))
@@ -910,8 +912,8 @@ library(tidyverse)
 naming_scheme <- "_MetascienceBA.csv"
 
 #working directory. 
-setwd("E:/data/data_prepped_27-11")
-path = "E:/data/data_prepped_27-11"
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern="*.csv")
 
 #initializing empty list 
@@ -958,7 +960,9 @@ FPTT <- function(files){
             orig_agents = orig_agents[first_row],
             switch_testing = switch_testing[first_row],
             extra_agents = orig_agents - 1,
-            FPTT = first_study - ((extra_agents / 2) + switch_testing))
+            FPTT = first_study - ((extra_agents / 2) + switch_testing)) %>%
+      select(-c(first_row, first_study, orig_agents, 
+                switch_testing, extra_agents))
     
     datalist1[i] <- list(df)
   }
@@ -966,7 +970,7 @@ FPTT <- function(files){
   FPTT <- do.call("rbind", datalist1)
   
   #directory for the files: 
-  setwd("E:/data/dataOutcomeMeasures")
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
   
   #write csv:
   write_csv(FPTT, paste0("FPTT", naming_scheme))

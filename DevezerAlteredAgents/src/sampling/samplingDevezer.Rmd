@@ -1,0 +1,112 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "December 10, 2019"
+output: html_document
+---
+
+Updated 10-12-2019. 
+We use this document. 
+
+packages & stuff
+
+```{r setup, include=FALSE}
+
+library(pacman)
+p_load(tidyverse, kableExtra)
+
+```
+
+data load
+
+```{r}
+
+#set to where-ever the data is: 
+setwd("D:/data/dataSampling")
+
+#read data: 
+total_errors <- read_csv("df_total_errors_Devezer_original.csv")
+qualitative_errors <- read_csv("df_qualitative_errors_Devezer_original.csv")
+sampling <- read_csv("df_sampling_Devezer_original.csv")
+
+```
+
+Looking at total errors.
+
+```{r}
+
+#factorizing & getting the summary 
+total_errors <- total_errors %>%
+  group_by(orig_type) %>%
+  summarize(count = sum(count),
+            total = sum(total),
+            percent = (sum(count)/sum(total)) * 100,
+            percent = round(percent,2)) %>%
+  filter(orig_type != "Rey") %>%
+  rename(Population = orig_type,
+         Percentage = percent) %>%
+  select(Population, Percentage) 
+
+#kable for output
+total_errors %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped",
+                                     
+                                      full_width = F,
+                                      align = "left")) %>%
+  add_header_above(c("Percentage of sampling same model for Populations" = 2))  
+
+```
+
+Looking at qualitative errors
+
+```{r}
+
+#factorizing & getting the summary 
+qualitative_errors <- qualitative_errors %>%
+  mutate(orig_type = factor(orig_type)) %>%
+  group_by(orig_type, old_model) %>%
+  summarize(count = sum(count),
+            total = sum(total),
+            percent = (sum(count)/sum(total)) * 100,
+            percent = round(percent, 2)) %>%
+  filter(orig_type == "Tess" | orig_type == "Bo") %>%
+  rename(Population = orig_type,
+         Percentage = percent,
+         GlobalModel = old_model) %>%
+  select(Population, GlobalModel, Percentage)
+
+#kable for output
+qualitative_errors %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped",
+                                      full_width = F,
+                                      align = "left")) %>%
+  add_header_above(c("Global models from which Bo & Tess resample the same model" = 3)) 
+
+```
+
+looking at sampling (Tess).
+It is consistent in the sense that there is always 25% 
+chance of sampling the same 25% of sampling another model &
+the rest 50% of sampling a third model. 
+
+```{r}
+
+sampling <- sampling %>%
+  filter(old_model == 6 | old_model == 7) %>%
+  mutate(orig_type = factor(orig_type)) %>%
+  group_by(orig_type, old_model, selected_model) %>%
+  summarize(count = sum(count))
+
+#kable for output
+sampling %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped",
+                                      full_width = F,
+                                      align = "left")) %>%
+  add_header_above(c("Tess sampling strategy" = 4)) 
+
+
+```
+

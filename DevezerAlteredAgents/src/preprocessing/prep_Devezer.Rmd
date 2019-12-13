@@ -103,6 +103,8 @@ Sampling:
 
 ```{r}
 
+
+
 #Naming scheme:
 naming_scheme <- "_Devezer_original.csv"
 
@@ -114,14 +116,14 @@ files <- list.files(path = path, pattern = "*.csv")
 #initializing empty list 
 datalist1 <- list()
 datalist2 <- list()
+datalist3 <- list()
 
 samplingFX <- function(files){
   
   #selecting cols (check )
-    mycols <- c("replica", 
-            "orig_type", #needed directly
-            "old_model", #needed directly
-            "selected_model") #needed directly 
+    mycols <- c("orig_type", 
+                "old_model", 
+                "selected_model") 
   
   for(i in files){
 
@@ -130,32 +132,45 @@ samplingFX <- function(files){
     
     #as factor
     df <- df %>%
-    mutate(orig_type = factor(orig_type),
-          old_model = factor(old_model),
-          selected_model = factor(selected_model))
+      mutate(orig_type = factor(orig_type),
+             old_model = factor(old_model),
+             selected_model = factor(selected_model))
     
-    #any sampling of own models? 
-    df_errors <- df %>%
+    #we want this (how many errors)
+    df_total_errors <- df %>%
+        group_by(orig_type) %>%
+        summarize(count = sum(old_model == selected_model),
+                  total = n())
+    
+    #where are the errors (which old models)
+    df_qualitative_errors <- df %>%
         group_by(orig_type, old_model) %>%
-        summarize(count = sum(old_model == selected_model))
+        summarize(count = sum(old_model == selected_model),
+                  total = n()) %>%
+    filter(count > 0)
     
-    #sampling distributions 
+    #Tess is weird 
     df_sampling <- df %>%
+      filter(orig_type == "Tess") %>%
         group_by(orig_type, old_model, selected_model) %>%
         summarize(count = n())
     
-    datalist1[i] <- list(df_errors)
-    datalist2[i] <- list(df_sampling)
+    datalist1[i] <- list(df_total_errors)
+    datalist2[i] <- list(df_qualitative_errors)
+    datalist3[i] <- list(df_sampling)
   }
     
-  df_errors <- do.call("rbind", datalist1)
-  df_sampling <- do.call("rbind", datalist2)
+  df_total_errors <- do.call("rbind", datalist1)
+  df_qualitative_errors <- do.call("rbind", datalist2)
+  df_sampling <- do.call("rbind", datalist3)
   
   #directory for the files: 
   setwd("D:/data/dataSampling")
   
   #write csv:
-  write_csv(df_errors, paste0("df_errors", naming_scheme))
+  write_csv(df_total_errors, paste0("df_total_errors", naming_scheme))
+  write_csv(df_qualitative_errors, paste0("df_qualitative_errors",
+                                          naming_scheme))
   write_csv(df_sampling, paste0("df_sampling", naming_scheme))
 
 }

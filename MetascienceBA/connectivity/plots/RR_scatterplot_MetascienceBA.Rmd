@@ -1,0 +1,295 @@
+---
+title: "TAT_rep"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+set-up
+
+```{r}
+#set working directory
+setwd("E:/data/dataPlotting")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained, cowplot, ggcorrplot) 
+```
+
+loading data. 
+
+```{r}
+
+#Reading outcome measures: 
+setwd("~/CRUST-1/MetascienceBA/data/outcome_measures")
+path <- "~/CRUST-1/MetascienceBA/data/outcome_measures"
+
+temp <- list.files(path = path, pattern="*.csv") #if possible. 
+temp <- temp[c(1, 2, 4, 5)]
+
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+```
+
+pruning the dataframes for unnecessary information: 
+
+```{r}
+
+#FPTT
+FPTT_MetascienceBA <- FPTT_MetascienceBA %>%
+  select(-c(first_row, first_study, orig_agents, switch_testing,
+            extra_agents)) 
+
+#Stickiness
+stickiness_MetascienceBA <- stickiness_MetascienceBA %>%
+  rename(Stickiness = stickiness_overall) %>%
+  select(-c(agent_away, agent_total, switch_away, switch_total,
+            stickiness_agent, stickiness_switch))
+
+```
+
+
+
+Preparing the main dataframes
+
+```{r}
+
+MyMerge <- function(x, y){
+  df <- merge(x, y, by = c("replica", "network", "population", "true_model",
+                           "net_size", "sigma", "colab_cond"))
+  return(df)
+}
+
+df <- Reduce(MyMerge, list(FPTT_MetascienceBA, 
+                           RR_MetascienceBA,
+                           stickiness_MetascienceBA,
+                           TAT_TAT50_MetascienceBA))
+
+```
+
+Preparing for the contrast
+
+```{r}
+
+df <- df %>%
+  filter(!((network == "PT" | network == "TOM") & 
+             colab_cond == "NOLAB")) %>%
+  mutate(condition = ifelse((network == "Lattice" |
+                            network == "Small") &
+                            colab_cond == "NOLAB", 
+                            "baselines_nolab",
+                            ifelse((network == "Lattice" |
+                                   network == "Small") &
+                                   colab_cond == "COLAB", 
+                                   "baselines_colab",
+                                   "citation_colab")),
+         condition = factor(condition))
+
+
+```
+
+Start plotting. 
+
+```{r}
+RR_FUN <- function(.df, .measure){
+  
+  measure <- enquo(.measure)
+
+g <- .df %>%
+  ggplot(aes(x = RR, 
+             y = UQ(measure), 
+             color = condition)) +
+  geom_point(alpha = 0.4) +
+stat_smooth(method="lm",fullrange=T, size = 1.2) + 
+  ylim(0,1)+
+guides(alpha = F)+
+  labs(title = "RR & TAT for original agents compared to modified agents ", 
+       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  theme_janco_point()
+
+#call the plot
+g
+
+}
+```
+
+There is really nothing here.
+
+```{r}
+
+RR_FUN(df, TAT)
+RR_FUN(df, Stickiness)
+
+```
+
+checking populations
+
+```{r}
+RR_FUN_POP <- function(.df, .measure){
+  
+  measure <- enquo(.measure)
+
+g <- .df %>%
+  ggplot(aes(x = RR, 
+             y = UQ(measure), 
+             color = condition)) +
+  geom_point(alpha = 0.4) +
+stat_smooth(method="lm",fullrange=T, size = 1.2) + 
+  ylim(0,1)+
+guides(alpha = F)+
+  labs(title = "RR & TAT for original agents compared to modified agents ", 
+       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  theme_janco_point()+
+  facet_wrap(~population)
+
+#call the plot
+g
+
+}
+
+RR_FUN_POP(df, TAT)
+RR_FUN_POP(df, Stickiness)
+
+```
+
+
+checking FPTT
+
+```{r}
+
+df_FPTT <- df %>%
+  filter(FPTT != Inf)
+
+df_FPPT1 <- na.omit(df)
+
+RR_FPPT <- function(.df, .measure){
+  
+  measure <- enquo(.measure)
+
+g <- .df %>%
+  ggplot(aes(x = RR, 
+             y = UQ(measure), 
+             color = condition)) +
+  geom_point(alpha = 0.4) +
+stat_smooth(method="lm",fullrange=T, size = 1.2) + 
+  ylim(0,10000)+
+guides(alpha = F)+
+  labs(title = "RR & FPTT for original agents compared to modified agents ", 
+       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  theme_janco_point()
+
+#call the plot
+g
+
+}
+
+RR_FPPT(df_FPTT, FPTT)
+
+```
+
+checking populations
+
+```{r}
+
+RR_FPPT_POP <- function(.df, .measure){
+  
+  measure <- enquo(.measure)
+
+g <- .df %>%
+  ggplot(aes(x = RR, 
+             y = UQ(measure), 
+             color = condition)) +
+  geom_point(alpha = 0.4) +
+stat_smooth(method="lm",fullrange=T, size = 1.2) + 
+  ylim(0,10000)+
+guides(alpha = F)+
+  labs(title = "RR & FPTT for original agents compared to modified agents ", 
+       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  theme_janco_point()+
+  facet_wrap(~population)
+
+#call the plot
+g
+
+}
+
+RR_FPPT_POP(df_FPTT, FPTT)
+
+```
+
+Corr plot:
+
+```{r}
+
+#overall columns for correlation
+cor <- df_FPTT %>%
+  select(RR, TAT, TAT50, Stickiness, FPTT, condition)
+
+
+#function to split conditions 
+corfun <- function(.df, .var){
+  var <- enquo(.var)
+
+  df <- .df %>%
+  filter(condition == UQ(var))
+  
+  return(df)
+}
+
+baselines_nolab <- corfun(cor, "baselines_nolab")
+baselines_colab <- corfun(cor, "baselines_colab")
+citation_colab <- corfun(cor, "citation_colab")
+
+#function to select usefull columns: 
+selector <- function(df){
+  df <- df %>%
+    select(RR, TAT, TAT50, Stickiness, FPTT)
+  
+  return(df)
+}
+
+cor_baselines_nolab <- selector(baselines_nolab)
+cor_baselines_colab <- selector(baselines_colab)
+cor_citation_colab <- selector(citation_colab)
+
+#rounding stuff with a function
+roundtor <- function(df){
+  data <- round(cor(df, method = "spearman"),2)
+  return(data)
+}
+
+corr_baselines_nolab <- roundtor(cor_baselines_nolab)
+corr_baselines_colab <- roundtor(cor_baselines_colab)
+corr_citation_colab <- roundtor(cor_citation_colab)
+
+#plots 
+cor_baselines_nolab <- ggcorrplot(corr_baselines_nolab, 
+                                  hc.order = F, 
+                                  type = "lower",
+                                  lab = TRUE, 
+                                  outline.color = "white",
+                                  ggtheme = theme_minimal(), 
+                                  title = "Baselines No Collaboration")
+
+cor_baselines_colab <- ggcorrplot(corr_baselines_colab, 
+                                  hc.order = F, 
+                                  type = "lower",
+                                  lab = TRUE, 
+                                  outline.color = "white",
+                                  ggtheme = theme_minimal(), 
+                                  title = "Baselines with Collaboration")
+
+cor_citation_colab <- ggcorrplot(corr_citation_colab, 
+                                  hc.order = F, 
+                                  type = "lower",
+                                  lab = TRUE, 
+                                  outline.color = "white",
+                                  ggtheme = theme_minimal(), 
+                                  title = "Citation with Collaboration")
+
+plot_grid(cor_baselines_nolab, 
+          cor_baselines_colab,
+          cor_citation_colab)
+```
+
