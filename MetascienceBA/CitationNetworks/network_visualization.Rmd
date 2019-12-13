@@ -85,3 +85,28 @@ citation_networks
 
 ```
 
+colabs
+
+```{r}
+
+V(small)$original_agent <- ifelse(V(small) == 5, "Original Agent", "Other agents")
+
+matrix_g <- as_adjacency_matrix(small, sparse = F)
+
+colabs <- which(matrix_g[5,] == 1)
+
+V(small)$colab <- ifelse(V(small) %in% c(1, 2, 3, 4, 6, 7, 8, 9, 10, 28), "Colab agent", "Other agent")
+
+V(small)$colab
+
+ggraph(small, "circle")+
+  geom_node_point(aes(size = degree(small), alpha = original_agent, color = colab))+
+  geom_edge_diagonal(alpha = 0.4)+
+  labs(title = "Small-world",
+       caption = "Simplified small-world with K = 4 and rewiring-probability = 0.05. \n This network has only 50 vertices. The lattices used in the simulation has either 413 or 484 vertices.",
+       size = "Degree",
+       alpha = "Degree") + 
+  theme_graph()
+
+```
+

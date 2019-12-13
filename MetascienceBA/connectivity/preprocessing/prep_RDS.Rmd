@@ -139,6 +139,8 @@ df_all <- centrality(temp)
 ##CONSIDER WRTING THE CSV
 ```
 
+looking at the differences
+
 ```{r}
 
 df_413 <- df_all %>%
@@ -165,5 +167,59 @@ df_484_sum <- df_484 %>%
 
 df_total <- rbind(df_484_sum, df_413_sum)
 
+```
+
+checking populations
+
+```{r}
+setwd("D:/data/rds")
+
+replica <- 1:50
+
+temp = list.files(pattern="*.rds")
+
+POP_CHECK <- function(temp){
+  
+  datalist1 <- list()
+  datalist2 <- list()
+
+for(i in (1:length(temp))){
+#all in one
+  
+  test <- readRDS(temp[i])
+  
+  for(j in (1:length(replica))){
+
+g <- graph_from_adjacency_matrix(test[[j]][[8]], diag = F, mode = "undirected")
+
+V(g)$type <- gsub("\\..*","",V(g)$name)
+
+df <- as.data.frame(table(V(g)$type))
+
+df$population <- test[[j]][[6]]
+
+datalist1[j] <- list(df)
+  }
+  
+  datalist2[i] <- list(datalist1)
+  
+}
+  
+  df_sum <- do.call("rbind", datalist2)
+  
+  df_final <- do.call("rbind", df_sum)
+  
+  setwd("D:/data/rds")
+  
+  #write_csv(df_final, "network_attributes.csv")
+  
+  return(df_final)
+}
+
+df_all <- POP_CHECK(temp)
+
+df_test <- df_all %>%
+  group_by(population, Var1) %>%
+  summarize(Mean = mean(Freq))
 ```
 
