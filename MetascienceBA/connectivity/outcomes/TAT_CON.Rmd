@@ -25,7 +25,7 @@ Loading & Early prep
 ```{r}
 
 #reading stuff 
-TAT <- read_csv("TAT_TAT50_MetascienceBA.csv")
+TAT <- read_csv("TAT_MetascienceBA.csv")
 
 #as factor
 factorize <- function(dataframe){
@@ -35,8 +35,7 @@ factorize <- function(dataframe){
          sigma = factor(sigma),
          colab_cond = factor(colab_cond),
          net_size = factor(net_size),
-         true_model = factor(true_model)) %>%
-    dplyr::select(-(TAT50))
+         true_model = factor(true_model)) 
   
   return(df)
 }

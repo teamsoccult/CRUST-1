@@ -28,6 +28,8 @@ loading data & early prep.
 FPTT <- read_csv("FPTT_MetascienceBA.csv")
 
 #as factor, no NA/Inf & selecting relevant columns. 
+FPTT <- na.omit(FPTT)
+
 FPTT <- FPTT %>%
   filter(first_row != Inf) %>%
   mutate(network = factor(network),
@@ -35,12 +37,7 @@ FPTT <- FPTT %>%
         sigma = factor(sigma),
         colab_cond = factor(colab_cond),
         net_size = factor(net_size),
-        true_model = factor(true_model)) %>%
-  dplyr::select(-c(first_row, 
-                   first_study, 
-                   orig_agents,
-                   switch_testing, 
-                   extra_agents))
+        true_model = factor(true_model))
 
 
 ```

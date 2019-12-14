@@ -68,7 +68,7 @@ df <- Reduce(MyMerge, list(FPTT_MetascienceBA,
 
 ```
 
-Preparing for the contrast
+Preparing for the contrast.
 
 ```{r}
 

@@ -774,7 +774,8 @@ TAT50 <- function(files){
     
     TAT50 <- df %>%
       mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
-      group_by(replica, network, population, true_model) %>%
+      group_by(replica, network, population, true_model,
+               sigma, net_size, colab_cond) %>%
       summarise(TAT50 = mean(TAT_50)) 
     
     datalist1[i] <- list(TAT)

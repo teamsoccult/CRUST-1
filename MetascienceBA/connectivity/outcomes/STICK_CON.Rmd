@@ -35,10 +35,7 @@ factorize <- function(dataframe){
          colab_cond = factor(colab_cond),
          net_size = factor(net_size),
          true_model = factor(true_model),
-         stickiness = stickiness_overall) %>%
-    dplyr::select(-c(agent_away, agent_total, switch_away, 
-              switch_total, stickiness_agent, stickiness_switch,
-              stickiness_overall))
+         stickiness = stickiness_overall) 
   
   return(df)
 }
