@@ -31,7 +31,6 @@ FPTT <- read_csv("FPTT_MetascienceBA.csv")
 FPTT <- na.omit(FPTT)
 
 FPTT <- FPTT %>%
-  filter(first_row != Inf) %>%
   mutate(network = factor(network),
         population = factor(population),
         sigma = factor(sigma),
