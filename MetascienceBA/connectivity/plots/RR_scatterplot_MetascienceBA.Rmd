@@ -25,7 +25,7 @@ setwd("~/CRUST-1/MetascienceBA/data/outcome_measures")
 path <- "~/CRUST-1/MetascienceBA/data/outcome_measures"
 
 temp <- list.files(path = path, pattern="*.csv") #if possible. 
-temp <- temp[c(1, 2, 4, 5)]
+temp <- temp[c(1, 2, 4, 5, 6)]
 
 list2env(
   lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
@@ -36,16 +36,10 @@ pruning the dataframes for unnecessary information:
 
 ```{r}
 
-#FPTT
-FPTT_MetascienceBA <- FPTT_MetascienceBA %>%
-  select(-c(first_row, first_study, orig_agents, switch_testing,
-            extra_agents)) 
-
 #Stickiness
 stickiness_MetascienceBA <- stickiness_MetascienceBA %>%
   rename(Stickiness = stickiness_overall) %>%
-  select(-c(agent_away, agent_total, switch_away, switch_total,
-            stickiness_agent, stickiness_switch))
+  select(-c(stickiness_agent, stickiness_switch))
 
 ```
 
@@ -64,7 +58,8 @@ MyMerge <- function(x, y){
 df <- Reduce(MyMerge, list(FPTT_MetascienceBA, 
                            RR_MetascienceBA,
                            stickiness_MetascienceBA,
-                           TAT_TAT50_MetascienceBA))
+                           TAT_MetascienceBA,
+                           TAT50_MetascienceBA))
 
 ```
 
@@ -290,6 +285,7 @@ cor_citation_colab <- ggcorrplot(corr_citation_colab,
 
 plot_grid(cor_baselines_nolab, 
           cor_baselines_colab,
-          cor_citation_colab)
+          cor_citation_colab,
+          nrow = 1)
 ```
 
