@@ -12,8 +12,8 @@ library(pacman)
 
 p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, ggunchained, tidyselect)
 
-setwd("E:/data/dataPlotting")
-df <- read_csv("TF_rework_only_true_MetascienceBA.csv")
+setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
+df <- read_csv("TF_only_true_MetascienceBA.csv")
 
 ```
 

@@ -21,7 +21,7 @@ Preprocessing (should also be adjusted to accommodate better early prep).
 ```{r}
 
 #load data 
-setwd("E:/data/dataPlotting")
+setwd("~/CRUST-1/MetascienceBA/data/dataPlotting")
 violin <- read_csv("violin_extended_MetascienceBA.csv")
 violinstrat <- read_csv("violin_extended_bystrat_MetascienceBA.csv")
 
@@ -92,6 +92,9 @@ source(paste0(scriptDir, "/flatViolin.R"))
 Main effects within conditions (function)
 Just RR. 
 
+This plot is not used in the paper as it is very messy 
+(multiple distributions) & also the populations don't differ much. 
+
 ```{r}
 
 #raincloud plot
@@ -139,8 +142,7 @@ g
 
 ```
 
-Main effects within conditions (running it).
-Just RR & main effects can be changed. 
+Running the function: 
 
 ```{r}
 
@@ -153,7 +155,7 @@ plot_grid(p1, p2, p3)
 
 ```
 
-Prep for next section. 
+Prep for next section (between conditions).
 
 ```{r}
 
@@ -174,6 +176,9 @@ df_subsets <- df %>%
 ```
 
 Effects between conditions. 
+
+Also, this plot is not used in the paper as it is very messy
+(multiple distributions) & no clear differences. 
 
 ```{r}
 
@@ -221,9 +226,13 @@ RR_FUN(df_subsets, condition, population, "overall")
 RR_FUN(df_subsets, condition, sigma, "overall")
 RR_FUN(df_subsets, condition, true_model, "overall")
 
+
 ```
 
 RR by strategies. 
+
+Neighbor sampling & Colab gives higher replication rate 
+than "research" strategy, but we don't use this as of now. 
 
 ```{r}
 #raincloud plot
@@ -262,6 +271,7 @@ g <- .df %>%
 
 #call the plot
 g
+
 
 }
 
@@ -314,8 +324,10 @@ RR_TF_SUB <- RR_TF %>%
 ```
 
 RR by true / false.
-NB: too few cases. 
-Looks terrible. 
+
+We don't use this as of now as it looks TERRIBLE.
+We have way to few cases of "true" replication which
+makes the picture very murky. 
 
 ```{r}
 
@@ -364,9 +376,15 @@ RR_FUN(df_subsets, condition, true_model, "overall")
 ```
 
 
-RR & TAT (prep)
+RR & TAT (prep).
+Again, we don't use this in the paper. 
+It is quite messy without grouping over true models,
+however, it does give a clear picture. 
+We prefer to group by true models as well to
+make it more clear. 
 
 ```{r}
+setwd("~/CRUST-1/MetascienceBA/data/dataPlotting")
 RR <- read_csv("violin_ridges_RR_MetascienceBA.csv")
 
 #prep TF. 
@@ -403,6 +421,7 @@ melt_RR_TAT <- melt(RR_SUB,
                     measure.vars = c("RR", "TAT"), 
                     variable.name = "variable", 
                     value.name = "proportion")
+
 ```
 
 overall RR vs. TAT
@@ -449,7 +468,10 @@ RR_FUN(melt_RR_TAT, condition)
 RR_FUN(melt_RR_TAT, sigma)
 ```
 
-RR vs. TAT (with filter)
+RR vs. TAT (with filter).
+Again, we don't use this even though it is quite cool.
+We prefer to group these three plots into one,
+while not grouping over condition. 
 
 ```{r}
 
@@ -496,6 +518,124 @@ RR_FUN(melt_RR_TAT, condition, 0.5, 7)
 RR_FUN(melt_RR_TAT, condition, 0.5, 13)
 RR_FUN(melt_RR_TAT, condition, 0.5, 2)
 ```
+
+The plot we use. 
+RR & TAT for true models. 
+Hard-set Colab, networks & true model.
+
+PREP
+
+```{r}
+melt_RR_TAT <- melt(RR, 
+                    id.vars = c("replica", "network",
+                                "population", "sigma", "true_model", 
+                                "colab_cond"), 
+                    measure.vars = c("RR", "TAT"), 
+                    variable.name = "variable", 
+                    value.name = "proportion")
+```
+
+
+```{r}
+
+RR_FUN <- function(.df, .var1, .sigma, .net1, .net2, .colab){
+  
+  var1 <- enquo(.var1)
+  sigma <- enquo(.sigma)
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
+  colab <- enquo(.colab)
+  
+g <- .df %>%
+  filter(sigma == UQ(sigma),
+         colab_cond == UQ(colab),
+         network == UQ(net1) | network == UQ(net2)) %>%
+  ggplot(aes(x = UQ(var1), y = proportion, fill = variable)) +
+    geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+    geom_point(aes(y = proportion, color = variable), 
+                    position = position_jitter(width = .15), 
+                    size = .5, alpha = 0.8) +
+    geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+    expand_limits(x = 2) + #not clear that this changes much. 
+    #guides(fill = FALSE) + #legend can be deleted. 
+    guides(color = FALSE) +
+    scale_fill_tableau() +
+    scale_color_tableau() +
+    #coord_flip() +
+    theme_bw() +
+    labs(x = "True models", 
+       y = "RR & TAT", 
+       fill = "Measure", 
+       titles = "RR & TAT for true models",
+       subtitle = paste0("Colab: ", quo_name(colab), " | ",
+                         "Sigma: ", quo_name(sigma), " | ", 
+                        "Networks: ", quo_name(net1), " & ",
+                         quo_name(net2))) + #sets the legend title.
+    raincloud_theme
+  
+  #call the plot
+  g
+
+
+#call the plot
+g
+
+}
+
+colnames(df_subsets)
+RR_FUN(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "Yes")
+
+```
+
+The same with Ridges
+
+```{r}
+
+RR_FUN <- function(.df, .var1, .sigma, .net1, .net2, .colab){
+  
+  var1 <- enquo(.var1)
+  sigma <- enquo(.sigma)
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
+  colab <- enquo(.colab)
+
+  g <- .df %>%
+      filter(sigma == UQ(sigma),
+         colab_cond == UQ(colab),
+         network == UQ(net1) | network == UQ(net2)) %>%
+      ggplot(aes(x = proportion,
+                 y = UQ(var1), 
+                 color = variable,
+                 fill = variable)) +
+      geom_density_ridges(jittered_points = TRUE, scale = 0.8, 
+                          rel_min_height = .01,
+                          point_shape = "|", point_size = 3, size = 0.25, 
+                          position = position_points_jitter(height = 0)) +
+      scale_y_discrete(expand = c(0.01, 0)) +
+      scale_x_continuous(expand = c(0,0), 
+                         name = "Replication rate & time at true model") +
+      scale_fill_manual(values = c("#D55E0050", "#0072B250"), 
+                        labels = c("Replication rate", "Time at true model")) +
+      scale_color_manual(values = c("#D55E00", "#0072B2"), guide = "none") +
+      scale_discrete_manual("point_color", values = c("#D55E00", "#0072B2"), 
+                            guide = "none") +
+      guides(fill = guide_legend("",
+        override.aes = list(
+        fill = c("#D55E00A0", "#0072B2A0"),
+        color = NA, point_color = NA))
+      ) +
+      theme_ridges(center = TRUE) + 
+      theme_janco_point() 
+      
+    g + labs(caption = "Sample size: 100. 'Replication rate' and 'proportion of time at the true model' both on the x-axis. \n Density curves are averaged over sigma-levels, true models and replicas. \n Lines at the bottom represent mean values for individual replicas") +
+      theme(plot.caption = element_text(hjust = 0.5))
+}
+
+RR_FUN(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "Yes")
+```
+
+
+
 
 We don't use the below for now:: 
 ################################

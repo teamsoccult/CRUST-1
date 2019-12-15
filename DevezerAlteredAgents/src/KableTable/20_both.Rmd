@@ -30,10 +30,10 @@ list2env(
 
 ```{r}
 #making rownames
-a <- data.frame(name=c("Time at true model",  
-                      "Stickiness of the true model",
-                      "First passage time to true model",
-                      "Replication rate"), 
+a <- data.frame(name=c("TAT",  
+                      "Stickiness",
+                      "FPTT",
+                      "RR"), 
                 b=1:4,
                 c=1:4,
                 d=1:4)
@@ -76,15 +76,6 @@ OutMed <- rbind(TAT_MED,
 #new rownames 
 rownames(OutMed) <- a$name
 
-#kable - too much space 
-OutMed %>%
-  kable() %>%
-  kable_styling(bootstrap_options = c("striped", 
-                                      "hover", 
-                                      "condensed", 
-                                      "responsive"),
-                full_width = F) %>%
-  add_header_above(c("", "Median" = 5))
 
 ```
 
@@ -160,7 +151,7 @@ MedIQR %>%
                                       #"condensed", 
                                       "responsive")) %>%
   add_header_above(c("", "Median" = 5, " " = 1, "IQR" = 5)) %>%
-  add_header_above(c(" ", "Outcome Values for Populations" = 11)) #%>%
+  add_header_above(c(" ", "Sample size 20, both AIC & BIC" = 11)) #%>%
   #add_indent(c(2, 5)) 
 
 
