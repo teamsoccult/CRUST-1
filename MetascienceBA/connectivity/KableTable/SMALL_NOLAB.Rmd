@@ -150,7 +150,7 @@ MedIQR %>%
                                       #"condensed", 
                                       "responsive")) %>%
   add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
-  add_header_above(c(" ", "Small-world, no collaborations" = 9)) #%>%
+  add_header_above(c("C", "Network ABM (Small-world)" = 9)) #%>%
   #add_indent(c(2, 5)) 
 
 

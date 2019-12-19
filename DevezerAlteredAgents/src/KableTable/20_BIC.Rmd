@@ -152,7 +152,7 @@ MedIQR %>%
                                       #"condensed", 
                                       "responsive")) %>%
   add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
-  add_header_above(c(" ", "Sample size 20, BIC" = 9)) #%>%
+  add_header_above(c("A", "Baseline ABM" = 9)) #%>%
   #add_indent(c(2, 5)) 
 
 
