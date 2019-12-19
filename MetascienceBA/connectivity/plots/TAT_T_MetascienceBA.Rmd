@@ -68,9 +68,9 @@ g <- .df %>%
              linetype = "dotted", 
              size = 1) + 
   labs(x = "Studies", 
-       y = "Proportion", 
-       color = "Proportion of true model for:", 
-       titles = paste0("Time at true model, Colab: ", quo_name(colab)),
+       y = "Proportion at true model (TAT)", 
+       color = "Populations:", 
+       titles = paste0("Time at true model (Colab: ", quo_name(colab), ")"),
        subtitle = paste0("Colab: ", quo_name(colab), " | ",
                          "Sigma: ", quo_name(sigma), " | ", 
                         "True Model: ", quo_name(tmod), " | ",
@@ -106,7 +106,7 @@ plot_grid(p3, p4)
 rm(p3, p4)
 
 #for appendix: (showing no effect)
-p5 <- TAT_FUN(df, 0.2, 7, "No", "Small", "Lattice") #this one sample_frac(0.3)
+p5 <- TAT_FUN(df, 0.2, 7, "No", "Small", "Lattice") 
 p6 <- TAT_FUN(df, 0.2, 7, "Yes", "Small", "Lattice")
 plot_grid(p5, p6)
 

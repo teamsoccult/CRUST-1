@@ -22,7 +22,7 @@ data load
 ```{r}
 
 #set to where-ever the data is: 
-setwd("D:/data/dataSampling")
+setwd("~/CRUST-1/DevezerAlteredAgents/data/dataSampling")
 
 #read data: 
 total_errors <- read_csv("df_total_errors_Devezer_original.csv")

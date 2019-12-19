@@ -220,6 +220,7 @@ setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
 path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
 files <- list.files(path = path, pattern = "*.csv")
 
+
 #initializing empty list 
 datalist1 <- list()
 datalist2 <- list()
@@ -277,6 +278,83 @@ samplingFX <- function(files){
 samplingFX(files)
 
 ```
+
+data preparation for differential usage of 6th step.
+Mapping where the agents spend their time. 
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+## prep: 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern = "*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+sixthFX <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+                "network",
+                "strategy",
+                "colab_cond",
+                "switch_all",
+                "switch_testing",
+                "orig_agents") 
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(strategy = factor(strategy), 
+           network = factor(network),
+           colab_cond = factor(colab_cond))
+    
+    #overall number of switch_all & switch_testing
+    overall <- df %>%
+      group_by(network, colab_cond) %>%
+      summarise(switch_all = sum(switch_all),
+                switch_testing = sum(switch_testing),
+                orig_agents = sum(orig_agents))
+    
+    #number of switch_all & switch_testing for strategy == colab
+    colab <- df %>%
+    filter(strategy == "colab") %>%
+      group_by(network, colab_cond) %>%
+      summarise(switch_all = sum(switch_all),
+                switch_testing = sum(switch_testing),
+                orig_agents = sum(orig_agents))
+    
+    datalist1[i] <- list(overall)
+    datalist2[i] <- list(colab)
+  }
+    
+  overall <- do.call("rbind", datalist1)
+  colab <- do.call("rbind", datalist2)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataSampling")
+  
+  #write csv:
+  write_csv(overall, paste0("sixth_overall", naming_scheme))
+  write_csv(colab, paste0("sixth_Colab", naming_scheme))
+
+}
+
+#calling the function
+sixthFX(files)
+
+```
+
+
 
 data preparation for "violin_extended_rework" (plot) & RR_CON (outcome)
 Consider including the column with final_global_true_model 

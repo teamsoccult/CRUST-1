@@ -144,17 +144,17 @@ MedIQR <- MedIQR %>%
          Rey = "Rey.1")
 
 #kable - median & IQR
-MedIQR %>%
+Devezer <- MedIQR %>%
   kable() %>%
   kable_styling(bootstrap_options = c("striped", 
                                       #"hover", 
                                       #"condensed", 
                                       "responsive")) %>%
   add_header_above(c("", "Median" = 5, " " = 1, "IQR" = 5)) %>%
-  add_header_above(c(" ", "Devezer" = 11)) #%>%
+  add_header_above(c("A", "Devezer ABM" = 11)) #%>%
   #add_indent(c(2, 5)) 
 
-
+Devezer
 ```
 
 Export the image :) 

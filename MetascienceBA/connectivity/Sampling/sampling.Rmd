@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 
 #working directory 
-setwd("E:/data/dataSampling")
+setwd("~/CRUST-1/MetascienceBA/data/dataSampling")
 
 #errors
 errors <- read_csv("df_errors_MetascienceBA.csv")
