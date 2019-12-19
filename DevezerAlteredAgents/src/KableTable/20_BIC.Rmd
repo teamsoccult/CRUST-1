@@ -137,11 +137,12 @@ MedIQR <- add_column(MedIQR, " " = "", .after = 5)
 
 #now we have to rename columns 
 MedIQR <- MedIQR %>%
+  select(-c(Rey, Rey.1)) %>%
   rename(All = "All.1",
          Bo = "Bo.1",
          Mave = "Mave.1",
-         Tess = "Tess.1",
-         Rey = "Rey.1")
+         Tess = "Tess.1") 
+
 
 #kable - median & IQR
 MedIQR %>%
@@ -150,8 +151,8 @@ MedIQR %>%
                                       #"hover", 
                                       #"condensed", 
                                       "responsive")) %>%
-  add_header_above(c("", "Median" = 5, " " = 1, "IQR" = 5)) %>%
-  add_header_above(c(" ", "Sample size 20, BIC" = 11)) #%>%
+  add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
+  add_header_above(c(" ", "Sample size 20, BIC" = 9)) #%>%
   #add_indent(c(2, 5)) 
 
 
