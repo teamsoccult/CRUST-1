@@ -71,21 +71,22 @@ Preparing for the contrast
 ```{r}
 df_fixed <- df_fixed %>%
   filter(base_SS == 100) %>%
-  mutate(condition = factor("Modified"))
+  mutate(condition = factor("Altered ABM"))
 
 df_original <- df_original %>%
-  mutate(condition = factor("Original"))
+  mutate(condition = factor("Devezer's ABM"))
 
 df <- rbind(df_fixed, df_original)
 
 df <- df %>%
-  mutate(condition = relevel(condition, ref = "Original"),
+  mutate(condition = relevel(condition, ref = "Altered ABM"),
          population = relevel(population, ref = "Bo"),
          true_model = factor(true_model)) %>%
   select(-c(agent_away, agent_total, TAT.y)) %>%
   rename(TAT = "TAT.x",
          FPTT = "first_row",
          Stickiness = "stickiness_overall")
+
 ```
 
 Start plotting. 
@@ -102,9 +103,9 @@ g <- .df %>%
   geom_point(alpha = 0.4) +
 stat_smooth(method="lm",fullrange=T, size = 1.2) + 
   ylim(0,1)+
+  labs(x = "Time at the True Model (TAT)",
+       y = "Replication Rate (RR)")+
 guides(alpha = F)+
-  labs(title = "RR & TAT for original agents compared to modified agents ", 
-       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
   theme_janco_point()
 
 #call the plot
@@ -115,6 +116,7 @@ g
 
 ```{r}
 RR_FUN(df, TAT)
+scatter_plot <- RR_FUN(df, TAT)
 RR_FUN(df, Stickiness)
 ```
 
@@ -133,8 +135,8 @@ g <- .df %>%
 stat_smooth(method="lm",fullrange=T, size = 1.2) + 
   ylim(0,1)+
 guides(alpha = F)+
-  labs(title = "RR & TAT for original agents compared to modified agents ", 
-       subtitle = "Replication rate on the x-axis. Time at True model on the y-axis.")+
+  labs(x = "Time at the true model (TAT)",
+       y = "Replication Rate (RR)")
   theme_janco_point()+
   facet_wrap(~population)
 
@@ -217,10 +219,10 @@ cor <- df_FPTT %>%
   select(RR, TAT, Stickiness, FPTT, condition)
 
 cor_original <- cor %>%
-  filter(condition == "Original")
+  filter(condition == "Devezer's ABM")
 
 cor_modified <- cor %>%
-  filter(condition == "Modified")
+  filter(condition == "Altered ABM")
 
 cor_original <- cor_original %>%
   select(RR, TAT, Stickiness, FPTT)
@@ -233,14 +235,18 @@ corr_modified <- round(cor(cor_modified, method = "spearman"), 2)
 
 cor_original <- ggcorrplot(corr_original, hc.order = F, type = "lower",
    lab = TRUE, outline.color = "white",
-   ggtheme = theme_minimal(), 
-   title = "Original agents")
+   ggtheme = theme_minimal())
 
 cor_modified <- ggcorrplot(corr_modified, hc.order = F, type = "lower",
    lab = TRUE, outline.color = "white",
-   ggtheme = theme_minimal(), 
-   title = "Modified agents")
+   ggtheme = theme_minimal())
 
-plot_grid(cor_original, cor_modified)
+cor_plots <- plot_grid(cor_original, cor_modified, labels = c("B", "C"), label_size = 20)
+
+plot_grid(scatter_plot, cor_plots, 
+          labels = c("A", ""),
+          label_size = 20,
+          nrow = 2,
+          rel_heights = c(1.5, 1,1))
 ```
 
