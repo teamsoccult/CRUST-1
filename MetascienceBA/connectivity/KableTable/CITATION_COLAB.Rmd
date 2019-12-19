@@ -152,7 +152,7 @@ MedIQR %>%
                                       #"condensed", 
                                       "responsive")) %>%
   add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
-  add_header_above(c(" ", "Citation Networks, with collaborations" = 9)) #%>%
+  add_header_above(c(" ", "Citation ABM" = 9)) #%>%
   #add_indent(c(2, 5)) 
 
 ```

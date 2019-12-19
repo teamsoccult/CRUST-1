@@ -133,6 +133,10 @@ Kable
 
 #creating the relevant groups 
 MedIQR <- cbind(OutMed, OutIQR)
+
+MedIQR <- MedIQR %>%
+  mutate(All.1 = round(All.1,2))
+
 MedIQR <- add_column(MedIQR, " " = "", .after = 4)
 
 #now we have to rename columns 
@@ -150,7 +154,7 @@ MedIQR %>%
                                       #"condensed", 
                                       "responsive")) %>%
   add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
-  add_header_above(c(" ", "Lattice, with collaborations" = 9)) #%>%
+  add_header_above(c("A", "Collaboration ABM (Lattice)" = 9)) #%>%
   #add_indent(c(2, 5)) 
 
 
