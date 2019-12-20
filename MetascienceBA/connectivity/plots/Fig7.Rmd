@@ -81,62 +81,7 @@ melt_RR_TAT <- melt(RR,
                     value.name = "proportion")
 ```
 
-Raincloud
-
-
-```{r}
-
-RR_FUN <- function(.df, .var1, .sigma, .net1, .net2, .colab){
-  
-  var1 <- enquo(.var1)
-  sigma <- enquo(.sigma)
-  net1 <- enquo(.net1)
-  net2 <- enquo(.net2)
-  colab <- enquo(.colab)
-  
-g <- .df %>%
-  filter(sigma == UQ(sigma),
-         colab_cond == UQ(colab),
-         network == UQ(net1) | network == UQ(net2)) %>%
-  ggplot(aes(x = UQ(var1), y = proportion, fill = variable)) +
-    geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
-    geom_point(aes(y = proportion, color = variable), 
-                    position = position_jitter(width = .15), 
-                    size = .5, alpha = 0.8) +
-    geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
-    expand_limits(x = 2) + #not clear that this changes much. 
-    #guides(fill = FALSE) + #legend can be deleted. 
-    guides(color = FALSE) +
-    scale_fill_tableau() +
-    scale_color_tableau() +
-    #coord_flip() +
-    theme_bw() +
-    labs(x = "True models", 
-       y = "RR & TAT", 
-       fill = "Measure", 
-       titles = "RR & TAT for true models",
-       subtitle = paste0("Colab: ", quo_name(colab), " | ",
-                         "Sigma: ", quo_name(sigma), " | ", 
-                        "Networks: ", quo_name(net1), " & ",
-                         quo_name(net2))) + #sets the legend title.
-    raincloud_theme
-  
-  #call the plot
-  g
-
-
-#call the plot
-g
-
-}
-
-colnames(melt_RR_TAT)
-RR_FUN(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "Yes")
-
-```
-
-Ridges
-
+Ridges plot: 
 
 ```{r}
 
@@ -162,9 +107,10 @@ RR_FUN2 <- function(.df, .var1, .sigma, .net1, .net2, .colab){
                           position = position_points_jitter(height = 0)) +
       scale_y_discrete(expand = c(0.01, 0)) +
       scale_x_continuous(expand = c(0,0), 
-                         name = "Replication Rate & Time at the True Model") +
+                         name = "Replication Rate (RR) & Time at the True Model (TAT)") +
       scale_fill_manual(values = c("#D55E0050", "#0072B250"), 
-                        labels = c("Replication rate", "Time at true model")) +
+                        labels = c("Replication rate (RR)", 
+                                   "Time at true model (TAT)")) +
       scale_color_manual(values = c("#D55E00", "#0072B2"), guide = "none") +
       scale_discrete_manual("point_color", values = c("#D55E00", "#0072B2"), 
                             guide = "none") +
@@ -175,23 +121,41 @@ RR_FUN2 <- function(.df, .var1, .sigma, .net1, .net2, .colab){
       ) +
       theme_ridges(center = TRUE) + 
       theme_janco_point() +
-      theme(plot.caption = element_text(hjust = 0.5)) 
-  g +  labs(x = "RR & TAT", 
-       y = "True models", 
-       fill = "Measure", 
-       titles = "RR & TAT for true models",
-       subtitle = paste0("Colab: ", quo_name(colab), " | ",
-                         "Sigma: ", quo_name(sigma), " | ", 
-                        "Networks: ", quo_name(net1), " & ",
-                         quo_name(net2)))
+      theme(axis.text=element_text(size=15),
+            axis.title=element_text(size=17),
+            legend.title = element_text(size = 15),
+        legend.text = element_text(size = 15)) 
+  
+g + labs(x = "RR & TAT",
+         y = "True models", 
+         fill = "Measure")
 }
 
-RR_FUN2(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "Yes")
-RR_FUN2(melt_RR_TAT, true_model, 0.5, "TOM", "PT", "Yes")
-RR_FUN2(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "No") #not exported.
-
+fig7_C <- RR_FUN2(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "Yes")
+fig7_C
 ```
 
+The correlation plot is loaded from the RR_scatterplot_MetascienceBA.Rmd doc
+
+```{r}
+Fig7_C <- fig7_C
+Fig7_B <- Fig7_B #from TAT_T_MetascienceBA
+Fig7_A <- Fig7_A #from RR_scatterplot_MetascienceBA
+
+#combining the two figures: 
+figure7_toprow <- plot_grid(Fig7_A, Fig7_C, labels = "AUTO", label_size = 30)
+
+
+
+figure7 <- plot_grid(figure7_toprow, Fig7_B, 
+                   labels = c("","C"), 
+                   label_size = 30,
+                   nrow = 2)
+
+figure7
+
+
+```
 
 
 
