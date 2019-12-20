@@ -33,6 +33,7 @@ df <- df %>%
                              NOLAB = "No",
                              COLAB = "Yes")) #should only be done when testing stuff. 
 
+
 ```
 
 For all populations.
@@ -112,7 +113,65 @@ plot_grid(p5, p6)
 
 rm(p5, p6)
 
+#for fig 7
+p7 <- TAT_FUN(df, 0.2, 7, "No", "Small", "Lattice")
+p7
 ```
+
+prep for figure 7
+
+```{r}
+
+
+df2 <- df %>%
+  mutate(condition = ifelse(sigma == 0.2, "low",
+                            ifelse(sigma == "0.5", "medium", "high")), 
+         condition = factor(condition))
+
+
+TAT_FUN <- function(.df, .tmod, .colab, .net1, .net2){
+  
+  tmod <- enquo(.tmod)
+  colab <- enquo(.colab)
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
+
+g <- .df %>%
+  filter(true_model == UQ(tmod),
+         colab_cond == UQ(colab), 
+         network == UQ(net1) | network == UQ(net2)) %>%
+  sample_frac(0.1) %>%
+  ggplot(aes(x = studies, 
+             y = value, 
+             color = sigma)) +
+  geom_point(alpha = 0.05) +
+  geom_smooth(method = "loess", 
+              se = T, 
+              alpha = 0.5, 
+              size = 1.2) +
+  geom_hline(aes(yintercept = 0.5), 
+             color = "red", 
+             linetype = "dotted", 
+             size = 1) + 
+  labs(x = "Studies", 
+       y = "Time at the True Model (TAT)", 
+       color = "Sigma: ") +
+  ylim(0,1) +
+  theme_janco_point() +
+  theme(axis.text=element_text(size=15),
+        axis.title=element_text(size=17),
+        legend.title = element_text(size = 15),
+        legend.text = element_text(size = 15)) 
+
+#call the plot
+g
+
+}
+
+Fig7_B <- TAT_FUN(df2, 7, "No", "Small", "Lattice")
+
+```
+
 
 
 WE DON't USE THE REST FOR NOW (BELOW CODE): 
@@ -162,11 +221,6 @@ TAT_FUN(baselines_colab, 0.5)
 
 plot_grid(p1, p2)
 ```
-
-
-
-
-
 
 
 

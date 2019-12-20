@@ -48,14 +48,15 @@ total_errors <- total_errors %>%
   select(Population, Percentage) 
 
 #kable for output
-total_errors %>%
+app_A <- total_errors %>%
   kable() %>%
   kable_styling(bootstrap_options = c("striped",
                                      
                                       full_width = F,
                                       align = "left")) %>%
-  add_header_above(c("Percentage of sampling same model for Populations" = 2))  
+  add_header_above(c("Proposed Model same as Global Model" = 2))  
 
+app_A
 ```
 
 Looking at qualitative errors
@@ -76,14 +77,16 @@ qualitative_errors <- qualitative_errors %>%
          GlobalModel = old_model) %>%
   select(Population, GlobalModel, Percentage)
 
+colnames(qualitative_errors)[2] <- "Global Model"
 #kable for output
-qualitative_errors %>%
+app_B <- qualitative_errors %>%
   kable() %>%
   kable_styling(bootstrap_options = c("striped",
                                       full_width = F,
                                       align = "left")) %>%
-  add_header_above(c("Global models from which Bo & Tess resample the same model" = 3)) 
+  add_header_above(c("Proposed Model same as Global Model" = 3)) 
 
+app_B
 ```
 
 looking at sampling (Tess).
@@ -99,13 +102,15 @@ sampling <- sampling %>%
   group_by(orig_type, old_model, selected_model) %>%
   summarize(count = sum(count))
 
+colnames(sampling) <- c("Population", "Global Model", "Selected Model", "Count")
+
 #kable for output
 sampling %>%
   kable() %>%
   kable_styling(bootstrap_options = c("striped",
                                       full_width = F,
                                       align = "left")) %>%
-  add_header_above(c("Tess sampling strategy" = 4)) 
+  add_header_above(c("Tess research strategy" = 4)) 
 
 
 ```

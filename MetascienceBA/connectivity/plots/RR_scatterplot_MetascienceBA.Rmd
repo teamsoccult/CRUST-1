@@ -39,7 +39,7 @@ pruning the dataframes for unnecessary information:
 #Stickiness
 stickiness_MetascienceBA <- stickiness_MetascienceBA %>%
   rename(Stickiness = stickiness_overall) %>%
-  select(-c(stickiness_agent, stickiness_switch))
+  dplyr::select(-c(stickiness_agent, stickiness_switch))
 
 ```
 
@@ -219,7 +219,7 @@ Corr plot:
 
 #overall columns for correlation
 cor <- df_FPTT %>%
-  select(RR, TAT, TAT50, Stickiness, FPTT, condition)
+  dplyr::select(RR, TAT, TAT50, Stickiness, FPTT, condition)
 
 
 #function to split conditions 
@@ -239,7 +239,7 @@ citation_colab <- corfun(cor, "citation_colab")
 #function to select usefull columns: 
 selector <- function(df){
   df <- df %>%
-    select(RR, TAT, TAT50, Stickiness, FPTT)
+    dplyr::select(RR, TAT, TAT50, Stickiness, FPTT)
   
   return(df)
 }
@@ -287,5 +287,23 @@ plot_grid(cor_baselines_nolab,
           cor_baselines_colab,
           cor_citation_colab,
           nrow = 1)
+
 ```
+
+For figure 7
+
+```{r}
+cor_baselines_nolab <- ggcorrplot(corr_baselines_nolab, 
+                                  hc.order = F, 
+                                  type = "lower",
+                                  lab = TRUE, 
+                                  outline.color = "white",
+                                  ggtheme = theme_minimal())
+
+
+Fig7_A <- cor_baselines_nolab
+
+
+```
+
 
