@@ -1,0 +1,109 @@
+---
+title: "over 100 sketch"
+author: "Mikkel Werling"
+date: "5/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#set working directory
+setwd("~/CRUST-1/DevezerAlteredAgents/data/outcome_measures")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained) 
+```
+
+loading data & early prep. 
+
+```{r}
+
+#read data 
+FPTT_newAgents <- read_csv("FPTT_Devezer_fixed.csv")
+FPTT_devezer <- read_csv("FPTT_Devezer_original.csv")
+
+#as factor
+factorize <- function(dataframe){
+
+  df <- dataframe %>%
+    filter(first_row != Inf) %>%
+    mutate(network = factor(network),
+        population = factor(population),
+        sigma = factor(sigma),
+        true_model = factor(true_model),
+        base_SS = factor(base_SS),
+        modelcompare = factor(modelcompare),
+        FPTT = first_row) %>%
+    select(-first_row)
+}
+
+FPTT_newAgents <- factorize(FPTT_newAgents)
+FPTT_devezer <- factorize(FPTT_devezer)
+
+
+
+```
+
+SUBSETS 
+
+```{r}
+
+#new agents: sample size 100, both modcomparisons 
+FPTT_100_both <- FPTT_newAgents %>%
+  filter(base_SS == 100)
+
+#new agents: sample size 20, both modelcomparisons
+FPTT_20_both <- FPTT_newAgents %>%
+  filter(base_SS == 20)
+
+#new agents: sample size 20, only BIC 
+FPTT_20_BIC <- FPTT_newAgents %>%
+  filter(base_SS == 20,
+         modelcompare == "BIC")
+
+rm("FPTT_newAgents")
+```
+
+FPTT over variables
+
+```{r}
+
+FPTT <- function(.dataframe, .var1){
+  
+  var1 <- enquo(.var1)
+  
+  df <- .dataframe %>%
+  group_by(UQ(var1)) %>%
+  summarize(FPTT_mean = mean(FPTT),
+            FPTT_median = median(FPTT),
+            FPTT_IQR = IQR(FPTT),
+            FPTT_SD = sd(FPTT))
+  
+  return(df)
+  
+}
+
+#generate this for all the relevant subsets: 
+FPTT_devezer <- FPTT(FPTT_devezer, population) 
+FPTT_100_both <- FPTT(FPTT_100_both, population)
+FPTT_20_both <- FPTT(FPTT_20_both, population)
+FPTT_20_BIC <- FPTT(FPTT_20_BIC, population)
+
+```
+
+write csv 
+
+```{r}
+
+setwd("~/CRUST-1/DevezerAlteredAgents/data/outcome_tables")
+write_csv(FPTT_devezer, "FPTT_Devezer.csv")
+write_csv(FPTT_100_both, "FPTT_100_both.csv")
+write_csv(FPTT_20_both, "FPTT_20_both.csv")
+write_csv(FPTT_20_BIC, "FPTT_20_BIC.csv")
+
+```
+

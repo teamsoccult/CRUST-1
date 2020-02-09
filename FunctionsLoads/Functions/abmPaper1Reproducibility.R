@@ -61,11 +61,15 @@
 ##   Consider interactions in model expectation calculation [2016-06-22]
 ##
 ################
-simulator <- function(replications, timesteps, models, k, tModel,
+simulatorLoop <- function(replications, timesteps, models, k, tModel,
     nRey, nTess, nBo, nMave, weights, sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds){
-
+  
+  
+  #true model
+  trueModel <- some_models[tMod]
+  tModel <- strToModel(trueModel, k)
 
   ###################
   ## REPLICA SIMULATION
@@ -85,6 +89,27 @@ simulator <- function(replications, timesteps, models, k, tModel,
     model1 <- models[[as.integer(runif(1, min=1, max=length(models) + 1))]]
     model2 <- gModel
 
+    ## INITIALIZING POPULATIONS ##
+    
+    if(population == "Rey"){
+      nRey <- 297; nMave <- 1; nBo <- 1; nTess <- 1
+    }
+    else if (population == "Mave"){
+      nRey <- 1; nMave <- 297; nBo <- 1; nTess <- 1
+    }
+    
+    else if (population == "Bo"){
+      nRey <- 1; nMave <- 1; nBo <- 297; nTess <- 1
+    }
+    
+    else if (population == "Tess"){
+      nRey <- 1; nMave <- 1; nBo <- 1; nTess <- 297
+    }
+    
+    else if (population == "All"){
+      nRey <- 1; nMave <- 1; nBo <- 1; nTess <- 1
+    }
+    
     ## Initialize agents
     N <- c(rep(REY, nRey), rep(TESS, nTess), rep(BO, nBo), rep(MAVE, nMave))
     N <- N[shuffle(length(N))]
@@ -131,7 +156,7 @@ simulator <- function(replications, timesteps, models, k, tModel,
       } else if(agentType == MAVE){
         model <- models[[as.integer(runif(1, min=1, max=length(models)+1))]]
       }
-
+      
       model1 <- model
       model2 <- gModel
 
@@ -203,30 +228,25 @@ simulator <- function(replications, timesteps, models, k, tModel,
         }
       }
 
+      
+      ## ID variables 
+      output[step, O_POPULATION] <- population
+      output[step, O_SIGMA] <- sigma
+      output[step, O_NETWORK] <- "None"
+      output[step, O_SAMPLE_SIZE] <- sampleSize
+      output[step, O_TRUE_MODEL] <- tMod
+      output[step, O_MODELCOMPARE] <- modelCompare
+      output[step, O_ORIG_TYPE] <- agentType
+      
       ## Record output data
-      output[step, O_STRATEGY] <- agentType
       output[step, O_SELECTED_MODEL] <- searchModel(model, models)
-      output[step, O_SELECTED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
-      output[step, O_SELECTED_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, stat$model$betasEst), ndec)
-      output[step, O_INITIAL_GLOBAL_MODEL] <- searchModel(initGModel, models)
+      output[step, O_PROPOSED_TRUE_MODEL] <- as.numeric(compareModels(model, tModel))
+      output[step, O_OLD_MODEL] <- searchModel(initGModel, models)
       output[step, O_INITIAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(initGModel, tModel))
-      output[step, O_INITIAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, initGModelStat$betasEst), ndec)
       output[step, O_FINAL_GLOBAL_MODEL] <- searchModel(gModel, models)
       output[step, O_FINAL_GLOBAL_TRUE_MODEL] <- as.numeric(compareModels(gModel, tModel))
-      output[step, O_FINAL_GLOBAL_MODEL_DISTANCE] <- round(calculateDistance(tModelBetas, finalGModelStat$betasEst), ndec)
-      output[step, O_NUM_PREDICTORS] <- predictors[[1]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))]
-      output[step, O_SAMPLE_SIZE] <- sampleSize
-      output[step, O_BETA1_TRUE] <- round(tModelBetas[,2], ndec)
-      output[step, O_BETA1_ESTIMATE] <- round(finalGModelStat$betasEst[2], ndec)
-      output[step, O_BETA1_ERROR] <- round(finalGModelStat$betasErr[2], ndec)
-      output[step, O_TSTATISTICS] <- round(finalGModelStat$tstatistics, ndec)
-      output[step, O_RSQ] <- round(finalGModelStat$rsq, ndec)
-      output[step, O_ARSQ] <- round(finalGModelStat$arsq, ndec)
-      output[step, O_AIC] <- round(finalGModelStat$aic, ndec)
-      output[step, O_BIC] <- round(finalGModelStat$bic, ndec)
       output[step, O_REPLICATED] <- replicated
-      output[step, O_PREDICTORS] <- toString(predictors[[2]][as.numeric(as.character(output[step, O_FINAL_GLOBAL_MODEL]))])
-    }
+      }
 
     ## Parameter output
     param <- list()
@@ -247,11 +267,15 @@ simulator <- function(replications, timesteps, models, k, tModel,
     names(output) <- OUTPUT_HEADER
 
     ## Write output data table into a file
-    write.table(output, file=paste0(outputDir, "/", outputFile),
-        append=ifelse(replica == 1, FALSE, TRUE),
-        quote=FALSE, sep=";", row.names=FALSE,
-        col.names=ifelse(replica == 1, TRUE, FALSE))
+    write.table(output, file=paste0(outputDir, "/", population, "_", sigma, "_", 
+                                    paste(ifelse(modelCompare == 5, "BIC", "AIC")),
+                                    "_", sampleSize, "_", tMod, outputFile),
+                append=ifelse(replica == 1, FALSE, TRUE),
+                quote=FALSE, sep=",", row.names=FALSE,
+                col.names=ifelse(replica == 1, TRUE, FALSE))
   }
 
-  saveRDS(parameters, file=paste0(outputDir, "/", paramFile))
+  saveRDS(parameters, file=paste0(outputDir, "/", population, "_", sigma, "_", 
+                                  paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
+                                  "_", sampleSize, "_", tMod, paramFile))
 }
