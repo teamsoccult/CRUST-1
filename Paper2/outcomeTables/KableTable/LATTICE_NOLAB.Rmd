@@ -1,0 +1,158 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+
+#working directory 
+setwd("~/CRUST-1/MetascienceBA/data/outcome_tables")
+
+#libraries
+library(pacman)
+p_load(knitr, kableExtra, tidyverse, tibble, rlang)
+
+```
+
+
+```{r}
+#clearing & reading 
+temp = list.files(pattern="*LATTICE_NOLAB.csv")
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+```
+
+
+```{r}
+#making rownames
+a <- data.frame(name=c("TAT",  
+                      "TAT 50%",
+                      "Stickiness",
+                      "FPTT",
+                      "RR"), 
+                b=1:5,
+                c=1:5,
+                d=1:5)
+```
+
+organizing median. 
+
+```{r}
+
+medianFX <- function(.df, .ID, .measure){
+  
+  ID <- enquo(.ID)
+  measure <- enquo(.measure)
+  
+  df <- .df %>%
+    select(!!ID, !!measure) %>%
+    mutate(!!measure := round(!!measure*100,2)) %>%
+    spread(!!ID, !!measure)
+  
+  return(df)
+  
+}
+
+TAT_MED <- medianFX(TAT_LATTICE_NOLAB, population, TAT_median)
+TAT50_MED <- medianFX(TAT50_LATTICE_NOLAB, population, TAT50_median)
+STICK_MED <- medianFX(stickiness_LATTICE_NOLAB, population, stickiness_median)
+RR_MED <- medianFX(RR_LATTICE_NOLAB, population, RR_median)
+
+#first passage (differs, so hard coded)
+FPTT_MED <- FPTT_LATTICE_NOLAB %>%
+  select(population, FPTT_median) %>%
+  spread(population, FPTT_median)
+
+#rbinding 
+OutMed <- rbind(TAT_MED, #time at true most adhered
+                   TAT50_MED,
+                   STICK_MED,
+                   FPTT_MED,
+                   RR_MED) #time at true > 50 %
+
+#new rownames 
+rownames(OutMed) <- a$name
+
+```
+
+clearing environment
+
+```{r}
+
+rm(list=setdiff(ls(), c("a", "temp", "OutMed", "medianFX")))
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+
+
+
+```
+
+organizing IQR 
+
+```{r}
+
+#reusing the functon 
+TAT_IQR <- medianFX(TAT_LATTICE_NOLAB, population, TAT_IQR)
+TAT50_IQR <- medianFX(TAT50_LATTICE_NOLAB, population, TAT50_IQR)
+STICK_IQR <- medianFX(stickiness_LATTICE_NOLAB, population, stickiness_IQR)
+RR_IQR <- medianFX(RR_LATTICE_NOLAB, population, RR_IQR)
+
+#first passage (differs, so hard coded)
+FPTT_IQR <- FPTT_LATTICE_NOLAB %>%
+  select(population, FPTT_IQR) %>%
+  spread(population, FPTT_IQR)
+
+#rbinding 
+OutIQR <- rbind(TAT_IQR, #time at true most adhered
+                   TAT50_IQR,
+                   STICK_IQR,
+                   FPTT_IQR,
+                   RR_IQR) #time at true > 50 %
+
+#new rownames 
+rownames(OutIQR) <- a$name
+
+```
+
+clearing environment
+
+```{r}
+
+rm(list=setdiff(ls(), c("a", "temp", "OutMed", "OutIQR")))
+
+```
+
+Kable
+
+```{r}
+
+#creating the relevant groups 
+MedIQR <- cbind(OutMed, OutIQR)
+MedIQR <- add_column(MedIQR, " " = "", .after = 4)
+
+#now we have to rename columns 
+MedIQR <- MedIQR %>%
+  rename(All = "All.1",
+         Bo = "Bo.1",
+         Mave = "Mave.1",
+         Tess = "Tess.1")
+
+#kable - median & IQR
+MedIQR %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", 
+                                      #"hover", 
+                                      #"condensed", 
+                                      "responsive")) %>%
+  add_header_above(c("", "Median" = 4, " " = 1, "IQR" = 4)) %>%
+  add_header_above(c("B", "Network ABM (Lattice)" = 9)) #%>%
+  #add_indent(c(2, 5)) 
+
+
+```
+

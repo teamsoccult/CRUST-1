@@ -1,0 +1,197 @@
+---
+title: "RR_TAT_RidgesRaincloud_MetascienceBA"
+author: "Victor Møller"
+date: "December 15, 2019"
+output: html_document
+---
+
+updated 15-12-2019.
+plots that we use only. 
+
+```{r}
+library(pacman)
+p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
+       viridis, ggridges, ggunchained, rlang, cowplot)
+```
+
+
+```{r}
+setwd("~/CRUST-1/MetascienceBA/data/dataPlotting")
+RR <- read_csv("violin_ridges_RR_MetascienceBA.csv")
+
+#prep TF. 
+RR <- RR %>%
+  mutate(network = factor(network),
+        population = factor(population),
+        sigma = factor(sigma),
+        colab_cond = factor(colab_cond),
+        net_size = factor(net_size),
+        true_model = factor(true_model),
+        colab_cond = recode(colab_cond,
+                               NOLAB = "No",
+                               COLAB = "Yes"))
+```
+
+raincloud prep
+
+```{r}
+
+#preparing raincloud (can be customized)
+raincloud_theme = theme(
+text = element_text(size = 10),
+axis.title.x = element_text(size = 16),
+axis.title.y = element_text(size = 16),
+axis.text = element_text(size = 14),
+axis.text.x = element_text(vjust = 0.5),
+legend.title=element_text(size=16),
+legend.text=element_text(size=16),
+legend.position = "right",
+plot.title = element_text(lineheight=.8, face="bold", size = 16),
+panel.border = element_blank(),
+panel.grid.minor = element_blank(),
+panel.grid.major = element_blank(),
+axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'),
+axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+
+```
+
+new directory & loading flatViolin
+
+```{r}
+
+setwd("~/CRUST-1")
+baseDir <- "."
+scriptDir <- paste0(baseDir, "/FunctionsLoads/Functions")
+#inputDir <- paste0(baseDir, "/data")
+#outputDir <- paste0(baseDir, "/data")
+source(paste0(scriptDir, "/flatViolin.R"))
+
+
+```
+
+Prep
+
+```{r}
+melt_RR_TAT <- melt(RR, 
+                    id.vars = c("replica", "network",
+                                "population", "sigma", "true_model", 
+                                "colab_cond"), 
+                    measure.vars = c("RR", "TAT"), 
+                    variable.name = "variable", 
+                    value.name = "proportion")
+```
+
+Raincloud
+
+
+```{r}
+
+RR_FUN <- function(.df, .var1, .sigma, .net1, .net2, .colab){
+  
+  var1 <- enquo(.var1)
+  sigma <- enquo(.sigma)
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
+  colab <- enquo(.colab)
+  
+g <- .df %>%
+  filter(sigma == UQ(sigma),
+         colab_cond == UQ(colab),
+         network == UQ(net1) | network == UQ(net2)) %>%
+  ggplot(aes(x = UQ(var1), y = proportion, fill = variable)) +
+    geom_flat_violin(position = position_nudge(x = .2, y = 0), alpha = .7) +
+    geom_point(aes(y = proportion, color = variable), 
+                    position = position_jitter(width = .15), 
+                    size = .5, alpha = 0.8) +
+    geom_boxplot(width = .1, outlier.shape = NA, alpha = 0.5) +
+    expand_limits(x = 2) + #not clear that this changes much. 
+    #guides(fill = FALSE) + #legend can be deleted. 
+    guides(color = FALSE) +
+    scale_fill_tableau() +
+    scale_color_tableau() +
+    #coord_flip() +
+    theme_bw() +
+    labs(x = "True models", 
+       y = "RR & TAT", 
+       fill = "Measure", 
+       titles = "RR & TAT for true models",
+       subtitle = paste0("Colab: ", quo_name(colab), " | ",
+                         "Sigma: ", quo_name(sigma), " | ", 
+                        "Networks: ", quo_name(net1), " & ",
+                         quo_name(net2))) + #sets the legend title.
+    raincloud_theme
+  
+  #call the plot
+  g
+
+
+#call the plot
+g
+
+}
+
+colnames(melt_RR_TAT)
+RR_FUN(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "Yes")
+
+```
+
+Ridges
+
+
+```{r}
+
+RR_FUN2 <- function(.df, .var1, .sigma, .net1, .net2, .colab){
+  
+  var1 <- enquo(.var1)
+  sigma <- enquo(.sigma)
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
+  colab <- enquo(.colab)
+
+  g <- .df %>%
+      filter(sigma == UQ(sigma),
+         colab_cond == UQ(colab),
+         network == UQ(net1) | network == UQ(net2)) %>%
+      ggplot(aes(x = proportion,
+                 y = UQ(var1), 
+                 color = variable,
+                 fill = variable)) +
+      geom_density_ridges(jittered_points = TRUE, scale = 0.8, 
+                          rel_min_height = .01,
+                          point_shape = "|", point_size = 1, size = 0.1, 
+                          position = position_points_jitter(height = 0)) +
+      scale_y_discrete(expand = c(0.01, 0)) +
+      scale_x_continuous(expand = c(0,0), 
+                         name = "Replication Rate & Time at the True Model") +
+      scale_fill_manual(values = c("#D55E0050", "#0072B250"), 
+                        labels = c("Replication rate", "Time at true model")) +
+      scale_color_manual(values = c("#D55E00", "#0072B2"), guide = "none") +
+      scale_discrete_manual("point_color", values = c("#D55E00", "#0072B2"), 
+                            guide = "none") +
+      guides(fill = guide_legend("",
+        override.aes = list(
+        fill = c("#D55E00A0", "#0072B2A0"),
+        color = NA, point_color = NA))
+      ) +
+      theme_ridges(center = TRUE) + 
+      theme_janco_point() +
+      theme(plot.caption = element_text(hjust = 0.5)) 
+  g +  labs(x = "RR & TAT", 
+       y = "True models", 
+       fill = "Measure", 
+       titles = "RR & TAT for true models",
+       subtitle = paste0("Colab: ", quo_name(colab), " | ",
+                         "Sigma: ", quo_name(sigma), " | ", 
+                        "Networks: ", quo_name(net1), " & ",
+                         quo_name(net2)))
+}
+
+RR_FUN2(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "Yes")
+RR_FUN2(melt_RR_TAT, true_model, 0.5, "TOM", "PT", "Yes")
+RR_FUN2(melt_RR_TAT, true_model, 0.5, "Small", "Lattice", "No") 
+
+```
+
+
+
+
