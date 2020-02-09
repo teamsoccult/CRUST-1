@@ -1,0 +1,163 @@
+---
+title: "replication"
+author: "Victor Møller"
+date: "17 maj 2019"
+output: html_document
+---
+
+Mave replication. 
+
+```{r}
+#reading
+mave02 <- read.csv("data/rfs50/small_mave_0.2_BIC_100_hard_100.csv", sep = ";")
+mave05 <- read.csv("data/rfs50/small_mave_0.5_BIC_100_hard_100.csv", sep = ";")
+mave08 <- read.csv("data/rfs50/small_mave_0.8_BIC_100_hard_100.csv", sep = ";")
+
+#easier to work with
+mave02_sub <- mave02[seq(1, nrow(mave02), 25), ]
+mave05_sub <- mave05[seq(1, nrow(mave05), 25), ]
+mave08_sub <- mave08[seq(1, nrow(mave08), 25), ]
+
+#indexing
+mave02_sub <- mave02_sub %>%
+  mutate(index = "mave02")
+
+mave05_sub <- mave05_sub %>%
+  mutate(index = "mave05")
+
+mave08_sub <- mave08_sub %>%
+  mutate(index = "mave08")
+
+#putting together 
+mave_total <- rbind(mave02_sub, mave05_sub, mave08_sub)
+
+#melting 
+naming <- colnames(mave_total)
+mave_melted <- melt(mave_total, id = c(naming[1:24], naming[39:47]))
+
+#plotting 
+mave_plot <- ggplot(mave_melted, 
+                     aes(timestep, value, color = variable)) +
+  geom_point(aes(alpha = 0.02)) + 
+  geom_smooth() +
+  theme(legend.position="none") +
+  labs(title = "maves") +
+  geom_hline(aes(yintercept = 0.5), 
+             color = "red", linetype = "dashed", size = 1) +
+  facet_wrap(~ index)
+  
+mave_plot
+
+```
+
+replicated.
+
+```{r}
+#plots.  
+smallz <- smallz %>%
+  subset(tried >= 1) %>% #the same every time?
+  mutate(id = "small")
+
+latz <- latz %>%
+  subset(tried >= 1) %>%
+  mutate(id = "lattice")
+
+#summarized 
+smallz_sum <- smallz %>%
+  group_by(final_global_true_model) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) %>%
+  mutate(not_rep = 1-replicated)
+
+#summarized 
+latz_sum <- latz %>%
+  group_by(final_global_true_model) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated)) %>%
+  mutate(not_rep = 1-replicated)
+
+#by final global true model 
+smallz_melt <- melt(smallz_sum, id = "final_global_true_model")
+latz_melt <- melt(latz_sum, id = "final_global_true_model")
+
+#plotting 
+p1 <- ggplot(smallz_melt, aes(final_global_true_model, value, group = variable, fill = variable)) +
+  labs(title = "small world") +
+  geom_col(position = "dodge")
+p1 
+
+p2 <- ggplot(latz_melt, aes(final_global_true_model, value, group = variable, fill = variable)) +
+  geom_col(position = "dodge") +
+  labs(title = "lattice") 
+p2
+
+plot_grid(p1, p2)
+
+#computing 
+sum(checking$not_replicated) / sum(checking$replicated) 
+sum(checking$replicated) / sum(checking$not_replicated + checking$replicated)
+```
+
+mave replicated 
+
+```{r}
+#reading
+mave02 <- read.csv("data/rfs50/small_mave_0.2_BIC_100_hard_100.csv", sep = ";")
+
+#plots.  
+library(tidyverse)
+library(reshape2)
+
+#relevant subset 
+mave02 <- mave02 %>%
+  subset(tried >= 1) 
+
+#replication overall 
+mave_overall <- mave02 %>%
+  group_by(replica) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated),
+            not_rep = 1-replicated) 
+
+#replication overall (median & IQR)
+mave_overall_sum <- mave_overall %>%
+  summarize(median = mean(replicated),
+            IQR = IQR(replicated)) %>%
+  mutate(final_global_true_model = "all cases")
+
+#replication if true & if not
+mave_byglobal <- mave02 %>%
+  group_by(final_global_true_model, replica) %>%
+  summarize(replicated = sum(replicated) / sum(not_replicated + replicated),
+            not_rep = 1-replicated) 
+
+#replicated if true & if not (median & IQR)
+mave_byglobal_sum <- mave_byglobal %>%
+  group_by(final_global_true_model) %>%
+  summarize(median = mean(replicated),
+            IQR = IQR(replicated)) 
+
+mave_all_rep <- rbind(mave_overall_sum, mave_byglobal_sum)
+
+#calculation
+median(mave02iftrue$replicated) #87
+IQR(mave02iftrue$replicated) #only 5
+
+
+#calculation
+median(mave02sum2$replicated) #lower 
+IQR(mave02sum2$replicated) #more varied
+
+#by final global true model 
+mave02_melt <- melt(mave02, id = "final_global_true_model")
+
+#plotting 
+p1 <- ggplot(mave02_melt, aes(final_global_true_model, value, group = variable, fill = variable)) +
+  labs(title = "small world") +
+  geom_col(position = "dodge")
+
+p1 
+
+#calculating 
+mave02 <- mave02 %>%
+  group_by(replication) %>%
+  summarize 
+```
+

@@ -1,0 +1,228 @@
+---
+title: "sigma plots for epi 0.5 across both networks"
+author: "Mikkel Werling"
+date: "5/21/2019"
+output: html_document
+---
+
+14-09-2019
+Adapted from "true_false" Rmd to accomodate new data format. 
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, ggunchained, tidyselect)
+```
+
+INTRODUCTION TO THE DOCUMENT:
+1. Read data is obligatory
+2. Downsampling is always recommendable, as it does not make any aesthetic difference, but significantly increases the computational load.
+3. True/False plots for the individual conditions
+4. Bo-plot for all the conditions with 14th and true model
+5. Averaged plot of true_proportion for all the different populations 
+
+read data
+
+```{r}
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/tests")
+
+df_new <- read.csv("two_runs_new.csv", sep = ",")
+df_old <- read.csv("SocKult.csv", sep = ",")
+
+mycols <- c("population", 
+            "sigma",
+            "true_model",
+            "studies",
+            "sample_size",
+            "network",
+            "proportion_1",
+            "proportion_2",
+            "proportion_3",
+            "proportion_4",
+            "proportion_5",
+            "proportion_6",
+            "proportion_7",
+            "proportion_8",
+            "proportion_9",
+            "proportion_10",
+            "proportion_11",
+            "proportion_12",
+            "proportion_13",
+            "proportion_14",
+            "proportion_true")
+
+df_new <- df_new %>%
+  dplyr::select(one_of(mycols)) 
+
+df_old <- df_old %>%
+  dplyr::select(one_of(mycols))
+
+#downsampling
+df_new <- df_new[seq(1, nrow(df_new), 30), ]
+df_old <- df_old[seq(1, nrow(df_old), 30),]
+
+```
+
+#### COWPLOT APPROACH ####
+
+melting for cowplot
+
+```{r}
+
+naming <- colnames(df_new)
+
+melt_new <- df_new %>%
+  melt(id = c(naming[1:6])) %>% #melting with proportions becoming variable and their values becoming values
+  mutate(true_model = as.factor(true_model)) %>%
+  mutate(true = ifelse(variable == "proportion_true", "True", "False")) %>% #making a identifying column in order to color for the plot
+  mutate(variable = relevel(variable, ref = "proportion_true")) %>% #releveling so that proportion true is considered first
+  mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order to make it the top layer in the overlay between different smooths.
+
+naming <- colnames(df_old)
+melt_old <- df_old %>%
+  melt(id = c(naming[1:6])) %>% 
+  mutate(true_model = as.factor(true_model)) %>%
+  mutate(true = ifelse(variable == "proportion_true", "True", "False")) %>% 
+  mutate(variable = relevel(variable, ref = "proportion_true")) %>% 
+  mutate(variable = fct_rev(variable)) 
+
+
+```
+
+Plotting w. cowplot 
+
+```{r}
+
+#what you want to plot
+sigma_p <- 0.5
+population_p <- "All"
+network_p <- "Lattice"
+true_model_p <- 7
+sample_size_p <- 20
+
+
+g1 <- melt_new %>%
+  filter(sigma == sigma_p, population == population_p, network == network_p, true_model == true_model_p, sample_size == sample_size_p) %>%
+  ggplot(aes(studies, value, color = true))+
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
+  labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
+       title = "Proportion of agents at the true model",
+       subtitle = paste("Network:", network_p, "|", "Population:", population_p, "|", "Sigma:", sigma_p, "|", "True Model:", true_model_p)) +
+  theme_janco_point()
+
+network_p <- "Small"
+
+g2 <- melt_new %>%
+  filter(sigma == sigma_p, population == population_p, network == network_p, true_model == true_model_p, sample_size == sample_size_p) %>%
+  ggplot(aes(studies, value, color = true))+
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
+  labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
+       title = "Proportion of agents at the true model",
+       subtitle = paste("Network:", network_p, "|", "Population:", population_p, "|", "Sigma:", sigma_p, "|", "True Model:", true_model_p)) +
+  theme_janco_point()
+  
+
+g3 <- melt_old %>%
+  filter(sigma == sigma_p, population == population_p, network == network_p, true_model == true_model_p, sample_size == sample_size_p) %>%
+  ggplot(aes(studies, value, color = true))+
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
+  labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
+       title = "Proportion of agents at the true model",
+       subtitle = paste("Network:", network_p, "|", "Population:", population_p, "|", "Sigma:", sigma_p, "|", "True Model:", true_model_p)) +
+  theme_janco_point()
+
+plot_grid(g1, g2, g3)
+
+```
+
+### FACET APPROACH ###
+only compares "small". 
+
+```{r}
+melt_new$ID <- "new"
+melt_old$ID <- "old"
+
+melt_all <- rbind(melt_new, melt_old)
+
+sigma_p <- 0.5
+population_p <- "Mave"
+network_p <- "Small"
+true_model_p <- 7
+sample_size_p <- 100
+
+
+g1 <- melt_all %>%
+  filter(sigma == sigma_p, population == population_p, true_model == true_model_p, network == network_p, sample_size == sample_size_p) %>%
+  ggplot(aes(studies, value, color = true))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
+  labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
+       title = "Proportion of agents at the true model",
+       subtitle = paste("Network:", network_p, "|", "Population:", population_p, "|", "Sigma:", sigma_p, "|", "True Model:", true_model_p)) +
+  theme_janco_point() +
+  facet_wrap(~ID)
+
+g1
+
+```
+
+All populations comparison. 
+
+```{r}
+
+network_p <- "Small"
+true_model_p <- 7
+sample_size_p <- 100
+sigma <- 0.5
+
+melt_true <- melt_new %>%
+  filter(true == "True")
+
+g1 <- melt_true %>%
+  filter(sigma == sigma_p, true_model == true_model_p, network == network_p, sample_size == sample_size_p) %>%
+  ggplot(aes(studies, value, color = population))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
+  labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
+       title = "Proportion of agents at the true model",
+       subtitle = paste("Network:", network_p, "|", "All Populations", "|", "Sigma:", sigma_p, "|", "True Model:", true_model_p)) +
+  theme_janco_point() +
+  facet_wrap(~ID)
+
+g1
+
+```
+
+All true models 
+
+```{r}
+
+network_p <- "Small"
+population_p <- "All"
+sample_size_p <- 100
+sigma <- 0.5
+
+g1 <- melt_true %>%
+  filter(sigma == sigma_p, network == network_p, sample_size == sample_size_p, population == population_p) %>%
+  ggplot(aes(studies, value, color = true_model))+
+  geom_point(alpha = 0.01) +
+  geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
+  labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
+       title = "Proportion of agents at the true model",
+       subtitle = paste("Network:", network_p, "|", "All Populations", "|", "Sigma:", sigma_p, "|", "True Model:", true_model_p)) +
+  theme_janco_point() +
+  facet_wrap(~ID)
+
+g1
+
+```
+

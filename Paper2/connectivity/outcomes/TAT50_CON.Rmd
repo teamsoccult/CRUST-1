@@ -1,0 +1,167 @@
+---
+title: "TAT_TAT50"
+author: "Victor Møller"
+date: "26 maj 2019"
+output: html_document
+---
+
+Updated 6-12-2019
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#set working directory
+setwd("~/CRUST-1/MetascienceBA/data/outcome_measures")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained, rlang) 
+```
+
+Loading & Early prep
+
+```{r}
+
+#reading stuff 
+TAT50 <- read_csv("TAT50_MetascienceBA.csv")
+
+#as factor
+factorize <- function(dataframe){
+  df <- dataframe %>%
+    mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         colab_cond = factor(colab_cond),
+         net_size = factor(net_size),
+         true_model = factor(true_model)) 
+  
+  return(df)
+}
+
+TAT50 <- factorize(TAT50)
+
+```
+
+
+Subsets
+
+```{r}
+
+#those where we group over three IDs. 
+group3 <- function(.df, .net, .size, .colab){
+  
+  net <- enquo(.net)
+  size <- enquo(.size)
+  colab <- enquo(.colab)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net),
+           net_size == UQ(size),
+           colab_cond == UQ(colab))
+ 
+  return(dataframe) 
+}
+
+TAT50_LATTICE_413_NOLAB <- group3(TAT50, "Lattice", 413, "NOLAB")
+TAT50_SMALL_413_NOLAB <- group3(TAT50, "Small", 413, "NOLAB")
+TAT50_LATTICE_484_NOLAB <- group3(TAT50, "Lattice", 484, "NOLAB")
+TAT50_SMALL_484_NOLAB <- group3(TAT50, "Small", 484, "NOLAB")
+
+#those where we group over two IDs. 
+group2 <- function(.df, .net, .colab){
+  
+  net <- enquo(.net)
+  colab <- enquo(.colab)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net),
+           colab_cond == UQ(colab))
+ 
+  return(dataframe) 
+}
+
+TAT50_LATTICE_NOLAB <- group2(TAT50, "Lattice", "NOLAB")
+TAT50_SMALL_NOLAB <- group2(TAT50, "Small", "NOLAB")
+TAT50_LATTICE_COLAB <- group2(TAT50, "Lattice", "COLAB")
+TAT50_SMALL_COLAB <- group2(TAT50, "Small", "COLAB")
+TAT50_TOM_COLAB <- group2(TAT50, "TOM", "COLAB")
+TAT50_PT_COLAB <- group2(TAT50, "PT", "COLAB")
+
+#those where we group over one ID.  
+group1 <- function(.df, .net1, .net2){
+  
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net1) | network == UQ(net2))
+ 
+  return(dataframe) 
+}
+
+TAT50_CITATION_COLAB <- group1(TAT50, "TOM", "PT")
+
+```
+
+
+```{r}
+TAT50_FUN <- function(.dataframe, .var1){
+  
+  var1 <- enquo(.var1)
+  
+  df <- .dataframe %>%
+  group_by(UQ(var1)) %>%
+  summarize(TAT50_mean = mean(TAT50),
+            TAT50_median = median(TAT50),
+            TAT50_IQR = IQR(TAT50),
+            TAT50_SD = sd(TAT50))
+  
+  return(df)
+  
+}
+
+#Do it for all 11 dataframes. 
+TAT50_LATTICE_413_NOLAB <- TAT50_FUN(TAT50_LATTICE_413_NOLAB, population)
+TAT50_SMALL_413_NOLAB <- TAT50_FUN(TAT50_SMALL_413_NOLAB, population)
+TAT50_LATTICE_484_NOLAB <- TAT50_FUN(TAT50_LATTICE_484_NOLAB, population)
+TAT50_SMALL_484_NOLAB <- TAT50_FUN(TAT50_SMALL_484_NOLAB, population)
+TAT50_LATTICE_NOLAB <- TAT50_FUN(TAT50_LATTICE_NOLAB, population)
+TAT50_SMALL_NOLAB <- TAT50_FUN(TAT50_SMALL_NOLAB, population)
+TAT50_LATTICE_COLAB <- TAT50_FUN(TAT50_LATTICE_COLAB, population)
+TAT50_SMALL_COLAB <- TAT50_FUN(TAT50_SMALL_COLAB, population)
+TAT50_TOM_COLAB <- TAT50_FUN(TAT50_TOM_COLAB, population)
+TAT50_PT_COLAB <- TAT50_FUN(TAT50_PT_COLAB, population)
+TAT50_CITATION_COLAB <- TAT50_FUN(TAT50_CITATION_COLAB, population)
+
+rm(TAT50, TAT50_FUN, group1, group2, group3)
+```
+
+write csv 
+
+```{r}
+
+setwd("~/CRUST-1/MetascienceBA/data/outcome_tables")
+
+writeFUN <- function(df){
+  
+  df_name <- deparse(substitute(df))
+  write_csv(df, paste0(df_name, ".csv"))
+  
+}
+
+writeFUN(TAT50_LATTICE_413_NOLAB)
+writeFUN(TAT50_SMALL_413_NOLAB)
+writeFUN(TAT50_LATTICE_484_NOLAB)
+writeFUN(TAT50_SMALL_484_NOLAB)
+writeFUN(TAT50_LATTICE_NOLAB)
+writeFUN(TAT50_SMALL_NOLAB)
+writeFUN(TAT50_LATTICE_COLAB)
+writeFUN(TAT50_SMALL_COLAB)
+writeFUN(TAT50_TOM_COLAB)
+writeFUN(TAT50_PT_COLAB)
+writeFUN(TAT50_CITATION_COLAB)
+
+```
+

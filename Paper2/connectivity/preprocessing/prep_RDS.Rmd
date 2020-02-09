@@ -1,0 +1,225 @@
+---
+title: "Centrality"
+author: "Mikkel Werling"
+date: "11/23/2019"
+output: html_document
+---
+
+```{r}
+library(pacman)
+p_load(tidyverse, ggunchained, cowplot, ggcorrplot) 
+```
+
+
+```{r}
+
+##NEED TO ALSO INCLUDE COLAB CONDITIONS!! - should be very doable though
+
+setwd("D:/data_new1")
+
+replica <- 1:50
+
+#readRDS
+
+temp = list.files(pattern="^TOM.*.rds")
+
+centrality <- function(temp){
+  
+  datalist1 <- list()
+  datalist2 <- list()
+  
+  test = lapply(temp, readRDS)
+
+for(i in (1:length(temp))){
+#all in one
+  for(j in (1:length(replica))){
+df <- as.data.frame(test[[i]][[j]][1:6], col.names = c("true_model", "base_SS", "sigma", "network", "net_size", "population"))
+  
+df$replica <- j
+
+g <- graph_from_adjacency_matrix(test[[i]][[j]][[7]], diag = F, mode = "undirected")
+
+V(g)$type <- gsub("\\..*","",V(g)$name)
+
+df_test <- data.frame(unname(degree(g)))
+
+df_test$closeness <- closeness(g)
+
+df_test$types <- gsub("\\..*","", names(degree(g)))
+
+difference <- df_test %>%
+  group_by(types) %>%
+  summarize(mean_degree = mean(unname.degree.g..),
+            mean_closeness = mean(closeness))
+
+difference <- difference %>%
+  mutate(true_model = df$true_model,
+         base_ss = df$base_SS,
+         sigma = df$sigma,
+         network = df$network,
+         net_size = df$net_size,
+         population = df$population,
+         replica = df$replica)
+
+datalist1[j] <- list(difference)
+  }
+  datalist2[i] <- list(datalist1)
+  
+}
+  df_final <- do.call("rbind", datalist2)
+  
+  df_yes <- do.call("rbind", df_final)
+  
+  return(df_yes)
+}
+
+##CONSIDER SPREADING THE DATA IN THE FUNCTION - IE CHECK "DIFFERENCE" BEFORE MUTATE
+
+```
+
+for establishing the different networks and their measures
+
+```{r}
+
+##NEED TO ALSO INCLUDE COLAB CONDITIONS!! - should be very doable though
+
+setwd("E:/data/27-11")
+
+replica <- 1:50
+
+#readRDS
+
+temp = list.files(pattern="*.rds")
+
+centrality <- function(temp){
+  
+  datalist1 <- list()
+  datalist2 <- list()
+
+for(i in (1:length(temp))){
+#all in one
+  
+  test <- readRDS(temp[i])
+  
+  for(j in (1:length(replica))){
+df <- as.data.frame(test[[j]][4:5], col.names = c("Network", "NetworkSize"))
+
+g <- graph_from_adjacency_matrix(test[[j]][[8]], diag = F, mode = "undirected")
+
+df <- df %>%
+  mutate(MaxDegree = max(degree(g)),
+         MeanDegree = mean(degree(g)),
+         MedianDegree = median(degree(g)),
+         AvgPathLength = average.path.length(g),
+         ClusteringCoefficient = transitivity(g)) %>%
+  select(Network, NetworkSize, MaxDegree, MeanDegree, MedianDegree, AvgPathLength, ClusteringCoefficient)
+
+datalist1[j] <- list(df)
+  }
+  
+  datalist2[i] <- list(datalist1)
+  
+}
+  
+  df_sum <- do.call("rbind", datalist2)
+  
+  df_final <- do.call("rbind", df_sum)
+  
+  setwd("E:/data/dataRDS")
+  
+  write_csv(df_final, "network_attributes.csv")
+  
+  return(df_final)
+}
+
+df_all <- centrality(temp)
+
+##CONSIDER SPREADING THE DATA IN THE FUNCTION - IE CHECK "DIFFERENCE" BEFORE MUTATE
+
+##CONSIDER WRTING THE CSV
+```
+
+looking at the differences
+
+```{r}
+
+df_413 <- df_all %>%
+  filter(NetworkSize == 413)
+
+df_484 <- df_all %>%
+  filter(NetworkSize == 484)
+
+df_413_sum <- df_413 %>%
+  group_by(Network, NetworkSize) %>%
+  summarize(MaxDegree = max(MaxDegree),
+    MeanDegree = mean(MeanDegree),
+    MedianDegree = mean(MedianDegree),
+    AvgPathLength = mean(AvgPathLength),
+    ClusteringCoefficient = mean(ClusteringCoefficient))
+
+df_484_sum <- df_484 %>%
+  group_by(Network, NetworkSize) %>%
+  summarize(MaxDegree = max(MaxDegree),
+    MeanDegree = mean(MeanDegree),
+    MedianDegree = mean(MedianDegree),
+    AvgPathLength = mean(AvgPathLength),
+    ClusteringCoefficient = mean(ClusteringCoefficient))
+
+df_total <- rbind(df_484_sum, df_413_sum)
+
+```
+
+checking populations
+
+```{r}
+setwd("D:/data/rds")
+
+replica <- 1:50
+
+temp = list.files(pattern="*.rds")
+
+POP_CHECK <- function(temp){
+  
+  datalist1 <- list()
+  datalist2 <- list()
+
+for(i in (1:length(temp))){
+#all in one
+  
+  test <- readRDS(temp[i])
+  
+  for(j in (1:length(replica))){
+
+g <- graph_from_adjacency_matrix(test[[j]][[8]], diag = F, mode = "undirected")
+
+V(g)$type <- gsub("\\..*","",V(g)$name)
+
+df <- as.data.frame(table(V(g)$type))
+
+df$population <- test[[j]][[6]]
+
+datalist1[j] <- list(df)
+  }
+  
+  datalist2[i] <- list(datalist1)
+  
+}
+  
+  df_sum <- do.call("rbind", datalist2)
+  
+  df_final <- do.call("rbind", df_sum)
+  
+  setwd("D:/data/rds")
+  
+  #write_csv(df_final, "network_attributes.csv")
+  
+  return(df_final)
+}
+
+df_all <- POP_CHECK(temp)
+
+df_test <- df_all %>%
+  group_by(population, Var1) %>%
+  summarize(Mean = mean(Freq))
+```
+

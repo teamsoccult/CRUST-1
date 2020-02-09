@@ -1,0 +1,118 @@
+---
+title: "TAT_rep"
+author: "Victor Møller"
+date: "19 maj 2019"
+output: html_document
+---
+
+set-up
+
+```{r}
+#set working directory
+setwd("D:/data/data_plotting")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained, cowplot) 
+```
+
+loading data. 
+
+```{r}
+
+#reading 
+path <- "D:/data/data_plotting"
+
+temp <- list.files(path = path, pattern="violin_ridges_RR_") #if possible. 
+
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+```
+
+Preparing the data
+
+```{r}
+
+violin_ridges_RR_Devezer_fixed_100 <- violin_ridges_RR_Devezer_fixed %>%
+  filter(base_SS == 100)
+
+violin_ridges_RR_Devezer_fixed_100 <- violin_ridges_RR_Devezer_fixed_100 %>%
+  mutate(condition = factor("Modified"))
+
+violin_ridges_RR_Devezer_original <- violin_ridges_RR_Devezer_original %>%
+  mutate(condition = factor("Original"))
+
+df <- rbind(violin_ridges_RR_Devezer_fixed_100, violin_ridges_RR_Devezer_original)
+
+df <- df %>%
+  mutate(condition = relevel(condition, ref = "Original"),
+         population = relevel(population, ref = "Bo"),
+         true_model = factor(true_model))
+```
+
+Start plotting. 
+
+```{r}
+#all models 
+g <- df %>% 
+  ggplot(aes(TAT, RR, color = population)) +
+      geom_point(aes(shape = modelcompare, alpha = 0.1)) +
+      scale_color_discrete(name = "Population") +
+      labs(title = "Replication rate & time at true model", y = "Replication rate",
+       x = "Time at true model") +
+      geom_smooth(method = "lm", se = T) +
+  guides(alpha = F) +
+      theme_janco_point()+
+  facet_wrap(~condition)
+
+g
+
+## investigating the conditions
+
+g_cond <- df %>% 
+  ggplot(aes(TAT, RR, color = condition)) +
+      geom_point(aes(shape = modelcompare, alpha = 0.1)) +
+      scale_color_discrete(name = "Condition") +
+      labs(title = "Overall difference", y = "Replication rate",
+       x = "Time at true model") +
+      geom_smooth(method = "lm", se = T) +
+  guides(alpha = F) +
+      theme_janco_point()
+g_cond
+
+plot_grid(g, g_cond)
+
+g <- df %>% 
+  filter(population == "Bo") %>%
+  ggplot(aes(TAT, RR, color = true_model)) +
+      geom_point(aes(shape = modelcompare, alpha = 0.1)) +
+      scale_color_discrete(name = "Population") +
+      labs(title = "Replication rate & time at true model",
+           subtitle = "Only Bo Populations", y = "Replication rate",
+       x = "Time at true model") +
+      #geom_smooth(method = "lm", se = T) +
+  guides(alpha = F) +
+      theme_janco_point()+
+  facet_wrap(~condition)
+
+g
+
+
+```
+
+other measures:
+
+```{r}
+setwd("D:/data/data_outcome_measures")
+
+path <- "D:/data/data_outcome_measure"
+
+temp <- list.files(path = path, pattern="FPTT") #if possible. 
+
+list2env(
+  lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
+         read.csv), envir = .GlobalEnv)
+
+```
+

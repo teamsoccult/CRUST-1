@@ -1,0 +1,146 @@
+---
+title: "Untitled"
+author: "Victor M?ller"
+date: "23 maj 2019"
+output: html_document
+---
+
+Files loaded in from outside storage space. 
+This is where the working directory is refering. 
+
+```{r}
+#NB: set working directory to where you have raw files
+setwd("D:/soc_kult_exam/data raw/model7_20csv")
+
+#packages
+library(tidyverse)
+
+```
+
+Loading files
+
+```{r}
+
+#file-names
+temp <- list.files(pattern="Small")
+
+#loading them 
+for(i in 1:length(temp)) assign(temp[i], read.csv(temp[i], sep = ";"))
+
+#bind all latice together. 
+small_world <- mget(ls(pattern="Small")) %>%
+              bind_rows()
+
+#remove all the old shit 
+rm(list=setdiff(ls(), "small_world")) #lattice_all_0.8 lacking turn 14. 
+
+```
+
+
+checking small world.
+The comments reflect the expected print. 
+
+```{r}
+
+#check 1 
+all(small_world$edges_testing == small_world$edges_not_same_global) #TRUE
+
+#check 2
+small_checking <- small_world %>%
+  mutate(together = edges_same_global + edges_not_same_global)
+
+all(small_checking$edges_total == small_checking$together) #TRUE
+
+#check 3. 
+#Set "true_model" = the true model you are working with. 
+small_mod <- small_world %>%
+  filter(true_model == 7) 
+
+all(small_mod$proportion_7 == small_mod$proportion_true) #TRUE
+
+#check 4
+sum(small_world[37:50]) #6.600.000
+
+#check 5
+all(small_world$edges_testing >= small_world$edges_changing) #TRUE 
+
+#check 6.
+#overwrites the old "small_checking" but that is fine. 
+small_checking <- small_world %>%
+  mutate(replica_stud = edges_replicated + edges_not_replicated)
+
+all(small_checking$edges_replication_study == small_checking$replica_stud) #TRUE 
+
+#check 7
+small_checking <- small_checking %>%
+  mutate(edges_already_test = edges_already_true_changing + edges_already_true_rejecting)
+  
+all(small_checking$edges_already_test == small_checking$edges_already_true) #TRUE 
+
+```
+
+Filtering columns. 
+
+#columns that we don't use in the analsis but kept from the Devezer paper. 
+--> beta1_true 
+--> beta1_estimate
+--> beta1_error
+--> tStatistics
+--> RSQ
+--> ARSQ
+--> AIC
+--> BIC
+
+#columns that were used as sanity checks. 
+--> edges_not_same_global
+--> edges_not_replicated
+--> edges_already_true_rejecting 
+
+```{r}
+
+#selecting the columns we want. 
+small_world <- small_world %>%
+  select(-c(beta1_true, 
+            beta1_estimate,
+            beta1_error,
+            tStatistics,
+            RSQ,
+            ARSQ,
+            AIC,
+            BIC,
+            edges_not_same_global,
+            edges_not_replicated,
+            edges_already_true_rejecting,
+            edges_same_global))
+
+#subsetting 
+small_world <- small_world %>%
+  subset(studies <= 11000)
+
+#checking whether it worked
+small_check <- small_world %>%
+  group_by(replica, sigma, population) %>%
+  summarize(studymax = max(studies))
+  
+#changing column index (hacky but works)
+col_start <- 1:20
+col_end <- 21:41
+col_great <- 42
+
+small_world <- small_world[, c(1:20, 42, 21:41)]
+colnames(small_world)
+
+```
+
+new working directory & writing files.
+
+```{r}
+
+#output directory 
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/ABMdata/ABMcsv")
+
+getwd()
+write.csv(small_world, "small_7_20.csv", row.names = FALSE)
+
+```
+

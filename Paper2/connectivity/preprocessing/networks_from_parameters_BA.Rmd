@@ -1,0 +1,86 @@
+---
+title: "Plotting networks from the parameters"
+author: "Mikkel Werling"
+date: "5/25/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(pacman)
+p_load(tidyverse, igraph, ggraph, wesanderson)
+```
+
+reading all the parameter-files:
+
+```{r}
+
+setwd("C:/Users/victm/Dropbox/CogSci 4/Social and Cultural Dynamics in Cognition/exam/CRUST-1/data/new_data")
+#readRDS
+
+temp = list.files(pattern="*.rds")
+
+#all in one (do it non-manually)
+lattice = lapply(temp[1:72], readRDS)
+small = lapply(temp[73:144], readRDS)
+
+```
+
+getting the adjacency matrix for all the runs in a param:
+
+```{r}
+
+#stikprøve. 
+lat_matrix <- graph_from_adjacency_matrix(lattice[[2]][[2]][[9]], diag = F, mode = "undirected")
+
+#for all conditions in a network and for all replicas
+for (each in 1:72){
+  for(runs in 1:2){
+name <- paste("L", each, runs, sep = "_")
+assign(name, graph_from_adjacency_matrix(lattice[[each]][[runs]][[9]], diag = F, mode = "undirected"))
+  }
+}
+```
+
+plotting the different networks (Lattice)
+
+```{r}
+#plotting requires the type - insert the matrix name at both places
+V(L_9_2)$type <- gsub("\\..*","",V(L_9_2)$name)
+
+p1 <- ggraph(L_9_2, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_arc(position = "jitter") + 
+  geom_node_point(aes(colour = type, size = degree(L_9_2))) + #size according to degree
+  geom_node_text(label = degree(L_9_2))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Lattice")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F) +#plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+  theme_graph()
+
+p1
+```
+
+small world - same story
+
+```{r}
+#temp
+for (each in 1:72){
+  for(runs in 1:2){
+name <- paste("SW", each, runs, sep = "_")
+assign(name, graph_from_adjacency_matrix(small[[each]][[runs]][[9]], diag = F, mode = "undirected"))
+  }
+}
+
+V(SW_9_2)$type <- gsub("\\..*","",V(SW_9_2)$name)
+
+p3 <- ggraph(SW_9_2, layout = "circle", circular= F) + #circular so it fits with the other plots
+  geom_edge_link() + 
+  geom_node_point(aes(colour = type, size = degree(SW_9_2))) + #size according to degree
+  #geom_node_text(label = degree(small_matrix))+ #having each node also have text with their degree
+  labs(x = NULL, y = NULL, title = "Small-world")+ #title and remove axis
+  scale_colour_manual(values = wes_palette(n = 10, name = "Darjeeling1", type = "continuous")) + #colors
+  guides(size = F) + #plotting the network using ggraph. Layout can be altered. Removes the legend for degree. 
+  theme_graph()
+
+p3
+```

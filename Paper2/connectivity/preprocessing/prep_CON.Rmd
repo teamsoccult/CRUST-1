@@ -1,0 +1,1063 @@
+---
+title: "prep_BA_reworkLOOP"
+author: "Victor Møller"
+date: "November 14, 2019"
+output: html_document
+---
+14-09-2019
+This document tests & cleans data from ABM5. 
+It is probably only going to work for test-phase with small
+amounts of data. It takes data from "new_data" folder and outputs to "tests".
+
+```{r}
+
+#packages
+library(pacman)
+p_load(tidyverse, tidyselect, data.table)
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+```
+
+do we have all files.
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#Working directory of RAW data. 
+setwd("E:/data/27-11")
+
+#which files do we have
+files = list.files(pattern=c("*.csv"), full.names=TRUE)
+
+#do we lack anything 
+
+#networks
+identifiers <- c("Small", "Lattice", "TOM", "PT", 
+              "_Mave_", "_Tess_", "_All_", "_Bo_",
+              "_0.2_", "_0.5_", "_0.8_", 
+              "_413_", "_484_",
+              "_2_", "_7_", "_13_",
+              "_COLAB", "_NOLAB")
+
+for (i in identifiers){
+  
+network <- noquote(i)
+
+#quick check: 
+x <- files
+network <- str_detect(files, i)
+subset <- x[network]
+value <- length(unlist(subset))
+print(paste0(value, ": ", i))
+
+}
+
+
+```
+
+
+First chunk is a screening of the data. 
+Does it pass our sanity checks & do we have all cases? 
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#Working directory of RAW data. 
+setwd("D:/data_new1")
+
+#for basic tests
+condition <- list()
+network <- list()
+population <- list()
+sigma <- list()
+true_model <- list()
+replica <- list()
+
+#for other tests 
+studiesMAX <- list()
+studiesMIN <- list()
+
+#the masterlist
+masterlist <- list()
+
+#your files 
+files = list.files(pattern=c("*.csv"), full.names=TRUE)
+
+#running the function
+datacheck <- function(i){
+  
+  for(i in files){
+    
+  #reading data
+  data <- read_csv(i)
+  data <- na.omit(data)
+  data <- tibble::as_tibble(data)
+  
+  #factorizing 
+  data <- data %>%
+  mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         net_size = factor(net_size),
+         true_model = factor(true_model),
+         colab_cond = factor(colab_cond),
+         orig_type = factor(orig_type),
+         strategy = factor(strategy))
+  
+  #basic tests 
+  condition[i] <- paste0(i)
+  network[i] <- levels(data$network)
+  population[i] <- levels(data$population)
+  sigma[i] <- levels(data$sigma)
+  true_model[i] <- levels(data$true_model)
+  replica[i] <- sum(unique(data$replica))
+  
+  #more tests 1: all replicas 10,000. 
+  check <- data %>%
+  group_by(replica, network, population, sigma, true_model,
+          net_size, colab_cond) %>%
+  summarize(stud = max(studies))
+  
+  studiesMAX[i] <- min(check$stud) #10,000
+  studiesMIN[i] <- max(check$stud) #10,000
+  
+  }
+  
+  masterlist <- list(network, population, sigma,
+                     true_model, replica, studiesMAX, studiesMIN)
+  return(masterlist)
+  
+}
+
+test <- datacheck(files)
+
+## taking out parameters 
+network <- unname(unlist(test[[1]]))
+population <- unname(unlist(test[[2]]))
+sigma <- unname(unlist(test[[3]]))
+true_model <- unname(unlist(test[[4]]))
+replica <- unname(unlist(test[[5]]))
+studiesMAX <- unname(unlist(test[[6]]))
+studiesMIN <- unname(unlist(test[[7]]))
+
+#checking
+network
+population
+sigma
+true_model
+replica
+studiesMAX
+studiesMIN
+
+```
+
+write the cleaned files into another directory
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#Working directory of RAW data. 
+setwd("D:/data_new1")
+
+#your files 
+files = list.files(pattern=c("*.csv"), full.names=TRUE)
+
+#the function
+datawrite <- function(i){
+  
+  for(i in files){
+  
+  #where your raw files are:   
+  setwd("D:/data_new1")
+    
+  #reading data:
+  data <- read_csv(i)
+  data <- na.omit(data)
+  data <- tibble::as_tibble(data)
+  
+  #factorizing (might not work anyways): 
+  data <- data %>%
+  mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         net_size = factor(net_size),
+         true_model = factor(true_model),
+         colab_cond = factor(colab_cond),
+         orig_type = factor(orig_type),
+         strategy = factor(strategy))
+  
+  #directory for the files: 
+  setwd("D:/data_prepped1")
+  
+  #write csv:
+  write_csv(data, paste0(i))
+  
+  }
+}
+
+datawrite(files)
+
+
+```
+
+Data preparation for model sampling: 
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern = "*.csv")
+
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+samplingFX <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "strategy",
+            "orig_type", #needed directly
+            "old_model", #needed directly
+            "selected_model") #needed directly 
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(strategy = factor(strategy),
+          orig_type = factor(orig_type),
+          old_model = factor(old_model),
+          selected_model = factor(selected_model))
+    
+    #any sampling of own models? 
+    df_errors <- df %>%
+        filter(strategy != "colab") %>%
+        group_by(orig_type) %>%
+        summarize(count = sum(old_model == selected_model))
+    
+    #sampling distributions 
+    df_sampling <- df %>%
+        filter(strategy == "research") %>%
+        group_by(orig_type, old_model, selected_model) %>%
+        summarize(count = n())
+    
+    datalist1[i] <- list(df_errors)
+    datalist2[i] <- list(df_sampling)
+  }
+    
+  df_errors <- do.call("rbind", datalist1)
+  df_sampling <- do.call("rbind", datalist2)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataSampling")
+  
+  #write csv:
+  write_csv(df_errors, paste0("df_errors", naming_scheme))
+  write_csv(df_sampling, paste0("df_sampling", naming_scheme))
+
+}
+
+#calling the function
+samplingFX(files)
+
+```
+
+data preparation for differential usage of 6th step.
+Mapping where the agents spend their time. 
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+## prep: 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern = "*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+sixthFX <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+                "network",
+                "strategy",
+                "colab_cond",
+                "switch_all",
+                "switch_testing",
+                "orig_agents") 
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(strategy = factor(strategy), 
+           network = factor(network),
+           colab_cond = factor(colab_cond))
+    
+    #overall number of switch_all & switch_testing
+    overall <- df %>%
+      group_by(network, colab_cond) %>%
+      summarise(switch_all = sum(switch_all),
+                switch_testing = sum(switch_testing),
+                orig_agents = sum(orig_agents))
+    
+    #number of switch_all & switch_testing for strategy == colab
+    colab <- df %>%
+    filter(strategy == "colab") %>%
+      group_by(network, colab_cond) %>%
+      summarise(switch_all = sum(switch_all),
+                switch_testing = sum(switch_testing),
+                orig_agents = sum(orig_agents))
+    
+    datalist1[i] <- list(overall)
+    datalist2[i] <- list(colab)
+  }
+    
+  overall <- do.call("rbind", datalist1)
+  colab <- do.call("rbind", datalist2)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataSampling")
+  
+  #write csv:
+  write_csv(overall, paste0("sixth_overall", naming_scheme))
+  write_csv(colab, paste0("sixth_Colab", naming_scheme))
+
+}
+
+#calling the function
+sixthFX(files)
+
+```
+
+
+
+data preparation for "violin_extended_rework" (plot) & RR_CON (outcome)
+Consider including the column with final_global_true_model 
+so that we can group based on whether they sampled the true model. 
+
+```{r}
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory. 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern="*.csv")
+
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+violin_extended_rework <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "turn", 
+            "studies", 
+            "network", 
+            "population", 
+            "sigma",
+            "colab_cond",
+            "net_size",
+            "true_model",
+            "strategy",
+            "switch_rep_study",
+            "switch_rep",
+            "prop_true",
+            "prop_t_mod")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model),
+          strategy = factor(strategy))
+    
+    #create DF. 
+    df_basic <- df %>%
+        group_by(replica, network, population, sigma, true_model,
+          net_size, colab_cond) %>%
+        summarize(RR = sum(switch_rep) / 
+              sum(switch_rep_study)) 
+    
+    #grouping by strategy 
+    df_strat <- df %>%
+        group_by(replica, network, population, sigma, true_model,
+          net_size, colab_cond, strategy) %>%
+        summarize(RR = sum(switch_rep) / 
+              sum(switch_rep_study))
+    
+    datalist1[i] <- list(df_basic)
+    datalist2[i] <- list(df_strat)
+  }
+    
+  df <- do.call("rbind", datalist1)
+  df_strat <- do.call("rbind", datalist2)
+  
+  #directory for the files (plotting)
+  setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
+  
+  #write csv:
+  write_csv(df, paste0("violin_extended", naming_scheme))
+  write_csv(df_strat, paste0("violin_extended_bystrat", naming_scheme))
+  
+  #directory for files (outcome)
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
+  write_csv(df, paste0("RR", naming_scheme))
+
+}
+
+#calling the function
+violin_extended_rework(files)
+
+```
+
+data preparation for "violin_ridges_rework" (plot) & RR_CON (outcome)
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory.
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list
+datalist1 <- list()
+datalist2 <- list()
+datalist3 <- list()
+
+violin_ridges_rework <- function(files){
+ 
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "turn", #need this??
+            "studies", 
+            "network", 
+            "colab_cond",
+            "population", 
+            "sigma",
+            "net_size",
+            "true_model",
+            "strategy",
+            "switch_rep_study",
+            "switch_rep",
+            "prop_true",
+            "prop_t_mod") #importantly. 
+ 
+  for(i in files){
+
+    #read csv
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model),
+          strategy = factor(strategy))
+    
+    #replication rate & TAT overall
+    RR_TAT <- df %>%
+    group_by(replica, network, population, sigma, true_model,
+            net_size, colab_cond) %>%
+    summarize(RR = sum(switch_rep) / sum(switch_rep_study),
+              TAT = mean(prop_true)) 
+
+    #Replication rate true. 
+    RR_TF <- df %>%
+    group_by(prop_t_mod, replica, network, population, sigma, true_model, 
+             net_size, colab_cond) %>%
+    summarize(RR = sum(switch_rep) / sum(switch_rep_study))
+    
+    #grouped by strategy:
+    RR_TF_BYSTRAT <- df %>%
+    group_by(replica, prop_t_mod, network, 
+             population, sigma, true_model, 
+             net_size, colab_cond, strategy) %>%
+    summarize(RR = sum(switch_rep) / sum(switch_rep_study))
+    
+    datalist1[i] <- list(RR_TAT)
+    datalist2[i] <- list(RR_TF)
+    datalist3[i] <- list(RR_TF_BYSTRAT)
+  }
+    
+  RR_TAT <- do.call("rbind", datalist1)
+  RR_TF <- do.call("rbind", datalist2)
+  RR_TF_BYSTRAT <- do.call("rbind", datalist3)
+ 
+  #directory for the files:
+  setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
+ 
+  #write csv:
+  write_csv(RR_TAT, paste0("violin_ridges_RR", naming_scheme))
+  write_csv(RR_TF, paste0("violin_ridges_TF", naming_scheme))
+  write_csv(RR_TF_BYSTRAT, paste0("violin_ridges_BYSTRAT", naming_scheme))
+  
+  #directory for files (outcome)
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
+  write_csv(RR_TF, paste0("RR_TF", naming_scheme))
+
+}
+
+#calling the function
+violin_ridges_rework(files)
+
+```
+
+true_false plot - only true:
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory. 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist <- list()
+
+true_false_rework <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("population", 
+            "sigma",
+            "true_model",
+            "studies",
+            "network",
+            "net_size",
+            "replica",
+            "colab_cond",
+            "prop_true")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #downsampling
+    df <- df[seq(1, nrow(df), 50), ]
+    
+    
+    #melting the variables
+    naming <- colnames(df)
+    
+    #data
+    df <- df %>%
+    melt(id = c(naming[1:8])) %>% 
+    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% 
+    mutate(variable = relevel(variable, ref = "prop_true")) %>% 
+    mutate(variable = fct_rev(variable)) 
+    
+    datalist[i] <- list(df)
+  }
+    
+  df_final <- do.call("rbind", datalist)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
+  
+  #write csv:
+  write_csv(df_final, paste0("TF_only_true", 
+                             naming_scheme))
+}
+
+#calling the function
+true_false_rework(files)
+
+```
+
+true_false with false 
+
+NOTE: Implementing a paste0 approach. Splits up the different networks and writes the files. 
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory. 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+
+#initializing empty list 
+datalist <- list()
+
+true_false_CON <- function(files, identifier){
+
+  #selecting cols (check )
+    mycols <- c("population", 
+            "sigma",
+            "true_model",
+            "studies",
+            "network",
+            "net_size",
+            "replica",
+            "colab_cond",
+            "prop_1",
+            "prop_2",
+            "prop_3",
+            "prop_4",
+            "prop_5",
+            "prop_6",
+            "prop_7",
+            "prop_8",
+            "prop_9",
+            "prop_10",
+            "prop_11",
+            "prop_12",
+            "prop_13",
+            "prop_14",
+            "prop_true")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #downsampling
+    df <- df[seq(1, nrow(df), 50), ]
+    
+    
+    #melting the variables
+    naming <- colnames(df)
+    df <- df %>%
+    melt(id = c(naming[1:8])) %>%
+    mutate(true = ifelse(variable == "prop_true", "True", "False")) %>% 
+    mutate(variable = relevel(variable, ref = "prop_true")) %>% 
+    mutate(variable = fct_rev(variable)) 
+    
+    datalist[i] <- list(df)
+  }
+    
+  df_final <- do.call("rbind", datalist)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataPlotting")
+  
+  #write csv:
+  write_csv(df_final, paste0(identifier, "_true_false_CON",
+                             naming_scheme))
+
+}
+
+#WHAT NETWORKS ARE YOU SUBSETTING:
+subset_variables <- c("Lattice", "Small", "PT", "TOM")
+
+for (i in subset_variables){
+  
+  #update working directory 
+  setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+  path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+  
+  files <- list.files(path = path, pattern=paste0("^", i, ".*.csv"))
+  
+  true_false_CON(files, i)
+}
+
+
+```
+
+
+###OUTCOME MEASURES:
+____________________
+Data prep for "Stickiness":
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory. 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist <- list()
+
+stickiness_rework <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+                "network", 
+                "population", 
+                "sigma",
+                "true_model",
+                "net_size", #maybe relevant.
+                "colab_cond",
+                "prop_t_mod", #proposed true? (1 = yes, 0 = no). 
+                "init_g_true", #count of true orig. (testing) agents.
+                "final_g_true", #count of post stud. (testing) agents. 
+                "switch_true",
+                "switch_true_changing")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #create DF
+    df <- df %>%
+      filter(prop_t_mod == 0) %>%
+      group_by(replica, sigma, population, network, true_model,
+           net_size, colab_cond) %>%
+      summarize(agent_away = sum(as.numeric(init_g_true == 1 & 
+                                        final_g_true == 0)),
+            agent_total = sum(as.numeric(init_g_true == 1)),
+            switch_away = sum(switch_true_changing),
+            switch_total = sum(switch_true),
+            stickiness_agent = 1 - (agent_away / agent_total),
+            stickiness_switch = 1 - (switch_away / switch_total),
+            lose_global = agent_away + switch_away,
+            all_global = agent_total + switch_total,
+            stickiness_overall = 1 - (lose_global / all_global)) %>%
+      select(-c(lose_global, all_global, agent_away, agent_total,
+                switch_away, switch_total))
+    
+    datalist[i] <- list(df)
+  }
+    
+  df_final <- do.call("rbind", datalist)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
+  
+  #write csv:
+  write_csv(df_final, paste0("stickiness",
+                             naming_scheme))
+
+}
+
+#calling the function
+stickiness_rework(files)
+```
+
+Data prep for TAT & TAT50 
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory. 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+TAT50 <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+                "network", 
+                "population", 
+                "sigma",
+                "net_size",
+                "colab_cond",
+                "true_model",
+                "prop_true")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #TAT PER REPLICA
+    TAT <- df %>%  
+      group_by(replica, network, population, true_model,
+               sigma, net_size, colab_cond) %>%
+      summarise(TAT = mean(prop_true))
+    
+    TAT50 <- df %>%
+      mutate(TAT_50 = ifelse(prop_true >= 0.5, 1, 0)) %>%
+      group_by(replica, network, population, true_model,
+               sigma, net_size, colab_cond) %>%
+      summarise(TAT50 = mean(TAT_50)) 
+    
+    datalist1[i] <- list(TAT)
+    datalist2[i] <- list(TAT50)
+  }
+    
+  TAT <- do.call("rbind", datalist1)
+  TAT50 <- do.call("rbind", datalist2)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
+  
+  #write csv:
+  write_csv(TAT, paste0("TAT", naming_scheme))
+  write_csv(TAT50, paste0("TAT50", naming_scheme))
+
+}
+
+#calling the function
+TAT50(files)
+
+```
+
+Data prep for TAT_C_rework.Rmd
+
+```{r}
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory. 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+datalist2 <- list()
+
+TATC <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("replica", 
+            "colab_cond",
+            "network", 
+            "population", 
+            "sigma",
+            "net_size",
+            "true_model",
+            "prop_1",
+            "prop_2",
+            "prop_3",
+            "prop_4",
+            "prop_5",
+            "prop_6",
+            "prop_7",
+            "prop_8",
+            "prop_9",
+            "prop_10",
+            "prop_11",
+            "prop_12",
+            "prop_13",
+            "prop_14",
+            "prop_true")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #IF STATEMENT, mutating max prop column..
+    if(levels(df$true_model) == "2"){
+      
+    df$maxprop = names(df[,c(8, 10:22)])[apply(df[,c(8, 10:22)], 
+                                                   1, which.max)]
+      
+    } else if(levels(df$true_model) == "7"){
+      
+    
+    df$maxprop = names(df[,c(8:13, 15:22)])[apply(df[,c(8:13, 15:22)], 
+                                                  1, which.max)]
+      
+    } else if(levels(df$true_model) == "13"){
+      
+    df$maxprop = names(df[,c(8:19, 21:22)])[apply(df[,c(8:19, 21:22)], 
+                                                    1, which.max)]
+    
+    }
+    
+    #mutating 1 for TAT_c & 0 for not TAT_c
+    df <- df %>%
+      mutate(TAT_C = ifelse(maxprop == "prop_true", 1, 0))
+    
+    #per replica
+    TAT_C <- df %>%
+      group_by(replica, network, population, sigma, net_size, 
+               colab_cond, true_model) %>%
+      summarise(TAT_C = round(mean(TAT_C),2)) 
+    
+    #putting into lists
+    datalist1[i] <- list(TAT_C)
+    
+  }
+    
+  TAT_C <- do.call("rbind", datalist1)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
+  
+  #write csv:
+  write_csv(TAT_C, paste0("TATC", naming_scheme))
+
+}
+
+#calling the function
+TATC(files)
+
+```
+
+First passage (true accept): 
+
+```{r}
+library(tidyverse)
+
+#Naming scheme:
+naming_scheme <- "_MetascienceBA.csv"
+
+#working directory. 
+setwd("D:/data/MetaScience_BA_FINAL/prepped_13-12-2019")
+path = "D:/data/MetaScience_BA_FINAL/prepped_13-12-2019"
+files <- list.files(path = path, pattern="*.csv")
+
+#initializing empty list 
+datalist1 <- list()
+
+FPTT <- function(files){
+  
+  #selecting cols (check )
+    mycols <- c("turn",
+            "studies",
+            "replica", 
+            "network", 
+            "population", 
+            "sigma",
+            "true_model",
+            "net_size",
+            "colab_cond",
+            "prop_t_mod",
+            "init_g_true",
+            "final_g_true",
+            "orig_agents",
+            "switch_testing")
+  
+  for(i in files){
+
+    #read csv 
+    df <- read_csv(i)[mycols]
+    
+    #as factor
+    df <- df %>%
+    mutate(network = factor(network),
+          population = factor(population),
+          sigma = factor(sigma),
+          colab_cond = factor(colab_cond),
+          net_size = factor(net_size),
+          true_model = factor(true_model))
+    
+    #TAT PER REPLICA
+    df <- df %>%
+        group_by(replica, population, network, sigma, true_model, net_size, 
+           colab_cond) %>% 
+        summarize(first_row = min(which(final_g_true > init_g_true)),
+            first_study = studies[first_row],
+            orig_agents = orig_agents[first_row],
+            switch_testing = switch_testing[first_row],
+            extra_agents = orig_agents - 1,
+            FPTT = first_study - ((extra_agents / 2) + switch_testing)) %>%
+      select(-c(first_row, first_study, orig_agents, 
+                switch_testing, extra_agents))
+    
+    datalist1[i] <- list(df)
+  }
+    
+  FPTT <- do.call("rbind", datalist1)
+  
+  #directory for the files: 
+  setwd("D:/data/MetaScience_BA_FINAL/dataOutcomeMeasures")
+  
+  #write csv:
+  write_csv(FPTT, paste0("FPTT", naming_scheme))
+
+}
+
+#calling the function
+FPTT(files)
+
+```
+

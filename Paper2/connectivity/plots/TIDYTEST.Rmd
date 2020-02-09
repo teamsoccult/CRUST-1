@@ -1,0 +1,438 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "November 7, 2019"
+output: html_document
+---
+
+Using R for functions:
+https://dplyr.tidyverse.org/articles/programming.html
+
+1. Tidyverse is not referentially transparent
+
+```{r}
+library(tidyverse)
+
+# works
+df <- tibble(x = 1:3, y = 3:1)
+filter(df, x == 1)
+
+# does not work 
+my_var <- x
+filter(df, my_var == 1)
+
+# does not work
+my_var <- "x"
+filter(df, my_var == 1)
+
+```
+
+2. other domains / strings
+
+```{r}
+
+# does not work 
+greet <- function(name) {
+  "How do you do, name?"
+}
+greet("Hadley")
+
+# does work 
+greet <- function(name) {
+  paste0("How do you do, ", name, "?")
+}
+greet("Hadley")
+
+# does work
+greet <- function(name) {
+  glue::glue("How do you do, {name}?")
+}
+greet("Hadley")
+
+```
+
+3. repeated code 
+
+```{r}
+
+mutate(df1, y = a + x)
+mutate(df2, y = a + x)
+mutate(df3, y = a + x)
+mutate(df4, y = a + x)
+
+mutate_y <- function(df){
+  mutate(df, y = a + x)
+}
+
+mutate_y(df1, df2, df3, df4)
+
+# the issue - variables in global env. & not in local
+df1 <- tibble(x = 1:3)
+a <- 10
+mutate_y(df1)
+
+# a fix - gives the error if it occurs 
+mutate_y <- function(df) {
+  mutate(df, y = .data$a + .data$x)
+}
+
+mutate_y(df1)
+
+```
+
+4. different expressions.
+The issue: dplyr automatically quotes input variables (like: y).
+
+```{r}
+
+# making a tibble
+df <- tibble(
+  g1 = c(1, 1, 2, 2, 2),
+  g2 = c(1, 2, 1, 2, 1),
+  a = sample(5),
+  b = sample(5)
+)
+
+# what we want to automize
+df %>%
+  group_by(g1) %>%
+  summarise(a = mean(a))
+
+# what we want to automize
+df %>%
+  group_by(g2) %>%
+  summarise(a = mean(a))
+
+# does not work 
+my_summarise <- function(df, group_var) {
+  df %>%
+    group_by(group_var) %>%
+    summarise(a = mean(a))
+}
+
+my_summarise(df, g1)
+my_summarise(df, "g2")
+
+#notice that group var is in quotation for both cases. 
+```
+
+5. quo()
+quo() returns a quosure. 
+!! unquotes (so that group_by does not do it).
+
+```{r}
+
+#how it works 
+quo(g1)
+quo(a + b + c)
+quo("a")
+
+# using it (still same error)
+my_summarise(df, quo(g1))
+
+# working function
+my_summarise <- function(df, group_var) {
+  df %>%
+    group_by(!! group_var) %>%
+    summarise(a = mean(a))
+}
+
+my_summarise(df, quo(g1))
+
+```
+
+6. making it smooth. 
+The function does not understand that we are giving it an argument
+which does not refer to any object (in global env.)
+
+```{r}
+
+# wrong solution
+my_summarise <- function(df, group_var) {
+  quo_group_var <- quo(group_var)
+  print(quo_group_var)
+
+  df %>%
+    group_by(!! quo_group_var) %>%
+    summarise(a = mean(a))
+}
+
+my_summarise(df, g1) # 'group_var' again. 
+#quo() is being too literal (it returns what is there, not the sup. var.)
+
+```
+
+7. enquo() takes what is typed and returns quosure. 
+This works as we 
+(1) we enquo() and thus get the quosure.
+(2) we use !! to unquote that quosure. 
+
+```{r}
+
+my_summarise <- function(df, group_var) {
+  group_var <- enquo(group_var)
+  print(group_var)
+
+  df %>%
+    group_by(!! group_var) %>%
+    summarise(a = mean(a))
+}
+
+my_summarise(df, g1)
+
+```
+
+8. Different grouping variables 
+
+```{r}
+#what we want 
+summarise(df, mean = mean(a), sum = sum(a), n = n())
+summarise(df, mean = mean(a * b), sum = sum(a * b), n = n())
+
+#testing approaches (quo, works). 
+my_var <- quo(a)
+summarise(df, mean = mean(!! my_var), sum = sum(!! my_var), n = n())
+
+#tool for debugging (how does dplyr understand the code)
+quo(summarise(df,
+  mean = mean(!! my_var),
+  sum = sum(!! my_var),
+  n = n()
+))
+
+#functions with enquo
+my_summarise2 <- function(df, expr) {
+  expr <- enquo(expr) #as we don't want ^expr but whatever we input. 
+
+  summarise(df,
+    mean = mean(!! expr),
+    sum = sum(!! expr),
+    n = n()
+  )
+}
+my_summarise2(df, a)
+my_summarise2(df, a * b)
+
+```
+
+9. Different input & output variables. 
+quo_name() convers to a string
+
+```{r}
+
+#what we want
+mutate(df, mean_a = mean(a), sum_a = sum(a))
+mutate(df, mean_b = mean(b), sum_b = sum(b))
+
+#how we do it
+my_mutate <- function(df, expr) {
+  expr <- enquo(expr) #into quosure. 
+  mean_name <- paste0("mean_", quo_name(expr)) #quo_name() into str. 
+  sum_name <- paste0("sum_", quo_name(expr))
+
+  mutate(df,
+    !! mean_name := mean(!! expr), #out of quosure (unquote). 
+    !! sum_name := sum(!! expr) #out of quosure (unquote).
+  )
+}
+
+my_mutate(df, a)
+
+#how I would do it (which does not work, not with := either). 
+my_mutate <- function(df, expr) {
+  expr <- enquo(expr) #into quosure. 
+  mean_name <- paste0("mean_", quo_name(expr)) #quo_name() into str. 
+  sum_name <- paste0("sum_", quo_name(expr))
+
+  obj <- df %>%
+    mutate(!! mean_name <- mean(!! expr), #out of quosure (unquote). 
+           !! sum_name <- sum(!! expr)) #out of quosure (unquote).
+}
+
+my_mutate(df, a)
+
+```
+
+10. multiple variables
+enquos() captures all elements. 
+!!! splices all arguments in. 
+
+```{r}
+
+my_summarise <- function(df, ...) {
+  group_var <- enquos(...)
+
+  df %>%
+    group_by(!!! group_var) %>%
+    summarise(a = mean(a))
+}
+
+my_summarise(df, g1, g2)
+
+# another !!! example
+args <- list(na.rm = TRUE, trim = 0.25)
+quo(mean(x, !!! args))
+
+args <- list(quo(x), na.rm = TRUE, trim = 0.25)
+quo(mean(!!! args))
+```
+
+11. quoting 
+
+```{r}
+
+disp ~ cyl + drat
+
+#comp. value of expression
+toupper(letters[1:5])
+
+#returning expression
+quote(toupper(letters[1:5]))
+
+```
+
+12. variables that look the same are different.
+
+```{r}
+
+f <- function(x) {
+  quo(x)
+}
+
+x1 <- f(10)
+x2 <- f(100)
+
+#expr: same, env: different
+x1
+x2
+
+#a nice package
+library(rlang)
+
+get_env(x1)
+get_env(x2)
+
+eval_tidy(x1)
+eval_tidy(x2)
+
+#why is this relevant?
+user_var <- 1000
+mtcars %>% summarise(cyl = mean(cyl) * user_var)
+
+```
+
+13. unquoting
+
+```{r}
+
+#capturing the expression
+quo(toupper(letters[1:5]))
+
+#capturing the value
+quo(toupper(!! letters[1:5]))
+quo(toupper(UQ(letters[1:5])))
+
+#first specifying as var & then using stuff. 
+var1 <- quo(letters[1:5])
+quo(toupper(!! var1))
+
+
+```
+
+14. another way of structuring it.
+
+```{r}
+#making the function
+my_mutate <- function(x) {
+  mtcars %>%
+    select(cyl) %>%
+    slice(1:4) %>%
+    mutate(cyl2 = cyl + (!! x))
+}
+
+#a new function which unquotes
+f <- function(x) quo(x)
+
+#generating unquoted expressions
+expr1 <- f(100)
+expr2 <- f(10)
+
+my_mutate(expr1)
+my_mutate(expr2) #the value is in the env. 
+
+```
+
+15. using UQ() instead of !!
+
+```{r}
+# the issue
+my_fun <- quo(fun)
+quo(!! my_fun(x, y, z))
+
+# the solution
+quo(UQ(my_fun)(x, y, z))
+
+# where !! and UQ() are the same
+my_var <- quo(x)
+quo(filter(df, !! my_var == 1))
+quo(filter(df, UQ(my_var) == 1))
+
+
+```
+
+16. unquote splicing 
+
+```{r}
+
+#splicing
+quo(list(!!! letters[1:5]))
+
+#vector and arg. names
+x <- list(foo = 1L, bar = quo(baz))
+quo(list(!!! x))
+
+#args. 
+args <- list(mean = quo(mean(cyl)), count = quo(n()))
+
+#smooth..
+mtcars %>%
+  group_by(am) %>%
+  summarise(!!! args)
+
+```
+
+:= operator (supports unquoting)
+
+```{r}
+mean_nm <- "mean"
+count_nm <- "count"
+
+mtcars %>%
+  group_by(am) %>%
+  summarise(
+    !! mean_nm := mean(cyl),
+    !! count_nm := n()
+  )
+```
+
+
+```{r setup, include=FALSE}
+
+install.packages("rlang")
+library(rlang)
+#what to group by: 
+RR_TAT_FUN <- function(melted_frame, group_var){
+
+  df <- enquo(melted_frame)
+  group_var <- enquo(group_var)
+  print(group_var)
+  print(df)
+  df2 := !! df
+  print(df2)
+
+}
+
+RR_TAT_FUN(melt_RR_TAT, Sigma)
+
+
+```

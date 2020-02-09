@@ -1,0 +1,173 @@
+---
+title: "collaborative"
+author: "Victor Møller"
+date: "25 sep 2019"
+output: html_document
+---
+
+specific prep for this. 
+
+```{r}
+net_type <- "Lattice"
+sigma <- 0.2 #0.2 & 0.8 deleted. 
+sampleSize <- 20 #20 deleted. 
+pop_type <- "Bo"
+tMod <- 2
+modelCompare <- BIC
+```
+
+```{r setup, include=FALSE}
+
+parameters <- list()
+  
+#Has to be done to run all true models in one go. 
+trueModel <- some_models[tMod] #tMod er en liste med 2, 7, 13. 
+tModel <- strToModel(trueModel, k) #conversion. 
+  
+    
+## Select randomly Global Model and previous Global Model
+# Sampling / randomizing stuff. 
+
+g <- sample_smallworld(1, 100, 2, 0.05)
+V(g)$type <- sample(c("Bo", "Mave", "Tess"))
+
+# Sampling agents 
+V(g)$type <- sample(V(g)$type)
+V(g)$name <- make.unique(V(g)$type) 
+V(g)$model <- sample(some_models)
+V(g)$model <- sample(V(g)$model)
+matrix_g <- as_adjacency_matrix(g, sparse = F) 
+agentTurn <- sample(V(g)$name, size = 11000, replace = T) 
+    
+## Generate Xset and deterministic value of the linear regression
+#trueModel <- some_models[replica]
+#tModel <- strToModel(trueModel, k)
+Xset <- generateXSet(sampleSize, k, correlation)
+tModelBetas <- getBetas(tModel, weights, sigma)
+deterministic <- calculateDet(tModel, Xset, weights, tModelBetas)
+#######################
+## OUTPUT PARAMETERS
+#######################
+output <- matrix(data=NA, nrow=turns, ncol=O_NUM_FIELDS)
+
+#######################
+## SIMULATION EXECUTION
+#######################
+turn <- 1 
+study <- 0
+    
+
+      
+## initialize parameters 
+edges_testing <- 0 
+edges_changing <- 0 
+edges_already_true <- 0 
+edges_already_true_changing <- 0 
+edges_already_true_rejecting <- 0 
+edges_replication_study <- 0 
+edges_replicated <- 0 
+edges_not_replicated <- 0
+edges_total <- NULL 
+edges_not_same_global <- NULL #we have this twice.  
+edges_same_global <- NULL #we have this twice. 
+      
+## Select the token of agent
+agentToken <- agentTurn[turn] 
+
+## Agents 
+agentIndex <- which((V(g)$name) == agentToken)
+
+## model & in format
+gModel <- strToModel(V(g)$model[agentIndex], k) #local model
+
+
+```
+
+collaborative
+
+```{r}
+
+### Collaborative science ? ###
+
+strategy <- sample(c('collaborative', 'undecided'), size = 1, prob = c(.02, .88))
+      
+## Makes a list of the agents indexes ##
+if(strategy == 'collaborative'){
+  agents_testing <- names(which(matrix_g[, agentIndex] == 1))
+  
+  #have to create a list, NB. this overwrites the original agentIndex. 
+  agentIndex <- list() 
+  prop_m <- list()
+  
+  for(i in agents_testing){
+  agentIndex[i] <- which((V(g)$name) == i)
+  }
+  } else if(strategy != 'collaborative'){
+    agentIndex <- agentIndex 
+  }
+
+## The usual code adjusted ##
+
+for(i in agentIndex){ 
+  edges_legible <- list() #needs to be reset here. 
+  edges_total <- list() #make it empty for every i. 
+  edges_total <- names(which(matrix_g[, i] == 1)) #all edges from i (agent) on turn.
+
+
+## Above should work now ##
+  
+## continuing ##
+  for(j in edges_total){ #looping over those edges. 
+
+          #token for the i'th edge.  
+    edgeToken <- j #should be edgeToken, not agentToken (as before)
+    
+    #index for the i'th edge
+    edge_agentIndex <- which((V(g)$name) == edgeToken)
+    
+    #checking their model against agent on turn. 
+    #if same then nothing happens. 
+    #if not the same then their token is put into edges_legible
+    if(identical(gModel, strToModel(V(g)$model[edge_agentIndex],k))){
+    } else {  
+      edges_legible[j] <- edgeToken
+    }
+  }
+        #determining reserach strategy. 
+        if(length(edges_legible) == 0){ #if no edges in the list then strat. must be research. 
+          strategy <- 'research'
+        } else { #if there are edges in the list, then research strat. is probabilistic. 
+          strategy <- sample(c('research', 'neighbor'), size = 1, prob = c(.50, .50))
+        }
+        
+        #what happens on RESEARCH (the old system copied)
+        if(strategy == "research"){ 
+          if(V(g)$type[i] == "Tess"){ 
+            smodel <- modelSimilarByTerm(gModel, models, mode="random",
+                                        modelSelection=modelSelection)
+            
+            prop_m[w] <- modelToStr(smodel)
+            ## Mave
+          } else if(V(g)$type[i] == "Mave"){
+            smodel <- models[[as.integer(runif(1, min=1,max=length(models)+1))]]
+            prop_m[w] <- modelToStr(smodel)
+            
+            ## Bo 
+          } else if(V(g)$type[i] == "Bo"){
+            smodel <- modelSimilarByInteraction(gModel, models, mode="random",
+                                               modelSelection=modelSelection)
+            prop_m[w] <- modelToStr(smodel)
+          }
+          
+        } else { #what happens on NEIGHBOR (could be else if, but it has to be if not research)
+          chosen_edge <- sample(edges_legible, size = 1) #sampling just 1 from the list. 
+          edge_agentIndex <- which((V(g)$name) == chosen_edge) #finding index.
+          smodel <- strToModel(V(g)$model[edge_agentIndex],k) #finding model.
+          prop_m[w] <- modelToStr(smodel)
+        }
+  }
+
+        
+
+```
+

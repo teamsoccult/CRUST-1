@@ -1,0 +1,113 @@
+---
+title: "screening_BA"
+author: "Victor Møller"
+date: "17 sep 2019"
+output: html_document
+---
+
+17-09-2019
+Adapted from "true_false" Rmd to accomodate new data format. 
+This document is designed to do qualitative tests / screening of data.
+It is also designed to find interesting replicas so that RDS/networks
+can be checked. 
+
+```{r}
+library(pacman)
+
+p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permute, matrixStats, MCMCpack, tidyverse, ggunchained, tidyselect)
+
+setwd("E:/data/dataPlotting")
+
+```
+
+
+```{r}
+
+
+Lattice <- read_csv("Lattice_true_false_CON_MetascienceBA.csv")
+Small <- read_csv("Small_true_false_CON_MetascienceBA.csv")
+
+mycols <- c("population", 
+            "sigma",
+            "true_model",
+            "studies",
+            "sample_size",
+            "network",
+            "replica",
+            "proportion_1",
+            "proportion_2",
+            "proportion_3",
+            "proportion_4",
+            "proportion_5",
+            "proportion_6",
+            "proportion_7",
+            "proportion_8",
+            "proportion_9",
+            "proportion_10",
+            "proportion_11",
+            "proportion_12",
+            "proportion_13",
+            "proportion_14",
+            "proportion_true")
+
+df_new <- df_new %>%
+  dplyr::select(one_of(mycols)) 
+
+
+#downsampling
+df_new <- df_new[seq(1, nrow(df_new), 30), ]
+
+
+```
+
+Melting for plotting
+
+```{r}
+naming <- colnames(df_new)
+
+melt_new <- df_new %>%
+  melt(id = c(naming[1:7])) %>% #melting with proportions becoming variable and their values becoming values
+  mutate(true_model = as.factor(true_model)) %>%
+  mutate(true = ifelse(variable == "proportion_true", "True", "False")) %>% #making a identifying column in order to color for the plot
+  mutate(variable = relevel(variable, ref = "proportion_true")) %>% #releveling so that proportion true is considered first
+  mutate(variable = fct_rev(variable)) #releveling so that proportion true is considered last - this is done in order to make it the top layer in the overlay between different smooths.
+
+```
+
+Plotting 
+```{r}
+#what you want to plot
+sigma_p <- 0.5
+population_p <- "Bo"
+true_model_p <- 7
+sample_size_p <- 100
+
+
+g1 <- melt_new %>%
+  filter(sigma == sigma_p, population == population_p, true_model == true_model_p, sample_size == sample_size_p) %>%
+  ggplot(aes(studies, value, color = true))+
+  geom_point(alpha = 0.1) +
+  geom_smooth(method = "loess", se = F, alpha = 0.1, size = 1.2, aes(labels = variable)) +
+  geom_hline(aes(yintercept = 0.5), color = "red", linetype = "dotted", size = 1) + 
+  labs(x = "Studies", y = "Proportion", color = "Proportion of different models", 
+       title = "Proportion of agents at the true model",
+       subtitle = paste("Population:", population_p, "|", "Sigma:", sigma_p, "|", "True Model:", true_model_p)) +
+  theme_janco_point() +
+  facet_wrap(~network)
+
+g1
+
+```
+
+Diagnostics
+
+```{r}
+Bo_subset <- df_new %>%
+  filter(population == "Bo", sigma == 0.5, true_model == 7, network == "Lattice") %>%
+  group_by(replica) %>%
+  summarize(proportion = mean(proportion_true))
+
+#replica 2 (very good), replica 3 (very bad). 
+
+```
+

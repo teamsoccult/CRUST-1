@@ -1,0 +1,49 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "December 15, 2019"
+output: html_document
+---
+
+```{r}
+
+#packages
+library(pacman)
+p_load(tidyverse, tidyselect)
+
+
+```
+
+reading data 
+
+```{r}
+
+#working directory:
+setwd("D:/data/MetaScience_BA_FINAL/dataSampling")
+
+#reading data:
+overall <- read_csv("sixth_overall_MetascienceBA.csv")
+colab <- read_csv("sixth_Colab_MetascienceBA.csv") %>%
+  drop_na()
+
+```
+
+
+```{r}
+
+## overall 
+test <- overall %>%
+  dplyr::select(-switch_all) %>%
+  group_by(network, colab_cond) %>%
+  summarise(testing_sixth = sum(switch_testing),
+            original = sum(orig_agents),
+            testing_prop = sum(switch_testing)/sum(orig_agents))
+
+## colab
+colab <- colab %>%
+  group_by(network) %>%
+  summarise(all_sixth = sum(switch_all),
+            testing_sixth = sum(switch_testing))
+
+```
+

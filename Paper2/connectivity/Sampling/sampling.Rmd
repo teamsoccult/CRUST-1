@@ -1,0 +1,48 @@
+---
+title: "Untitled"
+author: "Victor Møller"
+date: "December 2, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+#working directory 
+setwd("~/CRUST-1/MetascienceBA/data/dataSampling")
+
+#errors
+errors <- read_csv("df_errors_MetascienceBA.csv")
+sampling <- read_csv("df_sampling_MetascienceBA.csv")
+
+```
+
+Errors
+
+```{r}
+
+#should be 0
+summary(errors$count)
+
+```
+
+Sampling distribution
+
+```{r}
+
+#overall 
+sampling_dist <- sampling %>%
+  group_by(orig_type, old_model, selected_model) %>%
+  summarize(count = sum(count))
+
+#by populations
+sampling_bo <- sampling_dist %>%
+  filter(orig_type == "Bo")
+
+sampling_mave <- sampling_dist %>%
+  filter(orig_type == "Mave")
+
+sampling_tess <- sampling_dist %>%
+  filter(orig_type == "Tess")
+
+```
+

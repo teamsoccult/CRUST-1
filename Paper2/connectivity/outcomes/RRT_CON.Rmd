@@ -1,0 +1,168 @@
+---
+title: "RRT_CON"
+author: "Victor Møller"
+date: "December 6, 2019"
+output: html_document
+---
+
+Updated 6-12-2019
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#set working directory
+setwd("~/CRUST-1/MetascienceBA/data/outcome_measures")
+
+#packages 
+library(pacman)
+p_load(tidyverse, ggunchained, rlang) 
+```
+
+loading data. 
+
+```{r}
+
+RRT <- read_csv("RR_TF_MetascienceBA.csv")
+
+#as factor
+factorize <- function(dataframe){
+  df <- dataframe %>%
+    filter(prop_t_mod == 1) %>%
+    mutate(network = factor(network),
+         population = factor(population),
+         sigma = factor(sigma),
+         colab_cond = factor(colab_cond),
+         net_size = factor(net_size),
+         true_model = factor(true_model),
+         RRT = RR) %>%
+      dplyr::select(-c(prop_t_mod, RR))
+  
+  return(df)
+}
+
+RRT <- factorize(RRT)
+
+```
+
+Subsets
+
+```{r}
+
+#those where we group over three IDs. 
+group3 <- function(.df, .net, .size, .colab){
+  
+  net <- enquo(.net)
+  size <- enquo(.size)
+  colab <- enquo(.colab)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net),
+           net_size == UQ(size),
+           colab_cond == UQ(colab))
+ 
+  return(dataframe) 
+}
+
+RRT_LATTICE_413_NOLAB <- group3(RRT, "Lattice", 413, "NOLAB")
+RRT_SMALL_413_NOLAB <- group3(RRT, "Small", 413, "NOLAB")
+RRT_LATTICE_484_NOLAB <- group3(RRT, "Lattice", 484, "NOLAB")
+RRT_SMALL_484_NOLAB <- group3(RRT, "Small", 484, "NOLAB")
+
+#those where we group over two IDs. 
+group2 <- function(.df, .net, .colab){
+  
+  net <- enquo(.net)
+  colab <- enquo(.colab)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net),
+           colab_cond == UQ(colab))
+ 
+  return(dataframe) 
+}
+
+RRT_LATTICE_NOLAB <- group2(RRT, "Lattice", "NOLAB")
+RRT_SMALL_NOLAB <- group2(RRT, "Small", "NOLAB")
+RRT_LATTICE_COLAB <- group2(RRT, "Lattice", "COLAB")
+RRT_SMALL_COLAB <- group2(RRT, "Small", "COLAB")
+RRT_TOM_COLAB <- group2(RRT, "TOM", "COLAB")
+RRT_PT_COLAB <- group2(RRT, "PT", "COLAB")
+
+#those where we group over one ID.  
+group1 <- function(.df, .net1, .net2){
+  
+  net1 <- enquo(.net1)
+  net2 <- enquo(.net2)
+  
+  dataframe <- .df %>%
+    filter(network == UQ(net1) | network == UQ(net2))
+ 
+  return(dataframe) 
+}
+
+RRT_CITATION_COLAB <- group1(RRT, "TOM", "PT")
+
+```
+
+```{r}
+
+RRT_FUN <- function(.dataframe, .var1){
+  
+  var1 <- enquo(.var1)
+  
+  df <- .dataframe %>%
+  group_by(UQ(var1)) %>%
+  summarize(RRT_mean = mean(RRT, na.rm = TRUE),
+            RRT_median = median(RRT, na.rm = TRUE),
+            RRT_IQR = IQR(RRT, na.rm = TRUE),
+            RRT_SD = sd(RRT, na.rm = TRUE))
+  
+  return(df)
+  
+}
+
+#Do it for all 11 dataframes. 
+RRT_LATTICE_413_NOLAB <- RRT_FUN(RRT_LATTICE_413_NOLAB, population)
+RRT_SMALL_413_NOLAB <- RRT_FUN(RRT_SMALL_413_NOLAB, population)
+RRT_LATTICE_484_NOLAB <- RRT_FUN(RRT_LATTICE_484_NOLAB, population)
+RRT_SMALL_484_NOLAB <- RRT_FUN(RRT_SMALL_484_NOLAB, population)
+RRT_LATTICE_NOLAB <- RRT_FUN(RRT_LATTICE_NOLAB, population)
+RRT_SMALL_NOLAB <- RRT_FUN(RRT_SMALL_NOLAB, population)
+RRT_LATTICE_COLAB <- RRT_FUN(RRT_LATTICE_COLAB, population)
+RRT_SMALL_COLAB <- RRT_FUN(RRT_SMALL_COLAB, population)
+RRT_TOM_COLAB <- RRT_FUN(RRT_TOM_COLAB, population)
+RRT_PT_COLAB <- RRT_FUN(RRT_PT_COLAB, population)
+RRT_CITATION_COLAB <- RRT_FUN(RRT_CITATION_COLAB, population)
+
+rm(RRT, RRT_FUN, group1, group2, group3)
+```
+
+write csv 
+
+```{r}
+
+setwd("~/CRUST-1/MetascienceBA/data/outcome_tables")
+
+writeFUN <- function(df){
+  
+  df_name <- deparse(substitute(df))
+  write_csv(df, paste0(df_name, ".csv"))
+  
+}
+
+writeFUN(RRT_LATTICE_413_NOLAB)
+writeFUN(RRT_SMALL_413_NOLAB)
+writeFUN(RRT_LATTICE_484_NOLAB)
+writeFUN(RRT_SMALL_484_NOLAB)
+writeFUN(RRT_LATTICE_NOLAB)
+writeFUN(RRT_SMALL_NOLAB)
+writeFUN(RRT_LATTICE_COLAB)
+writeFUN(RRT_SMALL_COLAB)
+writeFUN(RRT_TOM_COLAB)
+writeFUN(RRT_PT_COLAB)
+writeFUN(RRT_CITATION_COLAB)
+
+```
+
