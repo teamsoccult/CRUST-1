@@ -4,17 +4,17 @@ Recent additions: Made colab more general, recording old gModel, inclusion of co
 Last edit on 23/11/2019"
 
 # should anything change here - do we use all of it? 
-ABM_PT <- function(replications, turns, models, k, 
+abmPT <- function(replications, turns, models, k, 
                     weights, base_sampleSize, correlation, sigma,
                     modelCompare, modelSelection, inputDir, outputDir, 
-                    outputFile, paramFile, verbose, ndec, seeds, some_models){
+                    outputFile, paramFile, verbose, ndec, seeds, modelsString){
   
   ## REPLICA SIMULATION
   ###################
   parameters <- list()
   
   #Has to be done to run all true models in one go. 
-  trueModel <- some_models[tMod] #tMod er en liste med 2, 7, 13. 
+  trueModel <- modelsString[tMod] #tMod er en liste med 2, 7, 13. 
   tModel <- strToModel(trueModel, k) #conversion. 
   
   for(replica in 1:replications){
@@ -31,11 +31,11 @@ ABM_PT <- function(replications, turns, models, k,
                         nei = 3, circular = T, directed = F)
     }
     else if(net_type == "PT"){
-      g <- readRDS("~/CRUST-1/citation_network/prospect_theory.rds")
+      g <- readRDS("~/CRUST-1/Paper2/citationNetworks/PT.rds")
     }
     
     if(pop_type == "All"){ #epi --> All 
-      V(g)$type <- sample(c("Bo", "Mave", "Tess"))
+      V(g)$type <- sample(c("Bo", "Mave", "Tess"), size = net_size, replace = T)
     }
     else if(pop_type == "Bo"){ #bo --> Bo 
       V(g)$type <- sample(c("Bo", "Mave", "Tess"), net_size, replace = T, prob = c(0.99, 0.005, 0.005))
@@ -50,8 +50,7 @@ ABM_PT <- function(replications, turns, models, k,
     # Sampling agents 
     V(g)$type <- sample(V(g)$type)
     V(g)$name <- make.unique(V(g)$type) 
-    V(g)$model <- sample(some_models)
-    V(g)$model <- sample(V(g)$model)
+    V(g)$model <- sample(modelsString, size = net_size, replace = T)
     matrix_g <- as_adjacency_matrix(g, sparse = F) 
     agentTurn <- sample(V(g)$name, size = turns, replace = T) 
     
@@ -574,20 +573,20 @@ ABM_PT <- function(replications, turns, models, k,
       output[turn, O_SWITCH_NOT_GLOBAL] <- switch_not_global #all not same global. 
       
       ## PROPORTION ## 
-      output[turn, O_PROPORTION_1] <- mean(as.numeric(V(g)$model == some_models[1])) 
-      output[turn, O_PROPORTION_2] <- mean(as.numeric(V(g)$model == some_models[2]))
-      output[turn, O_PROPORTION_3] <- mean(as.numeric(V(g)$model == some_models[3]))
-      output[turn, O_PROPORTION_4] <- mean(as.numeric(V(g)$model == some_models[4]))
-      output[turn, O_PROPORTION_5] <- mean(as.numeric(V(g)$model == some_models[5]))
-      output[turn, O_PROPORTION_6] <- mean(as.numeric(V(g)$model == some_models[6]))
-      output[turn, O_PROPORTION_7] <- mean(as.numeric(V(g)$model == some_models[7]))
-      output[turn, O_PROPORTION_8] <- mean(as.numeric(V(g)$model == some_models[8]))
-      output[turn, O_PROPORTION_9] <- mean(as.numeric(V(g)$model == some_models[9]))
-      output[turn, O_PROPORTION_10] <- mean(as.numeric(V(g)$model == some_models[10]))
-      output[turn, O_PROPORTION_11] <- mean(as.numeric(V(g)$model == some_models[11]))
-      output[turn, O_PROPORTION_12] <- mean(as.numeric(V(g)$model == some_models[12]))
-      output[turn, O_PROPORTION_13] <- mean(as.numeric(V(g)$model == some_models[13]))
-      output[turn, O_PROPORTION_14] <- mean(as.numeric(V(g)$model == some_models[14]))
+      output[turn, O_PROPORTION_1] <- mean(as.numeric(V(g)$model == modelsString[1])) 
+      output[turn, O_PROPORTION_2] <- mean(as.numeric(V(g)$model == modelsString[2]))
+      output[turn, O_PROPORTION_3] <- mean(as.numeric(V(g)$model == modelsString[3]))
+      output[turn, O_PROPORTION_4] <- mean(as.numeric(V(g)$model == modelsString[4]))
+      output[turn, O_PROPORTION_5] <- mean(as.numeric(V(g)$model == modelsString[5]))
+      output[turn, O_PROPORTION_6] <- mean(as.numeric(V(g)$model == modelsString[6]))
+      output[turn, O_PROPORTION_7] <- mean(as.numeric(V(g)$model == modelsString[7]))
+      output[turn, O_PROPORTION_8] <- mean(as.numeric(V(g)$model == modelsString[8]))
+      output[turn, O_PROPORTION_9] <- mean(as.numeric(V(g)$model == modelsString[9]))
+      output[turn, O_PROPORTION_10] <- mean(as.numeric(V(g)$model == modelsString[10]))
+      output[turn, O_PROPORTION_11] <- mean(as.numeric(V(g)$model == modelsString[11]))
+      output[turn, O_PROPORTION_12] <- mean(as.numeric(V(g)$model == modelsString[12]))
+      output[turn, O_PROPORTION_13] <- mean(as.numeric(V(g)$model == modelsString[13]))
+      output[turn, O_PROPORTION_14] <- mean(as.numeric(V(g)$model == modelsString[14]))
       output[turn, O_PROPORTION_TRUE] <- mean(as.numeric(V(g)$model == trueModel)) 
     } #ending while
     
@@ -608,9 +607,9 @@ ABM_PT <- function(replications, turns, models, k,
     names(output) <- OUTPUT_HEADER
     
     ## Write output data table into a file ##
-    write.table(output, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
+    write.table(output, file=paste0(outputDirCsv, "/", net_type, "_", pop_type, "_", 
                                     sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
-                                    "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
+                                    "_", net_size, "_", base_sampleSize, "_", 
                                     tMod, "_", paste(ifelse(colab_prob > 0, "COLAB", "NOLAB")), 
                                     outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
@@ -618,9 +617,9 @@ ABM_PT <- function(replications, turns, models, k,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
   
-  saveRDS(parameters, file=paste0(outputDir, "/", net_type, "_", pop_type, "_", 
+  saveRDS(parameters, file=paste0(outputDirRds, "/", net_type, "_", pop_type, "_", 
                                   sigma, "_", paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
-                                  "_", net_size, "_", modelSelection, "_", base_sampleSize, "_", 
+                                  "_", net_size, "_", base_sampleSize, "_", 
                                   tMod, "_", paste(ifelse(colab_prob > 0, "COLAB", "NOLAB")),
                                   paramFile))
 }

@@ -1,5 +1,5 @@
 ---
-title: "abmPT"
+title: "abmTOM"
 author: "Mikkel Werling & Victor Moeller"
 date: "5/16/2019"
 output: html_document
@@ -26,9 +26,10 @@ paths
 
 ```{r}
 baseDir <- "~/CRUST-1" #the "." stopped working. 
-scriptDir <- paste0(baseDir, "/src/functions")
-inputDir <- paste0(baseDir, "/data")
-outputDir <- paste0(baseDir, "/data/new_data")
+scriptDir <- paste0(baseDir, "/FunctionsLoads/Functions")
+inputDir <- paste0(baseDir, "/Paper2/data")
+outputDirCsv <- paste0(baseDir, "/Paper2/data/raw/csv")
+outputDirRds <- paste0(baseDir, "/Paper2/data/raw/rds")
 ```
 
 functions
@@ -38,7 +39,7 @@ source(paste0(scriptDir, "/analysis.R"))
 source(paste0(scriptDir, "/calculateDet.R"))
 source(paste0(scriptDir, "/calculateDistance.R"))
 source(paste0(scriptDir, "/compareModels.R"))
-source(paste0(scriptDir, "/constants_4_rework2.R")) #new constants baby.
+source(paste0(scriptDir, "/constantsPaper2.R")) #new constants baby.
 source(paste0(scriptDir, "/convertBinary.R"))
 source(paste0(scriptDir, "/generateBetas.R"))
 source(paste0(scriptDir, "/generateModels.R"))
@@ -46,22 +47,21 @@ source(paste0(scriptDir, "/generateXSet.R"))
 source(paste0(scriptDir, "/generateY.R"))
 source(paste0(scriptDir, "/getBetas.R"))
 source(paste0(scriptDir, "/getPredictors.R"))
-source(paste0(scriptDir, "/modelSimilarByInteraction_TEST.R"))
-source(paste0(scriptDir, "/modelSimilarByTerm_TEST.R"))
+source(paste0(scriptDir, "/modelSimilarByInteractionRework.R"))
+source(paste0(scriptDir, "/modelSimilarByTermRework.R"))
 source(paste0(scriptDir, "/modelToStr.R"))
 source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
-source(paste0(scriptDir, "/simulator.R"))
 source(paste0(scriptDir, "/strToModel.R"))
-source(paste0(scriptDir, "/ABM_TOM_CON.R")) #TOM cit. network. 
+source(paste0(scriptDir, "/abmPaper2TOM.R")) 
 ```
 
-some_models, g & agentTurn
+modelsString, g & agentTurn
 
 ```{r}
 
 #some models -  
-load(paste0(baseDir, "/connectivity/loads/some_models"))
+load(paste0(baseDir, "/FunctionsLoads/Loads/modelsString"))
 
 ```
 
@@ -70,17 +70,17 @@ input parameters
 ```{r}
 
 ## Number of replications
-replications <- 50 #100 originally, now 2. 
+replications <- 1 #100 originally, now 2. 
 
 ## Length of the simulation
-turns <- 10000
-study_cap <- 10000
+turns <- 1000
+study_cap <- 1000
 
 ## Number of factors
 k <- 3
 
 ## generating 
-load(paste0(baseDir, "/connectivity/loads/models")) #changed
+load(paste0(baseDir, "/FunctionsLoads/Loads/models")) #changed
 
 ## Identify the number of predictors of each model
 predictors <- getPredictors(models)
@@ -125,10 +125,10 @@ Just change the hell out of this so that it suits your needs.
 
 ```{r}
 net_types <- list("Small") #"Lattice", "Small", "TOM"
-sigmas <- list(0.2, 0.5, 0.8) #0.2, 0.5, 0.8 
+sigmas <- list(0.8) #0.2, 0.5, 0.8 
 base_sampleSizes <- list(20) #20, 100. 
 pop_types <- list("Bo") #"Bo", "Mave", "Tess", "All"
-tMods <- list(2, 7, 13) #2, 7, 13. 
+tMods <- list(13) #2, 7, 13. 
 modelCompares <- list(BIC) #AIC, BIC 
 colab_probs <- list(0) #no colab vs. colab. 
 
@@ -148,10 +148,10 @@ for(net_type in net_types){
           for(modelCompare in modelCompares){ #should be
             for(colab_prob in colab_probs){
         
-ABM_TOM(replications, turns, models, k, 
+abmTOM(replications, turns, models, k, 
     weights, base_sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-    verbose, ndec, seeds, some_models)
+    verbose, ndec, seeds, modelsString)
             }
           }
         }
