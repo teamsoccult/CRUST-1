@@ -30,7 +30,8 @@ paths
 baseDir <- "~/CRUST-1"
 scriptDir <- paste0(baseDir, "/src/functions")
 inputDir <- paste0(baseDir, "/data")
-outputDir <- paste0(baseDir, "/data/new_data")
+outputDirCsv <- paste0(baseDir, "/data/raw/csv")
+outputDirRds <- paste0(baseDir, "/data/raw/rds")
 ```
 
 functions

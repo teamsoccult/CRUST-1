@@ -17,9 +17,10 @@ Paths
 
 ```{r}
 baseDir <- "."
-scriptDir <- paste0(baseDir, "/DevezerAlteredAgents/src/functions")
-inputDir <- paste0(baseDir, "/DevezerAlteredAgents/data")
-outputDir <- paste0(baseDir, "/DevezerAlteredAgents/data/raw")
+scriptDir <- paste0(baseDir, "/FunctionsLoads/Functions")
+inputDir <- paste0(baseDir, "/Paper1/data")
+outputDirCsv <- paste0(baseDir, "/Paper1/data/raw/csv")
+outputDirRds <- paste0(baseDir, "/Paper1/data/raw/rds")
 ```
 
 Functions
@@ -30,7 +31,7 @@ source(paste0(scriptDir, "/analysis.R"))
 source(paste0(scriptDir, "/calculateDet.R"))
 source(paste0(scriptDir, "/calculateDistance.R"))
 source(paste0(scriptDir, "/compareModels.R"))
-source(paste0(scriptDir, "/constantsRework.R"))
+source(paste0(scriptDir, "/constantsPaper1Rework.R"))
 source(paste0(scriptDir, "/convertBinary.R"))
 source(paste0(scriptDir, "/generateBetas.R"))
 source(paste0(scriptDir, "/generateModels.R"))
@@ -43,7 +44,7 @@ source(paste0(scriptDir, "/modelSimilarByTermRework.R"))
 source(paste0(scriptDir, "/modelToStr.R"))
 source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
-source(paste0(scriptDir, "/simulatorRework.R"))
+source(paste0(scriptDir, "/abmPaper1Rework.R"))
 source(paste0(scriptDir, "/strToModel.R"))
 
 ```
@@ -67,10 +68,10 @@ Input parameters
 
 ```{r}
 ## Number of replications
-replications <- 50
+replications <- 1
 
 ## Length of the simulation
-timesteps <- 10000
+timesteps <- 1000
 
 ## Number of factors
 k <- 3
@@ -80,7 +81,7 @@ correlation <- 0.2
 
 ## Models (Fixed so that model 14 is not model 10). 
 load(paste0(baseDir, "/FunctionsLoads/Loads/models"))
-load(paste0(baseDir, "/FunctionsLoads/Loads/some_models"))
+load(paste0(baseDir, "/FunctionsLoads/Loads/modelsString"))
 
 ## Identify the number of predictors of each model
 predictors <- getPredictors(models)
@@ -122,7 +123,7 @@ for (population in populations){
     for (sampleSize in sampleSizes){
       for (tMod in tMods){
         for (modelCompare in modelCompares){
-simulatorRework(replications, timesteps, models, k, tModel,
+abmPaper1Rework(replications, timesteps, models, k, tModel,
   nRey, nTess, nBo, nMave, weights, sampleSize, correlation, sigma,
   modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
   verbose, ndec, seeds)

@@ -61,14 +61,14 @@
 ##   Consider interactions in model expectation calculation [2016-06-22]
 ##
 ################
-simulatorLoop <- function(replications, timesteps, models, k, tModel,
+abmPaper1Reproducibility <- function(replications, timesteps, models, k, tModel,
     nRey, nTess, nBo, nMave, weights, sampleSize, correlation, sigma,
     modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
     verbose, ndec, seeds){
   
   
   #true model
-  trueModel <- some_models[tMod]
+  trueModel <- modelsString[tMod]
   tModel <- strToModel(trueModel, k)
 
   ###################
@@ -267,15 +267,15 @@ simulatorLoop <- function(replications, timesteps, models, k, tModel,
     names(output) <- OUTPUT_HEADER
 
     ## Write output data table into a file
-    write.table(output, file=paste0(outputDir, "/", population, "_", sigma, "_", 
+    write.table(output, file=paste0(outputDirCsv, "/", population, "_", sigma, "_", 
                                     paste(ifelse(modelCompare == 5, "BIC", "AIC")),
-                                    "_", sampleSize, "_", tMod, outputFile),
+                                    "_", sampleSize, "_", tMod, "_", "Reproducibility", outputFile),
                 append=ifelse(replica == 1, FALSE, TRUE),
                 quote=FALSE, sep=",", row.names=FALSE,
                 col.names=ifelse(replica == 1, TRUE, FALSE))
   }
 
-  saveRDS(parameters, file=paste0(outputDir, "/", population, "_", sigma, "_", 
+  saveRDS(parameters, file=paste0(outputDirRds, "/", population, "_", sigma, "_", 
                                   paste(ifelse(modelCompare == 5, "BIC", "AIC")), 
-                                  "_", sampleSize, "_", tMod, paramFile))
+                                  "_", sampleSize, "_", tMod, "_", "Reproducibility", paramFile))
 }

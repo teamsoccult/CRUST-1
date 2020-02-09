@@ -20,9 +20,11 @@ Paths
 ```{r}
 
 baseDir <- "."
-scriptDir <- paste0(baseDir, "/DevezerAlteredAgents/src/functions")
-inputDir <- paste0(baseDir, "/DevezerAlteredAgents/data")
-outputDir <- paste0(baseDir, "/DevezerAlteredAgents/data/raw")
+scriptDir <- paste0(baseDir, "/FunctionsLoads/Functions")
+inputDir <- paste0(baseDir, "/Paper1/data")
+outputDirCsv <- paste0(baseDir, "/Paper1/data/raw/csv")
+outputDirRds <- paste0(baseDir, "/Paper1/data/raw/rds")
+
 
 ```
 
@@ -34,7 +36,7 @@ source(paste0(scriptDir, "/analysis.R"))
 source(paste0(scriptDir, "/calculateDet.R"))
 source(paste0(scriptDir, "/calculateDistance.R"))
 source(paste0(scriptDir, "/compareModels.R"))
-source(paste0(scriptDir, "/constantsLoop.R"))
+source(paste0(scriptDir, "/constantsPaper1Reproducibility.R"))
 source(paste0(scriptDir, "/convertBinary.R"))
 source(paste0(scriptDir, "/generateBetas.R"))
 source(paste0(scriptDir, "/generateModels.R"))
@@ -47,7 +49,7 @@ source(paste0(scriptDir, "/modelSimilarByTerm.R"))
 source(paste0(scriptDir, "/modelToStr.R"))
 source(paste0(scriptDir, "/searchModel.R"))
 source(paste0(scriptDir, "/seedGenerator.R"))
-source(paste0(scriptDir, "/simulatorLoop.R"))
+source(paste0(scriptDir, "/abmPaper1Reproducibility.R"))
 source(paste0(scriptDir, "/strToModel.R"))
 
 ```
@@ -73,10 +75,10 @@ Input parameters
 ```{r}
 
 ## Number of replications
-replications <- 50
+replications <- 1
 
 ## Length of the simulation
-timesteps <- 11000
+timesteps <- 1000
 
 ## Number of factors
 k <- 3
@@ -86,7 +88,7 @@ correlation <- 0.2
 
 ## Testing stuff here ## 
 load(paste0(baseDir, "/FunctionsLoads/Loads/models"))
-load(paste0(baseDir, "/FunctionsLoads/Loads/some_models"))
+load(paste0(baseDir, "/FunctionsLoads/Loads/modelsString"))
 
 ## Identify the number of predictors of each model
 predictors <- getPredictors(models)
@@ -104,13 +106,13 @@ ID variables to be looped over:
 ```{r}
 
 #ID variables that they all loop over
-populations <- list("Mave", "Rey", "Tess","Bo", "All") 
+populations <- list("Mave") #"Rey", "Tess","Bo", "All" 
 sampleSizes <- list(100) 
 
 #Things we vary. 
-sigmas <- list(0.2, 0.5, 0.8) #0.2, 0.5, 0.8 
-tMods <- list(2, 7, 13) #2, 7, 13. 
-modelCompares <- list(AIC, BIC) #AIC, BIC 
+sigmas <- list(0.2) #0.2, 0.5, 0.8 
+tMods <- list(2) #2, 7, 13. 
+modelCompares <- list(BIC) #AIC, BIC 
 
 ```
 
@@ -131,7 +133,7 @@ for (population in populations){
     for (sampleSize in sampleSizes){
       for (tMod in tMods){
         for (modelCompare in modelCompares){
-simulatorLoop(replications, timesteps, models, k, tModel,
+abmPaper1Reproducibility(replications, timesteps, models, k, tModel,
   nRey, nTess, nBo, nMave, weights, sampleSize, correlation, sigma,
   modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
   verbose, ndec, seeds)
