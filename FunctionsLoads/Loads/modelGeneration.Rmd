@@ -1,5 +1,5 @@
 ---
-title: "some_models"
+title: "modelGeneration"
 author: "Mikkel Werling"
 date: "5/13/2019"
 output: html_document
@@ -19,12 +19,10 @@ p_load(igraph, stringr, ggraph, wesanderson, cowplot, caTools, data.table, permu
 paths
 
 ```{r}
-#setwd("~/CRUST-1/connectivity/loads")
+
 setwd("~/CRUST-1")
 baseDir <- "."
 scriptDir <- paste0(baseDir, "/FunctionsLoads/Functions")
-#inputDir <- paste0(baseDir, "/DevezerAlteredAgents/data")
-#outputDir <- paste0(baseDir, "/DevezerAlteredAgents/data/raw")
 ```
 
 functions
@@ -85,18 +83,18 @@ models[[1]] <- matrix(models[[1]], ncol = 3)
 models[[14]] <- unname(models[[14]])
 
 #Creating some models (formatting of model strings)
-some_models <- NULL
+modelsString <- NULL
 
 for (N in 1:length(models)){
-  some_models[N] <- modelToStr(models[[N]])
+  modelsString[N] <- modelToStr(models[[N]])
 }
 
-some_models <- str_replace(some_models, "Y ~", "")
-some_models <- str_replace_all(some_models, ":", "")
+modelsString <- str_replace(modelsString, "Y ~", "")
+modelsString <- str_replace_all(modelsString, ":", "")
 
 #Write MetascienceBa models
 outputDir <- paste0(baseDir, "/FunctionsLoads/Loads")
-save(some_models, file = paste0(outputDir, "/some_models"))
+save(modelsString, file = paste0(outputDir, "/modelsString"))
 
 ```
 
@@ -105,8 +103,8 @@ TEST IF EVERYTHING WORKED
 ```{r}
 
 setwd(paste0(baseDir, "/FunctionsLoads/Loads"))
-load("some_models")
-some_models
+load("modelsString")
+modelsString
 
 load("models")
 models
