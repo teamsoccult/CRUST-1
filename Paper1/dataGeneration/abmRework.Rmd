@@ -71,7 +71,7 @@ Input parameters
 replications <- 1
 
 ## Length of the simulation
-timesteps <- 1000
+timesteps <- 10000
 
 ## Number of factors
 k <- 3
