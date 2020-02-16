@@ -4,30 +4,31 @@ author: "Victor Møller"
 date: "November 14, 2019"
 output: html_document
 ---
-30-11
+
+09-02-2020
 This document tests & cleans data from Devezer with fixed agents. 
+(what about Devezer non-fixed?)
 Right now, it takes input from Raw and output to either plotting or outcome. 
 
 
 ```{r}
 
-#packages
+#Packages
 library(pacman)
 p_load(tidyverse, tidyselect, data.table)
 
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Reproducibility.csv"
+
+#Working directory 
+setwd("~/CRUST-1/Paper1/data/raw/csv")
 
 ```
 
-Relabeling orig_type & modelcompare + taking up to turn 10000
+Relabeling orig_type & modelcompare + taking up to turn 10000. 
+Outputs the files into: ~/CRUST-1/Paper1/data/preprocessed 
 
 ```{r}
-#Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
-
-#Working directory of RAW data. 
-setwd("D:/data/Raw data from Computer Room/05-12/raw")
 
 #your files 
 files = list.files(pattern=c("*.csv"), full.names=TRUE)
@@ -38,7 +39,7 @@ data_rename <- function(i){
   for(i in files){
   
   #where your raw files are:   
-  setwd("D:/data/Raw data from Computer Room/05-12/raw")
+  setwd("~/CRUST-1/Paper1/data/raw/csv")
     
   #reading data:
   data <- read_csv(i)
@@ -48,11 +49,12 @@ data_rename <- function(i){
   #factorizing (might not work anyways): 
   data <- data %>%
     filter(turn <= 10000) %>%
-    mutate(orig_type = factor(orig_type, labels = c("Rey", "Tess", "Bo", "Mave")),
+    mutate(orig_type = factor(orig_type, 
+                              labels = c("Rey", "Tess", "Bo", "Mave")),
          modelcompare = factor(if_else(modelcompare == 4, "AIC", "BIC")))
   
   #directory for the files: 
-  setwd("D:/data/data_prepped_05-12")
+  setwd("~/CRUST-1/Paper1/data/preprocessed")
   
   #write csv:
   write_csv(data, paste0(i))
@@ -61,14 +63,16 @@ data_rename <- function(i){
 }
 
 data_rename(files)
+
 ```
 
-do we have all files.
+Checks that all wanted files are in the proprocessed folder. 
 
 ```{r}
 
+
 #Working directory of RAW data. 
-setwd("D:/data/data_prepped_05-12")
+setwd("~/CRUST-1/Paper1/data/preprocessed")
 
 #which files do we have
 files = list.files(pattern=c("*.csv"), full.names=TRUE)
@@ -81,7 +85,7 @@ identifiers <- c(
               "_0.2_", "_0.5_", "_0.8_", 
               "_AIC_", "_BIC_",
               "_20_", "_100_",
-              "_2.csv", "_7.csv", "_13.csv")
+              "_2_", "_7_", "_13_")
 
 for (i in identifiers){
   
@@ -99,20 +103,33 @@ print(paste0(value, ": ", i))
 
 ```
 
-Sampling:
+Checks whether sampling 
 
 ```{r}
 
-
-
 #Naming scheme:
-naming_scheme <- "_Devezer_original.csv"
+naming_scheme <- "_Reproducibility.csv"
 
 #working directory
-setwd("D:/data/data_prepped_05-12")
-path = "D:/data/data_prepped_05-12"
+setwd("~/CRUST-1/Paper1/data/preprocessed")
+path = "~/CRUST-1/Paper1/data/preprocessed"
 files <- list.files(path = path, pattern = "*.csv")
 
+#testing stuff
+df <- read_csv("All_0.2_AIC_100_13_Reproducibility.csv")[mycols] %>%
+      mutate(orig_type = factor(orig_type))
+
+
+test <- read_csv("All_0.2_AIC_100_13_Reproducibility.csv")[mycols]
+df <- test %>%
+      mutate(orig_type = factor(orig_type),
+             old_model = numeric(old_model),
+             selected_model = factor(selected_model))
+
+df_total_errors <- df %>% 
+        group_by(orig_type) %>%
+        summarize(count = sum(old_model == selected_model), #factor error (2020)
+                  total = n()) #how many of that agent type in total. 
 #initializing empty list 
 datalist1 <- list()
 datalist2 <- list()
@@ -120,7 +137,6 @@ datalist3 <- list()
 
 samplingFX <- function(files){
   
-  #selecting cols (check )
     mycols <- c("orig_type", 
                 "old_model", 
                 "selected_model") 
@@ -128,18 +144,16 @@ samplingFX <- function(files){
   for(i in files){
 
     #read csv 
-    df <- read_csv(i)[mycols]
+    df <- read_csv(i)[mycols] %>%
+      mutate(orig_type = factor(orig_type))
     
-    #as factor
-    df <- df %>%
-      mutate(orig_type = factor(orig_type),
-             old_model = factor(old_model),
-             selected_model = factor(selected_model))
-    
-    #we want this (how many errors)
-    df_total_errors <- df %>%
+    #Checks whether they sample their current model (happens in Reproducibility)
+    #This is allowed in Devezer et al., but should not happen for "Rework". 
+    #count = how many times did they sample their current model. 
+    #total = how many times does the agent 
+    df_total_errors <- df %>% 
         group_by(orig_type) %>%
-        summarize(count = sum(old_model == selected_model),
+        summarize(count = sum(old_model == selected_model), #factor error (2020)
                   total = n())
     
     #where are the errors (which old models)
