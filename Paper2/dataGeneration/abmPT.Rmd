@@ -127,6 +127,10 @@ defining parameters:
 net_types: "Lattice", "Small", "PT"
 sigmas: 0.2, 0.5, 0.8 (can be anything)
 base_sampleSizes: 20, 100 (can be anything)
+pop_types: "Bo", "Tess", "Mave", "All"
+tModes: 2, 7, 13 (can be any of the 14 models)
+modelCompares: BIC, AIC 
+colab_probs: 0, 0.02 (can be anything between 0 and 1)
 
 ```{r}
 net_types <- list("Lattice", "Small", "PT") #Lattice, Small, PT
@@ -170,62 +174,5 @@ ABM_PT(replications, turns, models, k,
 end_time <- Sys.time()
 end_time - start_time
 
-```
-
-SPECIFIC PARAMETERS:
-Just change the hell out of this so that it suits your needs. 
-
-```{r}
-net_types <- list("Small") #"Lattice", "Small", "PT"
-sigmas <- list(0.2) #0.2, 0.5, 0.8 
-base_sampleSizes <- list(20) #20, 100. 
-pop_types <- list("Bo") #"Bo", "Mave", "Tess", "All"
-tMods <- list(2) #2, 7, 13. 
-modelCompares <- list(BIC) #AIC, BIC 
-colab_probs <- list(0) #no colab vs. colab. 
-
-```
-
-```{r}
-
-start_time <- Sys.time()
-
-### running the ABM for all combinations of parameters ### 
-
-for(net_type in net_types){ 
-  for(sigma in sigmas){
-    for(base_sampleSize in base_sampleSizes){
-      for(pop_type in pop_types){
-        for(tMod in tMods){ #not sure this works. 
-          for(modelCompare in modelCompares){ #should be
-            for(colab_prob in colab_probs){
-        
-abmPT(replications, turns, models, k, 
-    weights, base_sampleSize, correlation, sigma,
-    modelCompare, modelSelection, inputDir, outputDir, outputFile, paramFile,
-    verbose, ndec, seeds, modelsString)
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-end_time <- Sys.time()
-end_time - start_time
-
-```
-
-Hard-set for troubleshooting 
-
-```{r}
-net_type <- "PT" #"Lattice", "Small", "PT"
-sigma <- 0.5 #0.2, 0.5, 0.8 
-base_sampleSize <- 20 #20, 100. 
-pop_type <- "All" #"Bo", "Mave", "Tess", "All"
-tMod <- 7 #2, 7, 13. 
-modelCompare <- BIC #AIC, BIC 
-colab_prob <- 0.02 #no colab vs. colab. 
 ```
 

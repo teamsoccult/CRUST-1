@@ -13,17 +13,13 @@ Median Degree: 3
 
 ```{r}
 library(pacman)
-p_load(bibliometrix)
-p_load(igraph)
-p_load(ggraph)
-p_load(tidyverse)
-p_load(stringr)
+p_load(bibliometrix, igraph, ggraph, tidyverse, stringr)
 ```
 
 Reading the data file
 
 ```{r}
-setwd("~/CRUST-1/MetascienceBA/CitationNetworks/Prospect Theory 2018-2019")
+setwd("~/CRUST-1/Paper2/citationNetworks/PT 2018-2019")
 
 temp <- list.files(pattern="*bib")
 
@@ -172,9 +168,9 @@ ggraph(g, "circle")+
   theme_graph()
 
 #save the file
-saveRDS(g, "~/CRUST-1/citation_network/prospect_theory.rds")
+saveRDS(g, "~/CRUST-1/Paper2/citationNetworks/PT.rds")
 
-g <- readRDS("~/CRUST-1/citation_network/prospect_theory.rds")
+g <- readRDS("~/CRUST-1/Paper2/citationNetworks/PT.rds")
 ```
 
 Diagnostics.

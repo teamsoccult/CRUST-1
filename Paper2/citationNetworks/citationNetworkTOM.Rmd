@@ -13,17 +13,13 @@ Median Degree: 5
 
 ```{r}
 library(pacman)
-p_load(bibliometrix)
-p_load(igraph)
-p_load(ggraph)
-p_load(tidyverse)
-p_load(stringr)
+p_load(bibliometrix, igraph, ggraph, tidyverse, stringr)
 ```
 
 Reading the data file
 
 ```{r}
-setwd("~/CRUST-1/MetascienceBA/CitationNetworks/Theory Of Mind 2018-2019")
+setwd("~/CRUST-1/Paper2/citationNetworks/TOM 2018-2019")
 
 temp <- list.files(pattern="*bib")
 
@@ -174,9 +170,9 @@ ggraph(g, "circle")+
   theme_graph()
 
 #save the file
-saveRDS(g, "~/CRUST-1/citation_network/theory_of_mind.rds")
+saveRDS(g, "~/CRUST-1/Paper2/citationNetworks/TOM.rds")
 
-g <- readRDS("~/CRUST-1/citation_network/theory_of_mind.rds")
+g <- readRDS("~/CRUST-1/Paper2/citationNetworks/TOM.rds")
 ```
 
 Diagnostics.

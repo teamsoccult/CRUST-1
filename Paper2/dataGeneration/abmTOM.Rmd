@@ -120,17 +120,24 @@ seeds <- seedGenerator(replications, paste0(inputDir, "/seeds.csv"))
 
 ```
 
-SPECIFIC PARAMETERS:
-Just change the hell out of this so that it suits your needs. 
+FULL RUN: 
+defining parameters: 
+net_types: "Lattice", "Small", "TOM"
+sigmas: 0.2, 0.5, 0.8 (can be anything)
+base_sampleSizes: 20, 100 (can be anything)
+pop_types: "Bo", "Tess", "Mave", "All"
+tModes: 2, 7, 13 (can be any of the 14 models)
+modelCompares: BIC, AIC 
+colab_probs: 0, 0.02 (can be anything between 0 and 1)
 
 ```{r}
-net_types <- list("Small") #"Lattice", "Small", "TOM"
-sigmas <- list(0.8) #0.2, 0.5, 0.8 
-base_sampleSizes <- list(20) #20, 100. 
-pop_types <- list("Bo") #"Bo", "Mave", "Tess", "All"
-tMods <- list(13) #2, 7, 13. 
-modelCompares <- list(BIC) #AIC, BIC 
-colab_probs <- list(0) #no colab vs. colab. 
+net_types <- list("Lattice", "Small", "TOM") #"Lattice", "Small", "TOM"
+sigmas <- list(0.2, 0.5, 0.8) #0.2, 0.5, 0.8 
+base_sampleSizes <- list(20, 100) #20, 100. 
+pop_types <- list("Bo", "Mave", "Tess", "All") #"Bo", "Mave", "Tess", "All"
+tMods <- list(2, 7, 13) #2, 7, 13. 
+modelCompares <- list(AIC, BIC) #AIC, BIC 
+colab_probs <- list(0, 0.02) #no colab vs. colab. 
 
 ```
 
