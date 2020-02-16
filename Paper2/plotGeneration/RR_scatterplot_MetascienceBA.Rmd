@@ -8,9 +8,6 @@ output: html_document
 set-up
 
 ```{r}
-#set working directory
-setwd("E:/data/dataPlotting")
-
 #packages 
 library(pacman)
 p_load(tidyverse, ggunchained, cowplot, ggcorrplot) 
@@ -21,11 +18,11 @@ loading data.
 ```{r}
 
 #Reading outcome measures: 
-setwd("~/CRUST-1/MetascienceBA/data/outcome_measures")
-path <- "~/CRUST-1/MetascienceBA/data/outcome_measures"
+setwd("~/CRUST-1/Paper2/data/outcomeMeasures")
+path <- "~/CRUST-1/Paper2/data/outcomeMeasures"
 
 temp <- list.files(path = path, pattern="*.csv") #if possible. 
-temp <- temp[c(1, 2, 4, 5, 6)]
+temp <- temp[c(1, 2, 4, 5, 6)] 
 
 list2env(
   lapply(setNames(temp, make.names(gsub("*.csv$", "", temp))), 
@@ -302,7 +299,6 @@ cor_baselines_nolab <- ggcorrplot(corr_baselines_nolab,
 
 
 Fig7_A <- cor_baselines_nolab
-
 
 ```
 
