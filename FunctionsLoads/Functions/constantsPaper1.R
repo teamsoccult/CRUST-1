@@ -31,15 +31,12 @@ AIC <- 4
 BIC <- 5
 
 ## Model output fields
-O_NUM_FIELDS <- 13
-
-## Model output fields
 O_NUM_FIELDS <- 14
 
 # ID VARIABLES
-O_POPULATION <- 1
-O_SIGMA <- 2
-O_NETWORK <- 3
+O_ABMCONDITION <- 1
+O_POPULATION <- 2
+O_SIGMA <- 3
 O_SAMPLE_SIZE <- 4
 O_TRUE_MODEL <- 5
 O_MODELCOMPARE <- 6
@@ -55,13 +52,12 @@ O_FINAL_GLOBAL_MODEL <- 12
 O_FINAL_GLOBAL_TRUE_MODEL <- 13
 O_REPLICATED <- 14
 
-
 ## File output headers
 OUTPUT_HEADER <- c("replica",
                    "turn",
+                   "ABM_condition",
                    "population",
                    "sigma",
-                   "network",
                    "base_SS",
                    "true_model",
                    "modelcompare",

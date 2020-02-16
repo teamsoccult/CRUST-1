@@ -230,9 +230,9 @@ abmPaper1Reproducibility <- function(replications, timesteps, models, k, tModel,
 
       
       ## ID variables 
+      output[step, O_ABMCONDITION] <- "Reproducibility"
       output[step, O_POPULATION] <- population
       output[step, O_SIGMA] <- sigma
-      output[step, O_NETWORK] <- "None"
       output[step, O_SAMPLE_SIZE] <- sampleSize
       output[step, O_TRUE_MODEL] <- tMod
       output[step, O_MODELCOMPARE] <- modelCompare
