@@ -509,6 +509,8 @@ Outcomes(files)
 
 ```
 
+### FOR PLOTTING ###
+
 true_false plot - only true:
 
 ```{r}
