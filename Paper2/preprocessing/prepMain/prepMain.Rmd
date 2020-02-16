@@ -486,9 +486,10 @@ Outcomes <- function(files){
             FPTT = first_study - ((extra_agents / 2) + switch_testing)) %>%
       select(-c(first_row, first_study, orig_agents, 
                 switch_testing, extra_agents))
+
     
-    df_outcomes <- do.call("rbind", list(df_basic, stickiness, fptt))
-    df_outcomes_strat <- do.call("rbind", list(df_strat, stickiness_strat, fptt_strat))
+    df_outcomes <- Reduce(function(x,y) merge(x, y, all = T), list(df_basic, stickiness, fptt))
+    df_outcomes_strat <- Reduce(function(x,y) merge(x, y, all = T), list(df_strat, stickiness_strat, fptt_strat))
     
     datalist1[i] <- list(df_outcomes)
     datalist2[i] <- list(df_outcomes_strat)
