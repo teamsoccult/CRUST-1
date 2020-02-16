@@ -354,7 +354,7 @@ sixthFX(files)
 ### OUTCOME VARIABLES ###
 
 
-data preparation for "violin_extended_rework" (plot) & RR_CON (outcome):
+Outcome variables for tables and plots 
 
 ```{r}
 #Naming scheme:
