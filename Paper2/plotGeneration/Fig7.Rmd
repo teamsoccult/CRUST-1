@@ -16,8 +16,8 @@ p_load(readr, tidyverse, ggplot2, RColorBrewer, reshape2, ggthemes,
 
 
 ```{r}
-setwd("~/CRUST-1/MetascienceBA/data/dataPlotting")
-RR <- read_csv("violin_ridges_RR_MetascienceBA.csv")
+setwd("~/CRUST-1/Paper2/data/outcomeMeasures")
+RR <- read_csv("RR_TAT_Paper2.csv")
 
 #prep TF. 
 RR <- RR %>%
@@ -62,10 +62,7 @@ new directory & loading flatViolin
 setwd("~/CRUST-1")
 baseDir <- "."
 scriptDir <- paste0(baseDir, "/FunctionsLoads/Functions")
-#inputDir <- paste0(baseDir, "/data")
-#outputDir <- paste0(baseDir, "/data")
 source(paste0(scriptDir, "/flatViolin.R"))
-
 
 ```
 

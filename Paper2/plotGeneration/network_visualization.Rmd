@@ -4,28 +4,30 @@ author: "Mikkel Werling"
 date: "12/6/2019"
 output: html_document
 ---
+_________
+This document visualizes idealized networks as well as the networks used in the ABMs. 
+_________
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
+
+Loading packages
 
 ```{r}
 library(pacman)
 p_load(igraph, ggraph, networkD3, visNetwork, cowplot)
 ```
 
+Generating the networks
 
 ```{r}
 
-setwd("~/CRUST-1/MetascienceBA/CitationNetworks")
+setwd("~/CRUST-1/Paper2/citationNetworks")
 
-TOM <- readRDS("theory_of_mind.rds")
+TOM <- readRDS("TOM.rds")
 
-PT <- readRDS("prospect_theory.rds")
+PT <- readRDS("PT.rds")
 
 net_size <- 484
-
-scale_free <- sample_pa(net_size, directed = F, m = 2, power = 1)
 
 lattice <- make_lattice(length = 20, dim = 1, 
                         nei = 2, circular = T, directed = F)
@@ -33,7 +35,7 @@ lattice <- make_lattice(length = 20, dim = 1,
 small <- sample_smallworld(1, 20, 2, 0.05)
 ```
 
-Plottin using ggraph
+Plotting using ggraph
 
 ```{r}
 tom_graph <- ggraph(TOM, "circle")+

@@ -21,9 +21,9 @@ Preprocessing (should also be adjusted to accommodate better early prep).
 ```{r}
 
 #load data 
-setwd("E:/data/dataPlotting")
-violin <- read_csv("violin_extended_MetascienceBA.csv")
-violinstrat <- read_csv("violin_extended_bystrat_MetascienceBA.csv")
+setwd("~/CRUST-1/Paper2/data/outcomeMeasures")
+violin <- read_csv("RR_Paper2.csv")
+violinstrat <- read_csv("RR_STRAT_Paper2.csv")
 
 violin <- violin %>%
   mutate(network = factor(network),
@@ -82,8 +82,6 @@ new directory & loading flatViolin
 setwd("~/CRUST-1")
 baseDir <- "."
 scriptDir <- paste0(baseDir, "/FunctionsLoads/Functions")
-#inputDir <- paste0(baseDir, "/data")
-#outputDir <- paste0(baseDir, "/data")
 source(paste0(scriptDir, "/flatViolin.R"))
 
 
@@ -274,7 +272,7 @@ RR by true / false (prep).
 ```{r}
 
 #read TF. 
-TF <- read_csv("violin_ridges_TF_MetascienceBA.csv")
+TF <- read_csv("RR_TF_Paper2.csv")
 
 #prep TF. 
 TF <- TF %>%
@@ -367,7 +365,7 @@ RR_FUN(df_subsets, condition, true_model, "overall")
 RR & TAT (prep)
 
 ```{r}
-RR <- read_csv("violin_ridges_RR_MetascienceBA.csv")
+RR <- read_csv("RR_TAT_Paper2.csv")
 
 #prep TF. 
 RR <- RR %>%
