@@ -232,9 +232,9 @@ abmPaper1Rework <- function(replications, timesteps, models, k, tModel,
       }
 
       ##IDENTIFICATION COLUMNS ##
+      output[step, O_ABMCONDITION] <- "Rework"
       output[step, O_POPULATION] <- population
       output[step, O_SIGMA] <- sigma 
-      output[step, O_NETWORK] <- "None"
       output[step, O_SAMPLE_SIZE] <- sampleSize
       output[step, O_TRUE_MODEL] <- tMod
       output[step, O_MODELCOMPARE] <- modelCompare

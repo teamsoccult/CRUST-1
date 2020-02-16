@@ -36,7 +36,7 @@ source(paste0(scriptDir, "/analysis.R"))
 source(paste0(scriptDir, "/calculateDet.R"))
 source(paste0(scriptDir, "/calculateDistance.R"))
 source(paste0(scriptDir, "/compareModels.R"))
-source(paste0(scriptDir, "/constantsPaper1Reproducibility.R"))
+source(paste0(scriptDir, "/constantsPaper1.R"))
 source(paste0(scriptDir, "/convertBinary.R"))
 source(paste0(scriptDir, "/generateBetas.R"))
 source(paste0(scriptDir, "/generateModels.R"))
@@ -78,7 +78,7 @@ Input parameters
 replications <- 1
 
 ## Length of the simulation
-timesteps <- 10000
+timesteps <- 100
 
 ## Number of factors
 k <- 3
