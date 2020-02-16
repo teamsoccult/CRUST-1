@@ -31,7 +31,7 @@ abmTOM <- function(replications, turns, models, k,
                         nei = 4, circular = T, directed = F)
     }
     else if(net_type == "TOM"){
-      g <- readRDS("~/CRUST-1/citation_network/theory_of_mind.rds")
+      g <- readRDS("~/CRUST-1/Paper2/citationNetworks/TOM.rds")
     }
     
     if(pop_type == "All"){ #epi --> All 
